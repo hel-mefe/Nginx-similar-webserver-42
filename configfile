@@ -1,0 +1,44 @@
+http
+{
+    root /www
+    allowed_methods GET POST DELETE
+
+    server
+    {
+        server_name name
+        port 8080
+        index index.html index.php home.html home.php
+        not_found image.jpeg
+        max_connections 20
+
+        fastCGI .php /fastCGI/php-cgi
+        fastCGI .py /fastCGI/py-cgi
+
+        location /hello
+        {
+            allowed_methods POST
+            index merci.html
+            not_found 404.html
+            directory_listing on
+        }
+
+        location /hello/messi
+        {
+            allowed_methods POST
+            index merci.html
+            not_found 404.html
+            directory_listing on
+        }
+
+        location /cgi
+        {
+            index index.php
+        }
+
+        location /
+        {
+            allowed_methods POST
+            not_found image.jpeg
+        }
+    }
+}
