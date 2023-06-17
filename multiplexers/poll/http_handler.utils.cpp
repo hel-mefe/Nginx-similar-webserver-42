@@ -60,6 +60,13 @@ std::string get_extension(std::string &s)
     return ext;
 }
 
+std::string get_filename(std::string &s)
+{
+    size_t founds = s.find_last_of("/");
+    size_t foundp = s.find_last_of(".");
+    return(s.substr(founds + 1, foundp - (founds + 1)));
+}
+
 std::vector<std::string>    *split_first_line(std::string &s)
 {
     std::vector<std::string>    *splitted = new std::vector<std::string>();
@@ -104,7 +111,7 @@ bool    set_file_path(std::string &path, std::vector<std::string> &files)
  
     for (int i = 0; i < sz(files); i++)
     {
-        std::string rpath = path + files[i];
+        std::string rpath = path;//  + files[i];
         std::string fullpath = cwdpath + rpath;
         std::cout << RED_BOLD << "FULL PATH -> " << fullpath << WHITE << std::endl;
         if (is_path_valid(fullpath))

@@ -16,6 +16,7 @@ SOCKET getsocketfd(int port)
 {
     struct sockaddr_in *data;
     socklen_t data_len;
+    socklen_t oplen = 1;
 
     data = getsocketdata(port);
     data_len = sizeof(*data);
@@ -25,6 +26,7 @@ SOCKET getsocketfd(int port)
         std::cerr << "SOCKET ERROR" << std::endl;
         exit(1);
     }
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &oplen, sizeof(oplen));
     int bs = bind(fd, (struct sockaddr *)data, data_len);
     if (bs < 0)
     {
@@ -116,7 +118,6 @@ bool is_method_handler_state(CLIENT_STATE state)
 void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
-    std::string method = client->request->method;
 
     if (!client)
     {
@@ -125,14 +126,13 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
     }
     if (client->state == WAITING)
         client->state = READING_HEADER;
-
     if (is_http_state(client->state))
     {
-        std::cout << CYAN_BOLD << "Http handler is working ..." << std::endl;
+        //std::cout << CYAN_BOLD << "Http handler is working ..." << std::endl;
         http_handler->handle_http(client);
     }
     else if (is_method_handler_state(client->state))
-        method_handlers->at(method)->serve_client(client);
+        method_handlers->at(client->request->method)->serve_client(client);
 
     if (client->state == SERVED)
         handle_disconnection(manager, fd);
@@ -152,7 +152,7 @@ void Poll::multiplex()
     {
         // fds = manager->clone_fds();
         num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
-        std::cout << "SERVER IS RUNNING!" << std::endl;
+        //std::cout << "SERVER IS RUNNING!" << std::endl;
         int revents = poll(manager->fds, MAX_FDS, -1);
         if (revents == -1)
             std::cout << strerror(errno) << std::endl;

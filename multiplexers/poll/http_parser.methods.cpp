@@ -6,33 +6,69 @@ bool    HttpParser::read_header(t_client *client)
 {
     char buff[MAX_BUFFER_SIZE];
     int bytes;
-    std::string lines;
-    bool header_complete = false ;
+    std::string lines; //added to request class to append buff everytime u entered this function u didnt finish header
 
     bzero(buff, MAX_BUFFER_SIZE);
     bytes = read(client->fd, buff, MAX_BUFFER_SIZE);
-    if (bytes == -1)
-        return (false);
-    else if (!bytes)
-    { // bytes == 0 connection closed
-        client->state = SERVED;
-        return (false);
-    }
-    lines = buff;
-    client->request_time = time(NULL);
-    std::stringstream strm(lines);
-    while (strm.good() && !header_complete)
+    if (bytes < 0)
     {
-        std::string line;
-        std::getline(strm, line);
-        if (line[sz(line) - 1] == '\r')
-            line = line.substr(0, sz(line) - 1);
-        header_complete = !sz(line);
-        if (sz(line) && !header_complete)
-            client->request->lines.push_back(line);
+        if (!bytes) // bytes == 0 connection closed
+            client->state = SERVED;
+        return (false);
     }
-    return (header_complete);
+    client->request_time = time(NULL);
+    int bl = 0, el = 0;
+    while (el < bytes)
+    {
+        if (buff[el] == '\r' && buff[el + 1] == '\n')
+        {
+            if (el - bl)
+                client->request->lines.push_back(std::string(buff + bl, el - bl));
+            else
+            {
+                if (buff + (el + 2))
+                    client->request->body.append(buff + (el + 2), bytes - (el + 2));
+                return true;
+            }
+            bl = el+=2;
+        }
+        else
+            el++;
+    }
+    return (false);
 }
+
+// bool    HttpParser::read_header(t_client *client)
+// {
+//     char buff[MAX_BUFFER_SIZE];
+//     int bytes;
+//     std::string lines;
+//     bool header_complete = false ;
+
+//     bzero(buff, MAX_BUFFER_SIZE);
+//     bytes = read(client->fd, buff, MAX_BUFFER_SIZE);
+//     if (bytes == -1)
+//         return (false);
+//     else if (!bytes)
+//     { // bytes == 0 connection closed
+//         client->state = SERVED;
+//         return (false);
+//     }
+//     lines = buff;
+//     client->request_time = time(NULL);
+//     std::stringstream strm(lines);
+//     while (strm.good() && !header_complete)
+//     {
+//         std::string line;
+//         std::getline(strm, line);
+//         if (line[sz(line) - 1] == '\r')
+//             line = line.substr(0, sz(line) - 1);
+//         header_complete = !sz(line);
+//         if (sz(line) && !header_complete)
+//             client->request->lines.push_back(line);
+//     }
+//     return (header_complete);
+// }
 
 void    HttpParser::parse_first_line(t_request *req)
 {
@@ -42,12 +78,16 @@ void    HttpParser::parse_first_line(t_request *req)
     std::vector<std::string> *splitted = split_first_line(line);
 
     req->method = get_upper_case(splitted->at(0));
+    std::cout << RED_BOLD << req->method << std::endl;
     req->path = splitted->at(1);
     // std::cout << RED_BOLD << "PATH IN REQUEST -> " << req->path << std::endl;
     req->http_version = get_upper_case(splitted->at(2));
     req->is_file = is_file(req->path);
     if (req->is_file)
+    {
         req->extension = get_extension(req->path);
+        req->filename = get_filename(req->path);
+    }
     delete splitted;
 }
 
@@ -66,9 +106,8 @@ void    HttpParser::parse_request(t_client *client)
         a = j;
         for (; j < sz(line) && line[j] != ':'; j++);
         first = get_lower_case(line.substr(a, j - a));
-    
         for (; j < sz(line) && isspace(line[j]); j++);
-        a = j;
+        a = j + (line[j]== ':') + 1;
         for (; j < sz(line) && line[j] != '\r'; j++);
         second = get_lower_case(line.substr(a, j - a));
         first = trim_string(first);
@@ -86,4 +125,5 @@ void    HttpParser::parse_request(t_client *client)
 }
 
 /*** END PARSING PART ***/
+
 

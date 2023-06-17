@@ -98,20 +98,15 @@ bool HttpHandler::handle_413(t_client *client)
     req = client->request;
     res = client->response;
     request_map = &req->request_map;
-    // if (sz(req->path) >= MAX_REQUEST_URI_SIZE)
-    // {
-    //     std::cout << RED_BOLD << "414 -> " << codes->at(414) << WHITE << std::endl;
-    //     res->http_version = HTTP_VERSION;
-    //     res->status_code = "414";
-    //     res->status_line = codes->at(414);
-    //     connection = req->get_param("connection");
-    //     if (sz(connection))
-    //         res->add("connection", connection);
-    //     res->write_response_in_socketfd(client->fd);
-    //     new_state = (connection == "keep-alive") ? KEEP_ALIVE : SERVED;
-    //     client->reset(new_state);
-    //     return true ;
-    // }
+    if (IN_MAP((*request_map), "content-length"))
+    {
+        int cl = std::atoi(request_map->at("content-length").c_str());
+        if(client->server->server_configs->max_body_size * 1000000 < cl)
+        {
+            fill_response(client, 413, true);
+            return true;
+        }
+    }
     return false ;
 }
 
@@ -291,16 +286,14 @@ void    HttpHandler::set_root_file_path(t_client *client)
     {
         root = d_configs->root;
         res->rootfilepath = get_root_file_path(root, req->path, res->directory_configs_path);
-        // std::cout << YELLOW_BOLD << "DIRECTORY CONFIGS NEW ROOT PATH -> " << res->rootfilepath << WHITE << std::endl;
-        // alert("DIRECTORY CONFIGS NEW ROOT PATH -> ", YELLOW_BOLD);
-        // alert(res->rootfilepath, GREEN_BOLD);
+        std::cout << YELLOW_BOLD << "DIRECTORY CONFIGS NEW ROOT PATH -> " << res->rootfilepath << WHITE << std::endl;
     }
     else
     {
         root = s_configs->root;
         res->rootfilepath = root + req->path;
-        // alert("SERVER CONFIGS NEW ROOT PATH -> ", YELLOW_BOLD);
-        // alert(res->rootfilepath, GREEN_BOLD);
+        alert("SERVER CONFIGS NEW ROOT PATH -> ", YELLOW_BOLD);
+        alert(res->rootfilepath, GREEN_BOLD);
     }
 }
 
@@ -560,42 +553,27 @@ void    HttpHandler::architect_get_response(t_client *client)
 
 void    HttpHandler::architect_delete_response(t_client *client)
 {
-    // t_request                   *req;
-    // t_response                  *res;
-    // t_server_configs            *s_configs;
-    // t_location_configs          *l_configs;
-    // std::string                 path;
-    // std::vector<std::string>    indexes;
-
-    // std::cout << RED_BOLD << "ARHICTECTURING DELETE RESPONSE ..." << WHITE << std::endl;
-    // req = client->request;
-    // res = client->response;
-    // s_configs = res->configs;
-    // l_configs = res->dir_configs;
-    // path = res->rootfilepath;
-    // res->rootfilepath = "";
-    // indexes = l_configs ? l_configs->indexes : s_configs->indexes; 
-    // if (path[sz(path) - 1] != '/')
-    //     fill_response(client, 409, true);
-    // else if (!set_file_path(path, indexes)) // if got passed this then there are indexes
-    //     fill_response(client, 403, true);
-    // else
-    // {
-    //     if (has_cgi(client, path)) // run file with CGI
-    //     {
-    //         client->state = SERVING_DELETE;
-    //     }
-    //     else
-    //     {
-
-    //     }
-    // }
-    // client->state = SERVED ;
+    std::string path = std::string(getwd(NULL)) + client->response->rootfilepath;
+    std::cout << RED_BOLD << "ARHICTECTURING DELETE RESPONSE ..." << WHITE << std::endl;
+    client->state = SERVING_DELETE;
 }
 
 void    HttpHandler::architect_post_response(t_client *client)
 {
-    // std::cout << PURPLE_BOLD << "POST RESPONSE ARCHITECTURING IS RUNNING ..." << WHITE << std::endl;
+    std::map<std::string, std::string> *map = &client->request->request_map;
+    client->state = SERVING_POST;
+    if (!client->request->extension.empty()) return;
+    std::map<std::string, std::string>::iterator header = map->find("content-type");
+    if (header == map->end()) {fill_response(client, 400, true); client->state = SERVED; return;}
+    for (std::map<std::string, std::string>::iterator it = mimes->begin(); it != mimes->end(); it++)
+    {
+        if (it->second == header->second)
+        {
+            client->request->extension.append(it->first);
+            return;
+        }
+    }
+    client->request->extension.append(".txt");
 }
 
 void    HttpHandler::architect_response(t_client *client)
@@ -611,21 +589,15 @@ void    HttpHandler::architect_response(t_client *client)
     request_map = &req->request_map;
 
     req->print_data();
-    if (req->method == "GET" && \
-    (handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_locations(client)))
-    {
-        // std::cout << RED_BOLD << "RESPONSE IS NOT CLEAN" << WHITE << std::endl;
+    if (handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || (req->method == "GET" && handle_locations(client)))
         res->print_data();
-        // client->reset(SERVED);
-    }
     else
     {
-        // std::cout << GREEN_BOLD << "RESPONSE IS CLEAN AND VALID!" << WHITE << std::endl;
         set_configurations(client);
         if (req->method == "GET")
             architect_get_response(client);
         else if (req->method == "DELETE")
-            client->state = SERVING_DELETE;
+            architect_delete_response(client);
         else if (req->method == "POST")
             architect_post_response(client);
     }
