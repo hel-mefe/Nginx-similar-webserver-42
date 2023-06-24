@@ -10,8 +10,9 @@ typedef struct request
     int                                 file;
     int                                 body_size;
     int                                 hex;
+    int                                 content_length;
     bool                                first_time;
-    bool                                encod_stat;
+    bool                                is_chunked;
     bool                                endwr;
     bool                                data;
     bool                                is_file;
@@ -23,8 +24,9 @@ typedef struct request
     std::map<std::string, std::string>  request_map;
     std::vector<std::string>            lines;
     std::string                         body;
+    std::string                         cookies;
 
-    request(){body_size = 0; first_time = true; encod_stat = false; data = false; endwr = false;}
+    request(){body_size = 0; first_time = true; is_chunked = false; data = false; endwr = false;}
     ~request(){}
 
     bool is_provided(std::string e)

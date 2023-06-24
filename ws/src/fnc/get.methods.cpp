@@ -176,11 +176,13 @@ void    Get::handle_static_file(t_client *client)
     // std::cout << CYAN_BOLD << "ROOT FILE PATH = " << res->rootfilepath << WHITE << std::endl;
     bzero(buff, MAX_BUFFER_SIZE);
     bts = read(res->fd, buff, MAX_BUFFER_SIZE);
-    bts = bts < 0 ? 0 : bts;
     // std::cout << RED_BOLD << bts << " HAS BEEN READ" << std::endl;
-    write_chunk(sockfd, buff, bts);
+    if (bts != -1)
+        write_chunk(sockfd, buff, bts);
     // std::cout << PURPLE_BOLD << "RESPONSE WRITTEN!" << WHITE << std::endl;
     client->state = (bts ? client->state : SERVED);
+    // if (client->state == SERVED)
+    //     client->request_time = time(NULL), client->state = (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive") ? WAITING : SERVED;
     if (client->state == SERVED)
         std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }

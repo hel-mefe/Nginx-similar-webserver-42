@@ -18,7 +18,7 @@ std::string trim_string(std::string &s)
 {
     int a = 0, b = sz(s) - 1;
     while (a < b && isspace(s[a]) && isspace(s[b]))
-        a += (isspace(s[a])), b -= (isspace(s[a]));        
+        a += (isspace(s[a])), b -= (isspace(s[a]));
     std::string res = s.substr(a, b - a + 1);
     return res;
 }
@@ -111,8 +111,26 @@ bool    set_file_path(std::string &path, std::vector<std::string> &files)
  
     for (int i = 0; i < sz(files); i++)
     {
-        std::string rpath = path;//  + files[i];
-        std::string fullpath = cwdpath + rpath;
+        std::string rpath;
+        if (path[sz(path) - 1] == '/')
+            rpath = path + files[i];//  + files[i];
+        else
+            rpath = path + "/" + files[i];
+        std::string fullpath = cwdpath;
+        if (fullpath[sz(fullpath) - 1] == '/')
+        {
+            if (rpath[0] == '/')
+                fullpath += rpath.substr(1);
+            else
+                fullpath += rpath;
+        }
+        else
+        {
+            if (rpath[0] == '/')
+                fullpath += rpath;
+            else
+                fullpath += "/" + rpath;
+        }
         std::cout << RED_BOLD << "FULL PATH -> " << fullpath << WHITE << std::endl;
         if (is_path_valid(fullpath))
         {
@@ -146,3 +164,17 @@ int     get_rn_endpos(unsigned char *buff, int buff_size) // -1 means not found
     return (-1);
 }
 
+bool    is_directory_exist(std::string &path)
+{
+    std::string fullpath;
+    DIR         *d;
+
+    fullpath = getwd(NULL);
+    fullpath += path;
+    d = opendir(fullpath.c_str());
+    if (d)
+        std::cout << GREEN_BOLD << "DIRECTORY EXISTS => " << fullpath << std::endl;
+    else
+        std::cout << RED_BOLD << "DIRECTORY DOES NOT EXIST => " << fullpath << std::endl;
+    return (d != NULL);    
+}

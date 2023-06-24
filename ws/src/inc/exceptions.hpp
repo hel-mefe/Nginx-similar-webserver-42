@@ -66,8 +66,41 @@ class MultiplexerException : public std::exception
         }
 } ;
 
+class ParsingException : public std::exception
+{
+    public:
+        const char *what() const _NOEXCEPT
+        {
+            return ("Parsing error!") ;
+        }
+} ;
 
+class ParsingExceptionCgi
+{
+    public:
+        const char *what() const _NOEXCEPT
+        {
+            return ("Parsing error: the CGI path provided is not valid!");
+        }
+} ;
 
+class ParsingExceptionMaxConnectionsInterval
+{
+    public:
+        const char *what() const _NOEXCEPT
+        {
+            return ("Parsing error: you provided a value for max_connections outside the interval allowed");
+        }
+} ;
+
+class ParsingExceptionMaxBodySizeInterval
+{
+    public:
+        const char *what() const _NOEXCEPT
+        {
+            return ("Parsing error: you provided a value for max_body_size outside the interval allowed");
+        }
+} ;
 
 
 # endif

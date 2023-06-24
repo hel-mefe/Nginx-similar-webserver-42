@@ -11,6 +11,8 @@ typedef struct manager
     std::map<SOCKET, t_client *>            clients_map; // maps every SOCKET to its t_socket data
     std::map<SOCKET, t_server *>            servers_map; // maps every SOCKET to its t_server data
     std::deque<int>                         free_slots;
+    int                                     client_num;
+
 
     bool is_listener(SOCKET fd)
     {

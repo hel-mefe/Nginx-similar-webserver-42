@@ -23,6 +23,7 @@
 # include "response.struct.hpp"
 # include "socket.struct.hpp"
 # include "enums.hpp"
+#include <dirent.h>
 
 #define HashMap std::map
 

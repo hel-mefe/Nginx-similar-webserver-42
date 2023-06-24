@@ -94,6 +94,21 @@ bool is_connection_closed(SOCKET fd)
 
 void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
+    /*** LOGS HANDLING ****/
+    // std::string logline; // [client N] -> [year-month-day] - [time_start, time_end] - [timespent]
+    // t_server_configs    *s_configs = manager->clients_map[fd]->server->server_configs;
+    // if (s_configs->logsfile_fd != UNDEFINED) // logfile is defined
+    // {
+    //     std::cout << GREEN_BOLD << "[LOG WRITTEN] -> " << s_configs->logsfile_fd << " - " << s_configs->logsfile << std::endl;
+    //     logline = "[client " + std::to_string(manager->client_num) + "] => " + "[2022-21-06] - [10, 20] - [10s]\n" ;
+    //     int fd = open(s_configs->logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
+    //     std::cout << RED_BOLD << write(fd, logline.c_str(), sz(logline)) << std::endl;
+    //     std::cout << "[LOGLINE => " << logline << std::endl;
+    // }
+    // else
+    //     std::cout << CYAN_BOLD << "LOGFILE IS UNDEFINED!" << std::endl;
+    /***END LOGS HANDLING ***/
+
     std::cout << "Connection was closed" << std::endl;
     manager->remove_client(fd);
     std::cout << "NUMBER OF FREE PLACES -> " << MAX_FDS - sz(manager->clients_map) << std::endl;
@@ -118,13 +133,15 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
         std::cout << "[NO CLIENT]" << std::endl;
         return;
     }
-    if (client->state == WAITING)
-        client->state = READING_HEADER;
+    // if (client->state == WAITING)
+    //     client->state = READING_HEADER;
     if (is_http_state(client->state))
+    {
+        //std::cout << CYAN_BOLD << "Http handler is working ..." << std::endl;
         http_handler->handle_http(client);
+    }
     else if (is_method_handler_state(client->state))
         method_handlers->at(client->request->method)->serve_client(client);
-
     if (client->state == SERVED)
         handle_disconnection(manager, fd);
 }
@@ -138,6 +155,7 @@ void Poll::multiplex()
     struct pollfd *fds;
     int num_sockets;
     std::cout << manager->fds[0].fd << std::endl;
+    manager->client_num = 0;
     signal(SIGPIPE, SIG_IGN);
     while (1)
     {
@@ -149,7 +167,10 @@ void Poll::multiplex()
         {
             if (manager->is_listener(manager->fds[i].fd) &&
                 manager->fds[i].revents & POLLIN) // connection
+            {
                 handle_connection(manager, manager->fds[i].fd);
+                manager->client_num += 1;
+            }
             else if ((manager->fds[i].revents & POLLIN) ||
                      (manager->fds[i].revents & POLLOUT)) // client handling
                 handle_client(manager, manager->fds[i].fd);

@@ -71,3 +71,11 @@ bool TokensChecker::is_extension(std::string s)
 {
     return (s == ".py" || s == ".php" || s == ".perl" || s == ".js");
 }
+
+bool TokensChecker::is_cgi(std::string extension, std::string path)
+{
+    std::string fullpath = getwd(NULL);
+
+    fullpath += path;
+    return (extension == ".php" && !access(fullpath.c_str(), X_OK));
+}

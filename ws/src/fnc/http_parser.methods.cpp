@@ -10,13 +10,13 @@ bool    HttpParser::read_header(t_client *client)
 
     bzero(buff, MAX_BUFFER_SIZE);
     bytes = read(client->fd, buff, MAX_BUFFER_SIZE);
-    if (bytes < 0)
+    if (bytes <= 0)
     {
         if (!bytes) // bytes == 0 connection closed
             client->state = SERVED;
         return (false);
     }
-    client->request_time = time(NULL);
+    // client->request_time = time(NULL);
     int bl = 0, el = 0;
     while (el < bytes)
     {
@@ -48,7 +48,7 @@ void    HttpParser::parse_first_line(t_request *req)
     req->method = get_upper_case(splitted->at(0));
     std::cout << RED_BOLD << req->method << std::endl;
     req->path = splitted->at(1);
-    // std::cout << RED_BOLD << "PATH IN REQUEST -> " << req->path << std::endl;
+    std::cout << RED_BOLD << "PATH IN REQUEST -> " << req->path << std::endl;
     req->http_version = get_upper_case(splitted->at(2));
     req->is_file = is_file(req->path);
     if (req->is_file)
@@ -80,7 +80,15 @@ void    HttpParser::parse_request(t_client *client)
         second = get_lower_case(line.substr(a, j - a));
         first = trim_string(first);
         second = trim_string(second);
-        req->request_map.insert(std::make_pair(first, second));
+        if (first == "Cookie")
+        {
+            if (!req->cookies.empty())
+                req->cookies.append("; ");
+            req->cookies.append(second);
+        }
+        else
+            req->request_map.insert(std::make_pair(first, second));
+
     }
     /****** START PRINTING REQUEST ******/
 

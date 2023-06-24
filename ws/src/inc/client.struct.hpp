@@ -8,6 +8,7 @@ typedef struct client
 {
     SOCKET          fd;
     int             slot;
+    int             client_num;
     time_t          request_time;
     CLIENT_STATE    state;
     t_request       *request;

@@ -11,6 +11,7 @@ typedef struct ServerAttributes
     std::string                         server_name;
     PORT                                port;
     std::string                         root;
+    std::string                         logsfile;
     std::vector<std::string>            indexes;
     std::vector<std::string>            allowed_methods;
     std::vector<std::string>            allowed_cgi;
@@ -24,6 +25,7 @@ typedef struct ServerAttributes
     HashSet<std::string>                pages_404_set;
     int                                 max_connections;
     int                                 max_body_size;
+    int                                 logsfile_fd;
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed

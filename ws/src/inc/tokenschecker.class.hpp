@@ -19,4 +19,6 @@ class TokensChecker
         bool is_on_off(std::string s);
         bool is_connection(std::string s);
         bool is_extension(std::string s);
+        bool is_cgi(std::string extension, std::string path);
+
 } ;
