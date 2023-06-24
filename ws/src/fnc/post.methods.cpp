@@ -6,45 +6,105 @@ std::string intToString(int num) {
   return ss.str();
 }
 
+void    memory_freeder(char **args, int args_size)
+{
+    for(int i = 0; i < args_size; i++)
+    {
+        if (args[i])    
+            free(args[i]);
+    }
+    free(args);
+}
+
+char** Post::fill_cgi_env(t_client* client)
+{
+    client->response->cgi_pipe[0] = client->request->file;
+    char** args = (char**) malloc(4 * sizeof(char*));
+    args[0] = strdup("REQUEST_METHOD=POST");
+    std::string arg = "CONTENT_TYPE=" + client->request->request_map.at("content-type");
+    args[1] = strdup(arg.c_str());
+    arg.clear();
+    arg = "CONTENT_LENTGH=" + intToString(client->request->body_size);
+    args[2] = strdup(arg.c_str());
+    arg.clear();
+    args[3] = strdup(arg.c_str());
+    arg.clear();
+    args[4] = NULL;
+    return args;
+}
+
 void Post::client_served(t_client* client)
 {
     t_request* req = client->request;
-    std::cout << "Serving POST is finished\n";
-    client->state = SERVED;
-    req->file.close();
-    req->body.clear();
-    req->file_stat = false;
+    std::cout << "Client's request is SERVED\n";
+    client->state = WAITING;
+    if (client->response->is_cgi)
+    {
+        client->response->cgi_pipe[0] = req->file;
+        serve_cgi(client, fill_cgi_env(client), 4);
+    }
+    else
+        fill_response(client, 201, "Created!", true);
+    close(req->file);
+    req->first_time = false;
     req->body_size = 0;
 }
 
 Post::Post(void) {}
 
-void    Post::create_file(t_request* req)
+void    Post::create_file(t_client* client)
 {
-    if (req->request_map.find("transfer-encoding") == req->request_map.end())
-        req->encod_stat = true;
-    else
-        req->encod_stat = false;
-    std::string filename;
-    if (!req->filename.empty())
-        filename.append(req->filename);
-    else
-        filename.append("file");
-    for (int i = 0; i < INT_MAX; i++)
+    if (!client->response->is_cgi)
     {
-        std::string file_path("www/");
-        file_path.append(filename);
-        if (i)
-            file_path.append(intToString(i));
-        file_path.append(req->extension);
-        if (access(file_path.c_str(), F_OK))
+        std::string filename;
+        if (!client->request->filename.empty())
+            filename.append(client->request->filename);
+        else
+            filename.append("file");
+        for (int i = 0; i < INT_MAX; i++)
         {
-            req->file.open(file_path.c_str(), std::ofstream::app);
-            break;
+            
+            std::string file_path = getwd(NULL) + client->response->rootfilepath;
+            file_path.append(filename);
+            if (i)
+                file_path.append(intToString(i));
+            file_path.append(client->request->extension);
+            if (access(file_path.c_str(), F_OK))
+            {
+                client->request->file = open(file_path.c_str(), O_CREAT | O_APPEND | O_RDWR);
+                break;
+            }
+            file_path.clear();
         }
-        file_path.clear();
     }
-    req->file_stat = 1;
+    else
+    {
+        std::string filepath = client->response->rootfilepath + "tmp";
+        client->request->file = open(filepath.c_str(), O_CREAT | O_TRUNC | O_RDWR);
+    }
+}
+
+void    Post::serve_cgi(t_client* client, char** args, int args_size)
+{
+    int status;
+    if (client->response->cgi_pipe[0] == UNDEFINED && !pipe(client->response->cgi_pipe)) // pipe not piped 
+            std::cout << GREEN_BOLD << "PIPED!" << std::endl;
+    if (!fork())
+    {
+        if (client->response->cgi_pipe[0])
+            dup2(client->response->cgi_pipe[0], 0);
+        if (client->response->cgi_pipe[1] != 1)
+            dup2(client->response->cgi_pipe[1], 1);
+        if (execve(args[0], args, NULL))
+            std::cout << "FAILED! - " << strerror(errno) << std::endl;
+        std::cout << "EXECVE NOT WORKING" << std::endl;
+    }
+    memory_freeder(args, args_size);
+    if (client->response->cgi_pipe[0])
+        close(client->response->cgi_pipe[0]);
+    if (client->response->cgi_pipe[1] != 1)
+        close(client->response->cgi_pipe[1]);
+    waitpid(-1, &status, WNOHANG);
 }
 
 void    Post::fill_response(t_client *client, int code, std::string status_line, bool write_it)
@@ -70,44 +130,57 @@ void    Post::fill_response(t_client *client, int code, std::string status_line,
 
 void Post::serve_client(t_client *client)
 {
-    t_request* req = client->request;
+
     char buff[MAX_BUFFER_SIZE];
     int rbytes = read(client->fd, buff, MAX_BUFFER_SIZE);
     if (!rbytes)
     {
-        client->state = SERVED;
+        client->state = WAITING;
         return;
     }
     if (rbytes > 0)
         client->request->body.append(buff, rbytes);
-    if (!req->file_stat)
-        create_file(client->request);
-    if (req->encod_stat)
-        handle_normal(client);
+    if (client->request->first_time)
+    {
+        create_file(client);
+        if (client->request->request_map.find("transfer-encoding") == client->request->request_map.end())
+            client->request->encod_stat = true;
+        else
+            client->request->encod_stat = false;
+        if (client->request->file < 0)
+        {
+            fill_response(client, 501, "Internal Server Error", true);
+            client->state = WAITING;
+            return;
+        }
+        client->request->first_time = 0;
+    }
+    if (client->request->encod_stat)
+        parse_non_chunked_body(client);
     else
-        handle_chunked(client);
+        parse_chunked_body(client);
 }
 
-void    Post::handle_normal(t_client* client)
+void    Post::parse_non_chunked_body(t_client* client)
 {
     t_request* req = client->request;
     int cl = std::atoi(req->request_map.at("content-length").c_str());
     int lsize = req->body.size();
     if (req->body_size + lsize < cl)
     {
-        req->file << req->body;
+        write(req->file, req->body.c_str(), lsize);
         req->body_size += lsize;
         req->body.clear();
     }
     else
     {
-        req->file << req->body.substr(0, cl - req->body_size);
-        fill_response(client, 201, "Created!", true);
+        write(req->file, req->body.c_str(), cl - req->body_size);
+        req->body.clear();
         client_served(client);
     }
 }
 
-void    Post::handle_chunked(t_client* client)
+void    Post::parse_chunked_body(t_client* client)
 {
     t_request* req = client->request;
     size_t pos = 0;
@@ -120,11 +193,17 @@ void    Post::handle_chunked(t_client* client)
             if (pos == std::string::npos)
                 break;
             req->convert_hex(req->body.substr(0, pos));
+            if (client->request->hex + client->request->body_size > client->response->configs->max_body_size)
+            {
+                fill_response(client, 413, "Payload Too Large", true);
+                req->body.clear();
+                client->state = WAITING;
+                break;
+            }
             if (!req->hex) 
             {
-                client_served(client);
-                fill_response(client, 201, "Created!", true);
                 req->body.clear();
+                client_served(client);
                 break;
             }
             req->body.erase(0, pos + 2);
@@ -135,7 +214,7 @@ void    Post::handle_chunked(t_client* client)
             int lsize = req->body.size();
             if (req->hex >= lsize)
             {
-                req->file << req->body;
+                write(req->file, req->body.c_str(), lsize);
                 req->body.clear();
                 req->hex -= lsize;
                 req->body_size += lsize;
@@ -143,7 +222,7 @@ void    Post::handle_chunked(t_client* client)
             }
             else
             {
-                req->file << req->body.substr(0, req->hex);
+                write(req->file, req->body.c_str(), req->hex);
                 req->body_size += req->hex;
                 req->data = false;
                 if (req->hex + 2 <= lsize)

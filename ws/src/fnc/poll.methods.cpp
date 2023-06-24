@@ -121,10 +121,7 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
     if (client->state == WAITING)
         client->state = READING_HEADER;
     if (is_http_state(client->state))
-    {
-        //std::cout << CYAN_BOLD << "Http handler is working ..." << std::endl;
         http_handler->handle_http(client);
-    }
     else if (is_method_handler_state(client->state))
         method_handlers->at(client->request->method)->serve_client(client);
 

@@ -11,11 +11,13 @@ class Post : public MethodHandler
 {
     public:
         Post();
+        char**  fill_cgi_env(t_client*);
         void    client_served(t_client*);
         void    serve_client(t_client*);
-        void    handle_normal(t_client*);
-        void    handle_chunked(t_client*);
-        void    create_file(t_request*);
+        void    parse_chunked_body(t_client*);
+        void    parse_non_chunked_body(t_client*);
+        void    serve_cgi(t_client*, char**, int);
+        void    create_file(t_client*);
         void    fill_response(t_client*, int, std::string, bool);
         ~Post();
 } ;

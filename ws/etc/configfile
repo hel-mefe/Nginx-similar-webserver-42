@@ -5,15 +5,15 @@ http
 
     server
     {
-        server_name name
+        server_name 10.11.11.3
         port 9080
         index index.html index.php home.html home.php
         not_found image.jpeg
         max_connections 20
-        max_body_size 2000
+        max_body_size 200000000
 
-        fastCGI .php /fastCGI/php-cgi
-        fastCGI .py /fastCGI/py-cgi
+        fastCGI .php /fastcgi/php-cgi
+        fastCGI .py /fastcgi/py-cgi
 
         location /hello
         {

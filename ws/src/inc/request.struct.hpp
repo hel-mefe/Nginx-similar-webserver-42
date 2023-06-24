@@ -7,13 +7,14 @@
 
 typedef struct request
 {
-    std::ofstream                       file;
+    int                                 file;
     int                                 body_size;
     int                                 hex;
-    bool                                file_stat;
+    bool                                first_time;
     bool                                encod_stat;
     bool                                endwr;
     bool                                data;
+    bool                                is_file;
     std::string                         method;
     std::string                         path;
     std::string                         http_version;
@@ -22,9 +23,8 @@ typedef struct request
     std::map<std::string, std::string>  request_map;
     std::vector<std::string>            lines;
     std::string                         body;
-    bool                                is_file;
 
-    request(){body_size = 0; file_stat = false; encod_stat = false; data = false; endwr = false;}
+    request(){body_size = 0; first_time = true; encod_stat = false; data = false; endwr = false;}
     ~request(){}
 
     bool is_provided(std::string e)

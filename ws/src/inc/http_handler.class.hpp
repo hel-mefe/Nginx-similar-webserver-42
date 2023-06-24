@@ -40,11 +40,8 @@ class HttpHandler : public HttpHandlerInterface
         }
 
 
-        void    handle_http(t_client *client);
-        void    parse_request(t_client *client);
-        void    architect_response(t_client *client);
-
-        bool    read_header(t_client *client);
+        void handle_http(t_client *client);
+        void architect_response(t_client *client);
 
         bool handle_400(t_client *client);
         bool handle_414(t_client *client);
@@ -52,30 +49,27 @@ class HttpHandler : public HttpHandlerInterface
         bool handle_413(t_client *client);
         bool handle_locations(t_client *client);
 
-        bool    is_redirection(t_client *client);
-        bool    is_method_valid(std::string &method);
-        void    fill_response(t_client *client, int code, bool write_it);
+        bool is_redirection(t_client *client);
+        bool is_method_valid(std::string &method);
+        void fill_response(t_client *client, int code, bool write_it);
 
-        bool    set_redirection_path(t_client *client);
-        void    set_configurations(t_client *client);
+        bool set_redirection_path(t_client *client);
+        void set_configurations(t_client *client);
 
-        void    architect_get_response(t_client *client);
-        void    architect_delete_response(t_client *client);
-        void    architect_post_response(t_client *client);
+        void architect_get_response(t_client *client);
+        void architect_delete_response(t_client *client);
+        void architect_post_response(t_client *client);
 
+        void handle_file_path(t_client *client);
+        void handle_directory_path(t_client *client);
 
-        void    handle_file_path(t_client *client);
-        void    handle_directory_path(t_client *client);
-
-        bool    set_directory_indexes(t_client *client);
+        bool set_directory_indexes(t_client *client);
 
         t_location_configs  *get_location_configs_from_path(t_client *client);
         std::string get_longest_directory_prefix(t_client *client, std::string path, bool is_config);
 
         void        set_root_file_path(t_client *client);
         std::string get_root_file_path(std::string &root, std::string &path, std::string &dirpath);
-
-        void        parse_first_line(t_request *req);
 } ;
 
 #endif

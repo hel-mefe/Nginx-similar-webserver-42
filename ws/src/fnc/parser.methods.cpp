@@ -486,6 +486,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("root", DIRECTORY));
     http_tokens.insert(std::make_pair("max_connections", INT));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
+    http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
 
 void    ConfigFileParser::fill_server_hashmap()
@@ -502,6 +503,7 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
     server_tokens.insert(std::make_pair("max_body_size", INT));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
+    server_tokens.insert(std::make_pair("register_logs", STRING));
 }
 
 void    ConfigFileParser::fill_location_hashmap()
@@ -602,6 +604,8 @@ bool ConfigFileParser::is_http_line_valid(int row)
     }
     else if (token_type == ON_OFF)
         return (tc.is_on_off(http_as_words[row][1]));
+    else if (token_type == CGI)
+        return (tc.is_cgi(http_as_words[row][1], http_as_words[row][2]));
     return (true);
 }
 
@@ -654,7 +658,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     else if (token_type == ON_OFF)
         return (tc.is_on_off(_words[1]));
     else if (token_type == CGI)
-        return (tc.is_extension(_words[1]) && tc.is_directory(_words[2]));
+        return (tc.is_cgi(_words[1], _words[2]));
     return (true);
 }
 
@@ -691,6 +695,8 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     }
     else if (token_type == ON_OFF)
         return (tc.is_on_off(block[1]));
+    else if (token_type == CGI)
+        return (tc.is_cgi(block[1], block[2]));
     return (true);
 }
 
@@ -788,8 +794,30 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 {
     std::string extension = line[1];
     std::string cgi_path = line[2];
+    std::string fullpath = getwd(NULL);
 
+    fullpath += cgi_path;
+    if (access(fullpath.c_str(), X_OK))
+        throw ParsingExceptionCgi();
     extension_cgi[extension] = cgi_path;
+}
+
+int     get_max_connections(std::string &s)
+{
+    int num = std::stoi(s);
+
+    if (num <= 0 || num > DEFAULT_MAX_CONNECTIONS)
+        throw ParsingExceptionMaxConnectionsInterval() ;
+    return (num) ;
+}
+
+int     get_max_body_size(std::string &s)
+{
+    long long num = std::stoll(s);
+
+    if (num < 0 || num >= INT_MAX)
+        throw ParsingException();
+    return (num);
 }
 
 void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_configs *conf, int i)
@@ -836,15 +864,22 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             attr.root = (attr.root[sz(attr.root) - 1] != '/') ? attr.root + "/" : attr.root;
         }
         else if (token_name == "max_connections")
-            attr.max_connections = std::stoi(nodes[i].words[j][1]);
+            attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
         else if (token_name == "max_body_size")
-            attr.max_body_size = std::stoi(nodes[i].words[j][1]);
+            attr.max_body_size = get_max_body_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
         else if (token_name == "fastCGI")
             insert_cgi_to_hashmap(attr.extension_cgi, nodes[i].words[j]);
         else if (token_name == "not_found")
         {
             attr.pages_404 = get_vector_of_data(nodes[i].words[j]);
             attr.pages_404_set = vector_to_hashset(attr.pages_404);
+        }
+        else if (token_name == "register_logs")
+        {
+            attr.logsfile = nodes[i].words[j][1];
+            if (attr.logsfile_fd != UNDEFINED)
+                close(attr.logsfile_fd);
+            attr.logsfile_fd = open(attr.logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
         }
     }
 }
@@ -926,7 +961,7 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
         }
         else if (token_name == "root")
         {
-            l_configs.root = s_conf->root + nodes[i].location_blocks[j][1];
+            l_configs.root = nodes[i].location_blocks[j][1]; // [!! -- Later on I may add root + nodes[i].location_blocks[j][1] -- ]
             l_configs.root = (l_configs.root[sz(l_configs.root) - 1] != '/') ? l_configs.root + "/" : l_configs.root;
         }
         else if (token_name == "redirect")
@@ -976,7 +1011,7 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         //     std::cout << conf->indexes[i] << std::endl;
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
-        conf->root = s_conf->root;
+        // conf->root = s_conf->root; [!! I DO NOT NEED THE SERVER ROOT TO BE SET IN LOCATION AS DEFAULT]
         fill_location_attributes(*conf, s_conf, index, start, i);
         std::cout << PURPLE_BOLD << "INTERVAL => " << start << " - " << i << WHITE << std::endl ;
         server->set_location_map(location, conf);
