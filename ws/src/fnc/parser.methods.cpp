@@ -798,7 +798,10 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 
     fullpath += cgi_path;
     if (access(fullpath.c_str(), X_OK))
+    {
+        std::cout << "INSERTING ERROR " << std::endl;
         throw ParsingExceptionCgi();
+    }
     extension_cgi[extension] = cgi_path;
 }
 

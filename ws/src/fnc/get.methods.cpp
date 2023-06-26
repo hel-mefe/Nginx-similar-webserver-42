@@ -124,6 +124,7 @@ void    Get::handle_cgi(t_client *client)
     cgi_env["REDIRECT_STATUS"] = "200";
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi_env["HTTP_PROTOCOL"] = "HTTP/1.1";
+    cgi_env["HTTP_COOKIE"] = req->cookies;
     std::cout << CYAN_BOLD << "END INIT MAP ...." << std::endl;
     env = convert_env_map(cgi_env);
     std::cout << CYAN_BOLD << "AFTER CONVERT ...." << std::endl;

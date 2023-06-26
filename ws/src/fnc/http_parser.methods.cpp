@@ -5,10 +5,9 @@
 bool    HttpParser::read_header(t_client *client)
 {
     char buff[MAX_BUFFER_SIZE];
-    int bytes;
-    std::string lines; //added to request class to append buff everytime u entered this function u didnt finish header
+    int bytes; 
+    //add buffer to request class to append buff everytime u entered this function u didnt finish header
 
-    bzero(buff, MAX_BUFFER_SIZE);
     bytes = read(client->fd, buff, MAX_BUFFER_SIZE);
     if (bytes <= 0)
     {
@@ -80,7 +79,7 @@ void    HttpParser::parse_request(t_client *client)
         second = get_lower_case(line.substr(a, j - a));
         first = trim_string(first);
         second = trim_string(second);
-        if (first == "Cookie")
+        if (first == "cookie")
         {
             if (!req->cookies.empty())
                 req->cookies.append("; ");

@@ -1,3 +1,13 @@
+<?php
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $name = $_POST["name"];
+        $email = $_POST["email"];
+
+        echo "<h2>Your Input:</h2>";
+        echo "Name: " . $name . "<br>";
+        echo "Email: " . $email;
+    }
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,24 +22,5 @@
         <input type="email" name="email" id="email"><br><br>
         <input type="submit" name="submit" value="Submit">
     </form>
-    
-
-
-    <?php
-
-
-
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $name = $_POST["name"];
-            $email = $_POST["email"];
-
-            echo "<h2>Your Input:</h2>";
-            echo "Name: " . $name . "<br>";
-            echo "Email: " . $email;
-        }
-    ?>
-
-
-
 </body>
 </html>

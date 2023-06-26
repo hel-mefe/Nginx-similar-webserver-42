@@ -1,4 +1,6 @@
 #include "../inc/post.class.hpp"
+#include <sys/time.h>
+#include <signal.h>
 
 Post::Post(void) {}
 
@@ -40,21 +42,16 @@ void    Post::fill_response(t_client *client, int code, std::string status_line,
 
 void Post::client_served(t_client* client)
 {
-    t_request* req = client->request;
-    client->request_time = time(NULL);
-    client->state = SERVED;
-    close(req->file);
+    close(client->request->file);
     if (client->response->is_cgi)
     {
         fill_cgi_env(client);
-        serve_cgi(client, convert_cgi_env(client), 6);
-        parse_cgi_output(client);
+        serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
+        return;
     }
-    else
-        fill_response(client, 201, "Created!", true);
+    fill_response(client, 201, "Created!", true);
     std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
-    req->first_time = false;
-    req->body_size = 0;
+    client->state = SERVED;
 }
 
 void    Post::create_file(t_client* client)
@@ -97,6 +94,7 @@ char** Post::convert_cgi_env(t_client* client)
     {
         std::string arg = it->first + it->second;
         args[i] = strdup(arg.c_str());
+        std::cout << CYAN_BOLD << args[i] << WHITE << std::endl;
         i++;
     }
     return args;
@@ -104,25 +102,34 @@ char** Post::convert_cgi_env(t_client* client)
 
 void    Post::fill_cgi_env(t_client* client)
 {
-    client->response->cgi_env["REQUEST_METHOD"] = client->request->method;
-    client->response->cgi_env["REDIRECT_STATUS"] = "200";
+    client->response->cgi_env["REQUEST_METHOD="] = client->request->method;
+    client->response->cgi_env["REDIRECT_STATUS="] = "200";
     client->response->cgi_env["CONTENT_LENGTH="] = intToString(client->request->body_size);
     client->response->cgi_env["SCRIPT_FILENAME="] = client->response->filepath;
+    client->response->cgi_env["PATH_INFO="] = client->response->filepath;
     client->response->cgi_env["CONTENT_TYPE="] = client->request->request_map.at("content-type");
     if (!client->request->cookies.empty())
-        client->response->cgi_env["HTTP_COOKIES"] = client->request->cookies;
+        client->response->cgi_env["HTTP_COOKIE="] = client->request->cookies;
 }
 
 void    Post::serve_cgi(t_client* client, char** env, int args_size)
 {
-    int status = 0;
-    std::cout << CYAN_BOLD << "HANDLING CGI IN POST ...." << std::endl;
+    int status;
+    std::cout << CYAN_BOLD << "HANDLING CGI ..." << std::endl;
     std::cout << "CGI PATH ==> " << WHITE << client->response->cgi_path << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));
     args[0] = strdup(client->response->cgi_path.c_str());
     args[1] = strdup(client->response->filepath.c_str());
     args[2] = NULL;
-    if (!fork())
+    client->response->cgi_pid = fork();
+    if (client->response->cgi_pid < 0)
+    {
+        std::cerr << RED_BOLD << "Forking for CGI failed!" << WHITE << std::endl;
+        fill_response(client, 501, "Internal Server Error", true);
+        client->state = SERVED;
+        return;
+    }
+    if (!client->response->cgi_pid)
     {
         int cgi_io[2];
         cgi_io[0] = open("/tmp/cgi_input", O_RDONLY);
@@ -133,54 +140,87 @@ void    Post::serve_cgi(t_client* client, char** env, int args_size)
             dup2(cgi_io[1], 1);
         if (execve(args[0], args, env))
         {
-            std::cout << RED_BOLD << "EXECVE OR CGI IS NOT WORKING" << WHITE << std::endl;
-            fill_response(client, 501, "Internal Server Error", true);
+            std::cerr << RED_BOLD << "EXECVE OR CGI IS NOT WORKING" << WHITE << std::endl;
+            exit(-1);
         }
     }
     memory_freeder(env, args, args_size);
-    waitpid(-1, &status, WNOHANG);
+    client->response->cgi_running = true;
 }
 
 void Post::parse_cgi_output(t_client* client)
 {
-    int cgi_out = open("/tmp/cgi_output", O_RDONLY);
+    int cgi_out = open("/tmp/cgi_output", O_RDONLY), rbytes = 0;
     char buff[MAX_BUFFER_SIZE];
-    int rbytes = 0;
     if (cgi_out < 0)
     {
         fill_response(client, 501, "Internal Server Error", true);
+        client->state = SERVED;
         return ;
     }
-    rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
+    write(client->fd, "HTTP/1.1 200 OK\r\n", 17);
+    while(true)
+    {
+        rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
+        if (!rbytes)
+            break;
+        write(client->fd, buff, rbytes);
+    }
+    client->state = SERVED;
+    std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
 }
 
 void Post::serve_client(t_client *client)
 {
-
-    char buff[MAX_BUFFER_SIZE];
-    int rbytes = read(client->fd, buff, MAX_BUFFER_SIZE);
-    if (!rbytes)
-    {
-        client->state = SERVED;
-        return;
-    }
-    if (rbytes > 0)
-        client->request->body.append(buff, rbytes);
     if (client->request->first_time)
     {
+        client->request_time = time(NULL);
+        client->response->cgi_running = false;
+        client->request->body_size = 0;
         create_file(client);
         if (client->request->file < 0)
         {
             fill_response(client, 501, "Internal Server Error", true);
-            client->state = WAITING;
+            client->state = SERVED;
             return;
         }
         client->request->first_time = false;
     }
-    if (client->request->is_chunked)
-        parse_non_chunked_body(client);
-    else
-        parse_chunked_body(client);
+    else if (time(NULL) - client->request_time > 10)
+    {
+        fill_response(client, 408, "Request Timeout", true);
+        if (client->response->cgi_running)
+            kill(client->response->cgi_pid, SIGKILL);
+        client->state = SERVED;
+        return;
+    }
+    if (!client->response->cgi_running)
+    {
+        char buff[MAX_BUFFER_SIZE];
+        int rbytes = read(client->fd, buff, MAX_BUFFER_SIZE);
+        if (!rbytes)
+        {
+            client->state = SERVED;
+            return;
+        }
+        if (rbytes > 0)
+            client->request->body.append(buff, rbytes);
+        if (!client->request->is_chunked)
+            parse_non_chunked_body(client);
+        else
+            parse_chunked_body(client);
+    }
+    int status;
+    if (client->response->cgi_running && waitpid(-1, &status, WNOHANG) > 0)
+    {
+        if ((WIFEXITED(status) && WEXITSTATUS(status) == -1))
+        {
+            client->state = SERVED;
+            fill_response(client, 501, "Internal Server Error", true);
+            return;
+        }
+        parse_cgi_output(client);
+    }
 }
 
 void    Post::parse_non_chunked_body(t_client* client)
@@ -219,7 +259,7 @@ void    Post::parse_chunked_body(t_client* client)
             {
                 fill_response(client, 413, "Payload Too Large", true);
                 req->body.clear();
-                client->state = WAITING;
+                client->state = SERVED;
                 break;
             }
             if (!req->hex) 

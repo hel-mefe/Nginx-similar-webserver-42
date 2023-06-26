@@ -142,7 +142,7 @@ void    HttpHandler::fill_response(t_client *client, int code, bool write_it)
         res->add("connection", "closed");
     if (sz(res->redirect_to)) // redirection exist
         res->add("location", res->redirect_to);
-    if (sz(res->rootfilepath))
+    if (sz(res->filepath))
     {
         std::string ext = res->extension;
         std::string ctype = IN_MAP((*mimes), ext) ? mimes->at(ext) : "text/plain";
@@ -355,7 +355,7 @@ void    HttpHandler::set_configurations(t_client *client)
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
     std::cout << YELLOW_BOLD << "WE ARE DEALING WITH THIS LOCATION ===> " << res->directory_configs_path << std::endl;
     res->configs = client->server->server_configs;
-    res->is_cgi = (req->extension == ".php");
+    res->is_cgi = (req->extension == ".php" || req->extension == ".pl");
     if (res->is_cgi)
         res->cgi_path = res->configs->extension_cgi[res->extension];
     set_root_file_path(client); // needed for GET and DELETE
@@ -665,17 +665,15 @@ void    HttpHandler::architect_post_response(t_client *client)
         return;
     }
     client->state = SERVING_POST;
-    if (!req->extension.empty()) 
-        return;
     for (std::map<std::string, std::string>::iterator it = mimes->begin(); it != mimes->end(); it++)
     {
         if (it->second == header->second)
         {
-            req->extension.append(it->first);
+            req->extension = it->first;
             return;
         }
     }
-    req->extension.append(".txt");
+    req->extension = ".txt";
 }
 
 void    HttpHandler::architect_response(t_client *client)

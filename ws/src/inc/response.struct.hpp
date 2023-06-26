@@ -9,11 +9,16 @@
 
 typedef struct response
 {
-    std::map<std::string, std::string>  response_map;
-    std::map<std::string, std::string>  cgi_env;
+    bool                                is_cgi;
+    bool                                cgi_rn_found;
+    bool                                cgi_running;
+    bool                                is_directory_listing; // in case we have to list the directories inside
+    int                                 cgi_pipe[2];
+    int                                 fd;
+    int                                 code;
+    int                                 cgi_pid;
     t_server_configs                    *configs;
     t_location_configs                  *dir_configs;
-    std::list<std::pair<std::string, std::string>>      dir_link; // list => [(dir, link) pair]
     std::string                         http_version;
     std::string                         status_code;
     std::string                         status_line;
@@ -24,12 +29,9 @@ typedef struct response
     std::string                         extension;
     std::string                         redirect_to;
     std::string                         cgi_path;
-    bool                                is_cgi;
-    bool                                cgi_rn_found;
-    bool                                is_directory_listing; // in case we have to list the directories inside
-    int                                 cgi_pipe[2];
-    int                                 fd;
-    int                                 code;
+    std::list<std::pair<std::string, std::string>>      dir_link; // list => [(dir, link) pair]
+    std::map<std::string, std::string>  response_map;
+    std::map<std::string, std::string>  cgi_env;
 
     response() : configs(nullptr), dir_configs(nullptr), is_cgi(false), fd(UNDEFINED){
         cgi_rn_found = false;
@@ -63,9 +65,9 @@ typedef struct response
             write_string(fd, second, true);
             it++;
         }
-        std::cout << "Response has been written in " << fd << std::endl;
-        if (!this->is_cgi) // don't need this in case of cgi
+        if (!is_cgi && response_map["request_method"] != "GET")
             write(fd, "\r\n", 2);
+        std::cout << "Response has been written in " << fd << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)

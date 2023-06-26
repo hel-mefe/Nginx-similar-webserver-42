@@ -14,6 +14,8 @@ http
         max_body_size 200000000
         register_logs logs
         fastCGI .php /cgi-bin/php-cgi
+        fastCGI .pl /cgi-bin/perl-cgi
+        fastCGI .py /cgi-bin/python-cgi
         location /hello
         {
             root /brother/sister
