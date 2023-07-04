@@ -17,6 +17,7 @@ typedef struct ServerAttributes
     std::vector<std::string>            allowed_cgi;
     std::vector<std::string>            locations;
     std::vector<std::string>            pages_404;
+    HashMap<int, std::string>           code_to_page;
     HashMap<std::string, std::string>   extension_cgi; // <extension, cgi_program_name>
     HashSet<std::string>                allowed_methods_set;
     HashSet<std::string>                allowed_cgi_set;
@@ -47,6 +48,7 @@ typedef struct LocationConfigs
     HashSet<std::string>                allowed_methods_set;
     HashSet<std::string>                pages_404_set;
     HashSet<std::string>                pages_301_set;
+    HashMap<int, std::string>           code_to_page;
     bool                                auto_indexing;
     bool                                connection;
     bool                                upload;
@@ -144,6 +146,9 @@ typedef struct server
         std::cout << "directory listing -> " << (server_configs->directory_listing ? "on" : "off") << std::endl;
         std::cout << "auto_indexing ->" << (server_configs->auto_indexing ? "on" : "off") << std::endl;
         std::cout << "client_max_body_size ->" << server_configs->max_body_size << std::endl;
+        std::cout << "code to pages in server -> " << std::endl;
+        for (auto x: server_configs->code_to_page)
+            std::cout << x.first << " -> " << x.second << std::endl;
         std::cout << RED_BOLD << "**** END PRITING SERVER DATA *****\n" << WHITE_BOLD << std::endl;
 
     }
@@ -167,6 +172,9 @@ typedef struct server
         std::cout << "connection -> " << (conf->connection ? "on" : "off") << std::endl;
         std::cout << "upload -> " << (conf->upload ? "on" : "off") << std::endl;
         std::cout << "directory_listing -> " << (conf->directory_listing ? "on" : "off") << std::endl;
+        std::cout << "error to code pages -> " << std::endl;
+        for (auto x: conf->code_to_page)
+            std::cout << x.first << " -> " << x.second << std::endl;
         std::cout << std::endl ;
     }
 

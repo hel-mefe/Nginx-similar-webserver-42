@@ -503,6 +503,7 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
     server_tokens.insert(std::make_pair("max_body_size", INT));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
+    server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
     server_tokens.insert(std::make_pair("register_logs", STRING));
 }
 
@@ -521,6 +522,8 @@ void    ConfigFileParser::fill_location_hashmap()
     location_tokens.insert(std::make_pair("upload", ON_OFF)); // off is the dafault value
     location_tokens.insert(std::make_pair("directory_listing", ON_OFF));
     location_tokens.insert(std::make_pair("location", LOCATION));
+    location_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
+
 }
 
 void    ConfigFileParser::fill_tokens()
@@ -635,7 +638,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return (false);
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(_words) < 2))
         return (false);
-    else if (token_type == CGI && sz(_words) != 3)
+    else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(_words) != 3)
         return (false);
     if (token_type == DIRECTORY)
         return (tc.is_directory(_words[1]));
@@ -659,6 +662,8 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return (tc.is_on_off(_words[1]));
     else if (token_type == CGI)
         return (tc.is_cgi(_words[1], _words[2]));
+    else if (token_type == ERROR_PAGE)
+        return (tc.is_code(_words[1]) && tc.is_directory(_words[2])) ;
     return (true);
 }
 
@@ -675,6 +680,8 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         return (false);
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(block) < 2))
         return (false);
+    else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(block) != 3)
+        return (false) ;
     if (token_type == DIRECTORY)
         return (tc.is_directory(block[1]));
     else if (token_type == SHORT_INT)
@@ -697,6 +704,8 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         return (tc.is_on_off(block[1]));
     else if (token_type == CGI)
         return (tc.is_cgi(block[1], block[2]));
+    else if (token_type == ERROR_PAGE)
+        return (tc.is_code(block[1]) && tc.is_directory(block[2]));
     return (true);
 }
 
@@ -770,21 +779,6 @@ bool ConfigFileParser::is_config_file_valid(std::string &config_file) // checks 
         return (false) ;
     }
     parse_words(brackets_q.front().second.first, brackets_q.front().second.second);
-    // print_http_words();
-    // if (!parse_http())
-    //     return (false);
-    // if (!parse_servers())
-    //     return (false);
-    // print_all();
-    // c_stream.close();
-    // print_nodes();
-
-    /**Debugging lines**/
-    // if (is_http_valid())
-    //     std::cout << "YES HTTP IS VALID" << std::endl;
-    // if (is_servers_valid())
-    //     std::cout << "YES SERVERS ARE VALID" << std::endl;
-    // print_nodes1(); -> print the data of all the servers and their blocks
     is_everything_valid = (is_http_valid() && is_servers_valid());
     c_stream.close();
     return (is_everything_valid) ;
@@ -883,6 +877,11 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             if (attr.logsfile_fd != UNDEFINED)
                 close(attr.logsfile_fd);
             attr.logsfile_fd = open(attr.logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
+        }
+        else if (token_name == "error_page")
+        {
+            int code = std::atoi(nodes[i].words[j][1].c_str());
+            attr.code_to_page[code] = nodes[i].words[j][2];
         }
     }
 }
@@ -986,6 +985,12 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
             l_configs.upload = get_auto_indexing(nodes[i].location_blocks[j]);
         else if (token_name == "directory_listing")
             l_configs.directory_listing = get_auto_indexing(nodes[i].location_blocks[j]);
+        else if (token_name == "error_page")
+        {
+            int code = std::atoi(nodes[i].location_blocks[j][1].c_str());
+            std::string page = nodes[i].location_blocks[j][2];
+            l_configs.code_to_page[code] = page;
+        }
         j++;
     }
 }
@@ -1014,6 +1019,7 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         //     std::cout << conf->indexes[i] << std::endl;
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
+        conf->code_to_page = s_conf->code_to_page;
         // conf->root = s_conf->root; [!! I DO NOT NEED THE SERVER ROOT TO BE SET IN LOCATION AS DEFAULT]
         fill_location_attributes(*conf, s_conf, index, start, i);
         std::cout << PURPLE_BOLD << "INTERVAL => " << start << " - " << i << WHITE << std::endl ;

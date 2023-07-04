@@ -77,7 +77,8 @@ enum TOKEN
     ON_OFF,
     CONNECTION,
     CGI,
-    LOCATION
+    LOCATION,
+    ERROR_PAGE
 } ;
 
 enum MULTIPLEXER

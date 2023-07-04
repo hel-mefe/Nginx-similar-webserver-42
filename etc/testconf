@@ -1,0 +1,16 @@
+http
+{
+    server
+    {
+        server_name nice_server
+        port 100
+        error_page 100 /100_page.html
+        error_page 200 /200_page.html
+        error_page 404 /not_found.html
+
+        location /loc
+        {
+            error_page 100 /override_100.html
+        }
+    }
+}

@@ -79,3 +79,11 @@ bool TokensChecker::is_cgi(std::string extension, std::string path)
     fullpath += path;
     return (is_extension(extension) && !access(fullpath.c_str(), X_OK));
 }
+
+bool TokensChecker::is_code(std::string s)
+{
+    int code;
+
+    code = std::atoi(s.c_str());
+    return (code > 0 && code < 515);
+}
