@@ -25,8 +25,8 @@ int main(int ac, char **av)
         std::cout << LOGO << std::endl;
         if (ws->parse_config_file())
             ws->run();
-        else
-            std::cout << RED_BOLD << "Config file is not valid!" << std::endl;
+        // else
+        //     std::cout << RED_BOLD << "Config file is not valid!" << std::endl;
     }
     catch (const std::exception &e) 
     {

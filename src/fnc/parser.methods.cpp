@@ -631,23 +631,49 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     TOKEN       token_type;
 
     if (server_tokens.find(token_name) == server_tokens.end())
+    {
+        std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
+    }
     token_type = server_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
     || token_type == DIRECTORY || token_type == CONNECTION) && (sz(_words) != 2))
+    {
+        std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(_words) < 2))
+    {
+        if (token_type == METHOD_VECTOR)
+            std::cerr << RED_BOLD << "syntax error in the list of the provided methods" << std::endl;
+        else
+            std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(_words) != 3)
+    {
+        if (token_type == CGI)
+            std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
+        else
+            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
         return (false);
+    }
     if (token_type == DIRECTORY)
         return (tc.is_directory(_words[1]));
     else if (token_type == SHORT_INT)
+    {
+        if (!tc.is_short_int(_words[1]))
+            std::cerr << RED_BOLD << "Invalid port" << std::endl;
         return (tc.is_short_int(_words[1]));
+    }
     else if (token_type == INT)
         return (tc.is_int(_words[1]));
     else if (token_type == METHOD)
+    {
+        if (!tc.is_method(_words[1]))
+            std::cerr << RED_BOLD << "Invalid method" << std::endl;
         return (tc.is_method(_words[1]));
+    }
     else if (token_type == CONNECTION)
         return (tc.is_connection(_words[1]));
     else if (token_type == METHOD_VECTOR)
@@ -655,7 +681,10 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         for (int i = 1; i < sz(_words); i++)
         {
             if (!tc.is_method(_words[i]))
+            {
+                std::cerr << RED_BOLD << "Invalid method" << std::endl;
                 return (false);
+            }
         }
     }
     else if (token_type == ON_OFF)
@@ -673,15 +702,33 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     TOKEN       token_type;
 
     if (location_tokens.find(token_name) == location_tokens.end())
+    {
+        std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
+    }
     token_type = location_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
     || token_type == DIRECTORY || token_type == CONNECTION) && (sz(block) != 2))
+    {
+        std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(block) < 2))
+    {
+        if (token_type == METHOD_VECTOR)
+            std::cerr << RED_BOLD << "syntax error in the list of the provided methods" << std::endl;
+        else
+            std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(block) != 3)
+    {
+        if (token_type == CGI)
+            std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
+        else
+            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
         return (false) ;
+    }
     if (token_type == DIRECTORY)
         return (tc.is_directory(block[1]));
     else if (token_type == SHORT_INT)
@@ -689,7 +736,11 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     else if (token_type == INT)
         return (tc.is_int(block[1]));
     else if (token_type == METHOD)
+    {
+        if (!tc.is_method(block[1]))
+            std::cerr << RED_BOLD << "Invalid method" << std::endl;
         return (tc.is_method(block[1]));
+    }
     else if (token_type == CONNECTION)
         return (tc.is_connection(block[1]));
     else if (token_type == METHOD_VECTOR)
@@ -697,7 +748,10 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         for (int i = 1; i < sz(block); i++)
         {
             if (!tc.is_method(block[i]))
+            {
+                std::cerr << RED_BOLD << "Invalid method" << std::endl;
                 return (false);
+            }
         }
     }
     else if (token_type == ON_OFF)
@@ -717,7 +771,7 @@ bool ConfigFileParser::is_servers_valid()
         {
             if (!is_server_line_valid(nodes[i].words[j]))
             {
-                std::cout << "SERVER ERROR -> " << i << std::endl ;
+                std::cerr << RED_BOLD << "(syntax error at server word -> " << j << ")" << std::endl ;
                 return (false);
             }
         }
@@ -725,11 +779,7 @@ bool ConfigFileParser::is_servers_valid()
         {
             if (!is_location_block_valid(nodes[i].location_blocks[k]))
             {
-                std::cout << "LOCATION ERROR -> " << i << std::endl;
-                for (int j = 0; j < sz(nodes[i].location_blocks[k]); j++)
-                {
-                    std::cout << nodes[i].location_blocks[k][j] << " " ;
-                }
+                std::cerr << RED_BOLD << "(syntax error at location block line -> " << k << ")" << std::endl ;
                 return (false) ;
             }
         }
@@ -898,7 +948,7 @@ bool ConfigFileParser::get_connection(std::vector<std::string> &line)
 
 int ConfigFileParser::get_port(std::vector<std::string> &line)
 {
-    return (std::stoi(line[1]));
+    return (std::atoi(line[1].c_str()));
 }
 
 std::vector<std::string> ConfigFileParser::get_vector_of_data(std::vector<std::string> &line)
@@ -1094,7 +1144,7 @@ bool ConfigFileParser::parse_config_file(std::string config_file, t_http_configs
 {
     if (!is_config_file_valid(config_file)) // O(N) to check if the file is valid or not
     {
-        std::cout << "Config file is not valid" << std::endl;
+        std::cerr << RED_BOLD << "Config file is not valid" << std::endl;
         return (false);
     }
     return (fill_http_data(http_data) && fill_servers_data(servers, http_data));
