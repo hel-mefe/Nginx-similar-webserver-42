@@ -6,11 +6,6 @@ void    HttpHandler::handle_http(t_client *client)
         return ;
     else if (client->state == READING_HEADER || client->state == WAITING)
     {
-        // if (client->state == WAITING && time(NULL) - client->request_time >= MAX_REQUEST_TIMEOUT)
-        // {
-        //     alert("TIMEOUT BLOCK", YELLOW_BOLD);
-        //     client->state = SERVED;
-        // }
         int time_passed = time(NULL) - client->request_time;
         if (time_passed > MAX_REQUEST_TIMEOUT)
             client->state = SERVED;
@@ -20,14 +15,49 @@ void    HttpHandler::handle_http(t_client *client)
         {
             http_parser->parse_request(client);
             architect_response(client);
-            // alert("READ FALSE", YELLOW_BOLD);
-            // if (client->state == WAITING && time(NULL) - client->request_time >= MAX_REQUEST_TIMEOUT)
-            // client->state = SERVED ;
             return ;
         }
-        // http_parser->parse_request(client);
-        // architect_response(client);
     }       
+}
+
+std::string get_cleanified_path(std::string s)
+{
+    std::string res;
+    bool flag = true;
+
+    for (int i = 0; i < sz(s); i++)
+    {
+        if (s[i] != '/' || (s[i] == '/' && flag))
+            res += s[i];
+        flag = !(s[i] == '/');
+    }
+    return (res);
+}
+
+void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
+{
+    t_request *req = client->request;
+    t_response *res = client->response;
+    std::map<int, std::string>          code_to_page;
+    std::string                 error_page;
+
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+    error_page = (res->dir_configs) ? res->dir_configs->root : res->configs->root;
+    if (error_page[sz(error_page) - 1] != '/')
+        error_page += "/";
+    error_page += code_to_page[code];
+    if (!access(error_page.c_str(), R_OK))
+    {
+        client->state = SERVING_GET;
+        set_root_file_path(client);
+    }
+    else
+        client->state = SERVED;
+    res->rootfilepath = get_cleanified_path(res->rootfilepath);
+    res->filepath = get_cleanified_path(res->filepath);
 }
 
 bool    HttpHandler::handle_501(t_client *client)
@@ -52,13 +82,22 @@ bool    HttpHandler::handle_501(t_client *client)
 bool    HttpHandler::handle_400(t_client *client)
 {
     t_request *req = client->request;
+    t_response *res = client->response;
     std::map<std::string, std::string>  *request_map = &req->request_map;
+    std::map<int, std::string>          code_to_page;
 
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
     if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
     !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
     {
         fill_response(client, 400, true);
-        client->state = SERVED;
+        if (IN_MAP(code_to_page, 400)) // error code is exist page provided in config file
+            handle_path_error(client, 400);
+        else
+            client->state = SERVED;
         return true ;
     }
     return false ;
@@ -67,12 +106,21 @@ bool    HttpHandler::handle_400(t_client *client)
 bool HttpHandler::handle_414(t_client *client)
 {
     t_request *req = client->request;
+    t_response *res = client->response;
     std::map<std::string, std::string>  *request_map = &req->request_map;
+    std::map<int, std::string>          code_to_page;
 
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
     if (sz(req->path) >= MAX_REQUEST_URI_SIZE)
     {
         fill_response(client, 414, true);
-        client->state = SERVED;
+        if (IN_MAP(code_to_page, 414)) // error code is exist page provided in config file
+            handle_path_error(client, 414) ;
+        else
+            client->state = SERVED;
         return true ;
     }
     return false ;
@@ -85,9 +133,14 @@ bool    HttpHandler::handle_405(t_client *client)
     t_location_configs  *l_configs;
     t_server_configs    *s_configs;
     std::map<std::string, std::string>  *request_map;
+    std::map<int, std::string>          code_to_page;
 
     req = client->request;
     res = client->response;
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
     request_map = &req->request_map;
     l_configs = get_location_configs_from_path(client);
     s_configs = client->server->server_configs;
@@ -96,7 +149,10 @@ bool    HttpHandler::handle_405(t_client *client)
     if (std::find(allowed_methods.begin(), allowed_methods.end(), req->method) == allowed_methods.end())
     {
         fill_response(client, 405, true);
-        client->state = SERVED;
+        if (IN_MAP(code_to_page, 405)) // error code is exist page provided in config file
+            handle_path_error(client, 405) ;
+        else
+            client->state = SERVED;
         return true ;
     }
     return (false);
@@ -105,17 +161,26 @@ bool    HttpHandler::handle_405(t_client *client)
 bool HttpHandler::handle_413(t_client *client)
 {
     t_request *req = client->request;
+    t_response *res = client->response;
     t_server_configs *sconf = client->server->server_configs;
     std::map<std::string, std::string>  *request_map;
+    std::map<int, std::string>          code_to_page;
 
     request_map = &req->request_map;
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
     if (IN_MAP((*request_map), "content-length"))
     {
         req->content_length = std::atoi(request_map->at("content-length").c_str());
         if(sconf->max_body_size < req->content_length)
         {
             fill_response(client, 413, true);
-            client->state = SERVED;
+            if (IN_MAP(code_to_page, 413)) // error code is exist page provided in config file
+                handle_path_error(client, 413) ;
+            else
+                client->state = SERVED;
             return true;
         }
     }
@@ -351,8 +416,10 @@ void    HttpHandler::set_configurations(t_client *client)
     t_request *req = client->request;
     t_response *res = client->response;
 
-    res->dir_configs = get_location_configs_from_path(client);
-    res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
+    if (!res->dir_configs)
+        res->dir_configs = get_location_configs_from_path(client);
+    if (!sz(res->directory_configs_path))
+        res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
     std::cout << YELLOW_BOLD << "WE ARE DEALING WITH THIS LOCATION ===> " << res->directory_configs_path << std::endl;
     res->configs = client->server->server_configs;
     res->is_cgi = (req->extension == ".php" || req->extension == ".pl");
@@ -676,6 +743,21 @@ void    HttpHandler::architect_post_response(t_client *client)
     req->extension = ".txt";
 }
 
+/**
+ * - responsible for setting configs and dir_configs
+ * - responsible for setting directory_configs_path
+*/
+void    HttpHandler::set_response_configs(t_client *client)
+{
+    t_response  *res;
+    t_request   *req;
+
+    res = client->response;
+    req = client->request;
+    res->dir_configs = get_location_configs_from_path(client);
+    res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
+    res->configs = client->server->server_configs;
+}
 void    HttpHandler::architect_response(t_client *client)
 {
     t_request *req;
@@ -688,10 +770,9 @@ void    HttpHandler::architect_response(t_client *client)
     res = client->response;
     request_map = &req->request_map;
 
-    // if (req->path[sz(req->path) - 1] != '/' && !req->is_file)
-    //     req->path += "/";
     req->is_file = (req->path[sz(req->path) - 1] != '/') ;
     req->print_data();
+    set_response_configs(client); // setting dir_configs and configs and directory_configs_path
     if ((handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_405(client)) || handle_locations(client))
         res->print_data();
     else

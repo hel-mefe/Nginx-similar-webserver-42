@@ -692,7 +692,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     else if (token_type == CGI)
         return (tc.is_cgi(_words[1], _words[2]));
     else if (token_type == ERROR_PAGE)
-        return (tc.is_code(_words[1]) && tc.is_directory(_words[2])) ;
+        return (tc.is_code(_words[1])) ;
     return (true);
 }
 
@@ -759,7 +759,7 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     else if (token_type == CGI)
         return (tc.is_cgi(block[1], block[2]));
     else if (token_type == ERROR_PAGE)
-        return (tc.is_code(block[1]) && tc.is_directory(block[2]));
+        return (tc.is_code(block[1]));
     return (true);
 }
 

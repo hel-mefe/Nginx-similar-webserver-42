@@ -31,7 +31,6 @@ void    Get::write_chunk(SOCKET fd, unsigned char *buff, int len)
 void    Get::write_schunk(SOCKET fd, std::string &s, int len)
 {
     write_hex(fd, len);
-    // std::cout << WHITE_BOLD << "\r\n" << buff << "\r\n" << WHITE << std::endl;
     std::cout << YELLOW_BOLD << s << std::endl;
     write(fd, "\r\n", 2);
     if (len)
@@ -163,6 +162,10 @@ void    Get::handle_cgi(t_client *client)
     serve_cgi(client);
 }
 
+/** 
+ * handling static files file.html, file.txt, file.jpeg ... etc 
+ * using chunked for transfer-encoding
+ **/
 void    Get::handle_static_file(t_client *client)
 {
     SOCKET                  sockfd;
@@ -174,16 +177,11 @@ void    Get::handle_static_file(t_client *client)
     req = client->request;
     res = client->response;
     sockfd = client->fd;
-    // std::cout << CYAN_BOLD << "ROOT FILE PATH = " << res->rootfilepath << WHITE << std::endl;
     bzero(buff, MAX_BUFFER_SIZE);
     bts = read(res->fd, buff, MAX_BUFFER_SIZE);
-    // std::cout << RED_BOLD << bts << " HAS BEEN READ" << std::endl;
     if (bts != -1)
         write_chunk(sockfd, buff, bts);
-    // std::cout << PURPLE_BOLD << "RESPONSE WRITTEN!" << WHITE << std::endl;
     client->state = (bts ? client->state : SERVED);
-    // if (client->state == SERVED)
-    //     client->request_time = time(NULL), client->state = (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive") ? WAITING : SERVED;
     if (client->state == SERVED)
         std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }
@@ -237,7 +235,7 @@ void    Get::serve_directory_listing(t_client *client)
     std::list<std::string>   keep;
     char        dir[1025];
 
-    bzero(dir, 1024);
+    bzero(dir, 1025);
     req = client->request;
     res = client->response;
     list_directories(client);
@@ -251,10 +249,6 @@ void    Get::serve_directory_listing(t_client *client)
         std::string name = dirlink.first;
         std::string link = dirlink.second;
         std::string tag = "<li><a href=\"";
-        // tag = tag + req->path;
-        // if (tag[sz(tag) - 1] != '/')
-        //     tag += "/";
-        // tag += name + " \" " + name + ">" + name + "</li>";  
         tag += req->path + name + "\" /> " + name + "</li>" ;
         keep.push_back(tag);
         std::cout << "THE FULL TAG IS => " << tag << std::endl;
