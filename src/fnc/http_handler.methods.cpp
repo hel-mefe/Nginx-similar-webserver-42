@@ -20,26 +20,13 @@ void    HttpHandler::handle_http(t_client *client)
     }       
 }
 
-std::string get_cleanified_path(std::string s)
-{
-    std::string res;
-    bool flag = true;
-
-    for (int i = 0; i < sz(s); i++)
-    {
-        if (s[i] != '/' || (s[i] == '/' && flag))
-            res += s[i];
-        flag = !(s[i] == '/');
-    }
-    return (res);
-}
-
 void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
 {
     t_request *req = client->request;
     t_response *res = client->response;
     std::map<int, std::string>          code_to_page;
     std::string                 error_page;
+    std::string                 current_dir;
 
     if (res->dir_configs)
         code_to_page = res->dir_configs->code_to_page;
@@ -53,6 +40,9 @@ void    HttpHandler::handle_path_error(t_client *client, int code) // only calle
     {
         client->state = SERVING_GET;
         set_root_file_path(client);
+        current_dir = getwd(NULL);
+        if (current_dir[sz(current_dir) - 1] != '/')
+            res->filepath = current_dir + res->rootfilepath;
     }
     else
         client->state = SERVED;
@@ -218,11 +208,9 @@ void    HttpHandler::fill_response(t_client *client, int code, bool write_it)
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
         else
             std::cout << GREEN_BOLD << "***** DEALING WITH CGI ****" << std::endl ;
-        // else // dealing with cgi
-        //     pipe(res->cgi_pipe);
     }
     if (write_it)
-        res->write_response_in_socketfd(client->fd);
+        res->write_response_in_socketfd(client->fd, !res->is_cgi);
     // new_state = (connection == "keep-alive") ? KEEP_ALIVE : SERVED;
     // client->reset(new_state);
 }
@@ -453,7 +441,11 @@ bool    HttpHandler::handle_locations(t_client *client)
     if (req->is_file && !is_path_valid(fullpath))
     {
         std::cout << "[handle_locations] -> THE PATH IS NOT VALID AND WORKING WITH 404" << std::endl;
-        files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;        
+        files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;
+        if (l_configs && IN_MAP(l_configs->code_to_page, 404))
+            files_404.push_back(l_configs->code_to_page[404]);
+        else if (IN_MAP(s_configs->code_to_page, 404))
+            files_404.push_back(s_configs->code_to_page[404]);     
         std::string rootpath = l_configs ? l_configs->root : s_configs->root;
         if (set_file_path(rootpath, files_404))
         {
@@ -497,15 +489,17 @@ void    HttpHandler::handle_file_path(t_client *client)
     {
         std::cout << "[handle_file_path] -> handling file path 404" << std::endl;
         files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;
+        if (l_configs && IN_MAP(l_configs->code_to_page, 404))
+            files_404.push_back(l_configs->code_to_page[404]);
+        else if (IN_MAP(s_configs->code_to_page, 404))
+            files_404.push_back(s_configs->code_to_page[404]);     
         std::string dirpath = get_longest_directory_prefix(client, rootfilepath, false);
         std::string p = getwd(NULL);
         p += (l_configs) ? dirpath : s_configs->root;
-        // std::cout << WHITE_BOLD << "Longest directory prefix -> " << dirpath << WHITE << std::endl;
         if (!set_file_path(p, files_404))
         {
             res->rootfilepath = "";
             res->filepath = "";
-            // std::cout << YELLOW_BOLD << "FILES 404 WERE NOT FOUND!" << WHITE << std::endl;
         }
         else
             res->filepath = p;
@@ -516,11 +510,6 @@ void    HttpHandler::handle_file_path(t_client *client)
         res->filepath = std::string(getwd(NULL)) + res->rootfilepath;
         res->code = 200;
     }
-//     std::string fullpath = (l_configs) ? l_configs->root + req->path : s_configs->root + req->path;
-//     if (is_path_valid(fullpath))
-//         return ;
-//     set_404_file(client);
-    // std::cout << CYAN_BOLD << "HANDLING FILE PATH IS RUNNING ..." << std::endl;
 }
 
 bool    HttpHandler::set_directory_indexes(t_client *client) // takes directory and sets files 
@@ -546,9 +535,6 @@ bool    HttpHandler::set_directory_indexes(t_client *client) // takes directory 
             res->filename = req->path + indexes[i];
             res->filepath = ipath;
             res->extension = get_extension(res->filename);
-            // std::cout << YELLOW_BOLD << "INDEX FOUND = " << res->filename << std::endl;
-            // std::cout << "FULLPATH = " << res->filepath << std::endl;
-            // std::cout << "EXTENSION = " << res->extension << WHITE << std::endl;
             return true;
         }
     }
@@ -593,6 +579,10 @@ void    HttpHandler::handle_directory_path(t_client *client)
     l_configs = res->dir_configs;
     indexes = (l_configs ? l_configs->indexes : s_configs->indexes);
     files_404 = (l_configs ? l_configs->pages_404 : s_configs->pages_404);
+    if (l_configs && IN_MAP(l_configs->code_to_page, 404))
+        files_404.push_back(l_configs->code_to_page[404]);
+    else
+        files_404.push_back(s_configs->code_to_page[404]);
     rootfilepath = res->rootfilepath;
     std::string rootpath = s_configs->root;
     rootpath = (l_configs) ? rootpath + l_configs->root : rootpath;
@@ -604,6 +594,8 @@ void    HttpHandler::handle_directory_path(t_client *client)
             res->code = 200;
             res->is_directory_listing = true;
             res->add("content-type", "text/html");
+            res->add("transfer-encoding", "chunked");
+            res->write_response_in_socketfd(res->fd, true);
             std::cout << GREEN_BOLD << "DIRECTORY LISTING IS ON!" << WHITE << std::endl;
         }
         else
@@ -612,6 +604,8 @@ void    HttpHandler::handle_directory_path(t_client *client)
             {
                 res->rootfilepath = rootpath;
                 res->filepath = std::string(getwd(NULL));
+                if (res->filepath[sz(res->filepath) - 1] != '/')
+                    res->filepath += "/";
                 res->filepath += res->rootfilepath[0] == '/' ? res->rootfilepath.substr(1) : res->rootfilepath;
                 std::cout << PURPLE_BOLD << res->rootfilepath  << WHITE << std::endl;
             }
@@ -683,12 +677,13 @@ void    HttpHandler::architect_get_response(t_client *client)
     else // directory
         handle_directory_path(client);
 
-    if (sz(res->filepath) && access(res->filepath.c_str(), R_OK)) // forbidden
+    if (!res->is_directory_listing && sz(res->filepath) && access(res->filepath.c_str(), R_OK)) // forbidden
     {
+        std::cout << "FORBIDDEN => " << res->filepath << std::endl;
         fill_response(client, 403, true);
         client->state = SERVED ;
     }
-    else // Access allowed
+    else if (!res->is_directory_listing) // Access allowed
     {
         std::cout << GREEN_BOLD << " -- WE ARE DEALING WITH THIS FILE PATH ==> " << res->filepath << std::endl;
         res->extension = get_extension(res->filepath);
@@ -747,6 +742,8 @@ void    HttpHandler::architect_post_response(t_client *client)
  * - responsible for setting configs and dir_configs
  * - responsible for setting directory_configs_path
 */
+
+
 void    HttpHandler::set_response_configs(t_client *client)
 {
     t_response  *res;
@@ -757,7 +754,9 @@ void    HttpHandler::set_response_configs(t_client *client)
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
     res->configs = client->server->server_configs;
+    res->root = res->dir_configs ? res->dir_configs->root : res->configs->root; 
 }
+
 void    HttpHandler::architect_response(t_client *client)
 {
     t_request *req;
@@ -773,16 +772,34 @@ void    HttpHandler::architect_response(t_client *client)
     req->is_file = (req->path[sz(req->path) - 1] != '/') ;
     req->print_data();
     set_response_configs(client); // setting dir_configs and configs and directory_configs_path
-    if ((handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_405(client)) || handle_locations(client))
+    // if ((handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_405(client)) || handle_locations(client))
+    //     res->print_data();
+    // else
+    // {
+    //     set_configurations(client);
+    //     if (req->method == "GET")
+    //         architect_get_response(client);
+    //     else if (req->method == "DELETE")
+    //         client->state = SERVING_DELETE;
+    //     else if (req->method == "POST")
+    //         architect_post_response(client);
+    // }
+
+    if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
+    || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         res->print_data();
     else
     {
-        set_configurations(client);
+        // set_configurations(client);
         if (req->method == "GET")
-            architect_get_response(client);
+        {
+            handlers->handle_200(client);
+            // architect_get_response(client);
+        }
         else if (req->method == "DELETE")
             client->state = SERVING_DELETE;
         else if (req->method == "POST")
             architect_post_response(client);
     }
+
 }

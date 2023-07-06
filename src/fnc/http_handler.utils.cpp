@@ -1,5 +1,20 @@
 # include "../inc/http_handler.utils.hpp"
 
+std::string get_cleanified_path(std::string s)
+{
+    std::string res;
+    bool flag = true;
+
+    for (int i = 0; i < sz(s); i++)
+    {
+        if (s[i] != '/' || (s[i] == '/' && flag))
+            res += s[i];
+        flag = !(s[i] == '/');
+    }
+    return (res);
+}
+
+
 void    alert(std::string s, const char *color)
 {
     std::cout << color << s << WHITE << std::endl;

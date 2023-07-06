@@ -3,7 +3,7 @@
 
 # include "socket.hpp"
 
-
+std::string                 get_cleanified_path(std::string s);
 void                        alert(std::string s, const char *color);
 
 bool                        is_file(std::string &path);

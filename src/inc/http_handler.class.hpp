@@ -6,6 +6,7 @@
 # include "http_parser.class.hpp"
 # include "http_handler.utils.hpp"
 # include "client.struct.hpp"
+# include "class.handlers.hpp"
 
 typedef struct request t_request;
 
@@ -15,28 +16,36 @@ class HttpHandler : public HttpHandlerInterface
         std::map<std::string, std::string> *mimes;
         std::map<int, std::string>         *codes;
         HttpParser                         *http_parser;
+        Handlers                           *handlers;
 
     public:
         HttpHandler()
         {
             http_parser = new HttpParser();
+            handlers = new Handlers(mimes, codes);
         }
         HttpHandler(std::map<std::string, std::string> *_mimes, std::map<int, std::string> *_codes)
         {
             http_parser = new HttpParser();
             mimes = _mimes;
             codes = _codes;
+            handlers = new Handlers(mimes, codes);
         }
-        ~HttpHandler(){};
+        ~HttpHandler(){
+            delete http_parser;
+            delete handlers;
+        };
 
         void    set_mimes(std::map<std::string, std::string> *_mimes)
         {
             mimes = _mimes;
+            handlers->set_mimes(_mimes);
         }
 
         void    set_codes(std::map<int, std::string> *_codes)
         {
             codes = _codes;
+            handlers->set_codes(_codes);
         }
 
 

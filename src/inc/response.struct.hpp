@@ -25,6 +25,7 @@ typedef struct response
     std::string                         directory_configs_path; // sz == 0 no d configs
     std::string                         filename;
     std::string                         filepath;
+    std::string                         root;
     std::string                         rootfilepath;
     std::string                         extension;
     std::string                         redirect_to;
@@ -49,7 +50,7 @@ typedef struct response
             write(fd, "\r\n", 2);
     }
 
-    void    write_response_in_socketfd(SOCKET fd)
+    void    write_response_in_socketfd(SOCKET fd, bool terminate)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
         write_string(fd, http_version, false);
@@ -65,7 +66,7 @@ typedef struct response
             write_string(fd, second, true);
             it++;
         }
-        if (!is_cgi && response_map["request_method"] != "GET")
+        if (terminate)
             write(fd, "\r\n", 2);
         std::cout << "Response has been written in " << fd << std::endl;
     }

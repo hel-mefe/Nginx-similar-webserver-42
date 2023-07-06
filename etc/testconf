@@ -1,16 +1,22 @@
 http
 {
+    allowed_methods GET DELETE POST
     server
     {
         server_name nice_server
         port 8080
-        error_page 100 /100_page.html
-        error_page 200 /200_page.html
-        error_page 404 /not_found.html
+		root /www
+        error_page 404 404.html
 
-        location /loc
+        location /error_pages
         {
-            error_page 100 /override_100.html
+            directory_listing on
+        }
+        
+        location /testing
+        {
+            directory_listing on
+            index index.oho index.php index.html
         }
     }
 }

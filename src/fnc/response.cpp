@@ -9,5 +9,5 @@ void    architect_response(t_client *client)
     req = client->request;
     res = client->response;
     req_map = &req->request_map;
-    res->write_response_in_socketfd(client->fd);
+    res->write_response_in_socketfd(client->fd, true);
 }

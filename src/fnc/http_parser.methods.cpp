@@ -15,7 +15,6 @@ bool    HttpParser::read_header(t_client *client)
             client->state = SERVED;
         return (false);
     }
-    // client->request_time = time(NULL);
     int bl = 0, el = 0;
     while (el < bytes)
     {

@@ -265,6 +265,34 @@ void    Get::serve_directory_listing(t_client *client)
 }
 /*** end listing all the directories ***/
 
+void    Get::handle_directory_listing(t_client *client)
+{
+    t_response  *res;
+    t_request   *req;
+    std::string html;
+    std::string content_length;
+
+    res = client->response;
+    req = client->request;
+    list_directories(client);
+    html = "<html><head><title>Index of</title></head><body><br /><h2>Index of</h2><hr /><ul>";
+    for (auto d: res->dir_link)
+    {
+        std::string dir = d.first;
+        std::string link = d.second;
+        std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
+        html += tag;
+    }
+    html += "</ul></body></html>\r\n";
+    content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
+    send(client->fd, content_length.c_str(), sz(content_length), 0);
+    send(client->fd, html.c_str(), sz(html), 0);
+    client->state = SERVED;
+    // write_schunk(client->fd, html, sz(html), 0);
+    // send(client->fd, "0\r\n\r\n", 5, 0);
+    std::cout << "-- end of directory listing -- " << std::endl;
+}
+
 void    Get::serve_client(t_client *client)
 {
     SOCKET      sockfd;
@@ -275,7 +303,7 @@ void    Get::serve_client(t_client *client)
     res = client->response;
     sockfd = client->fd;
     if (res->is_directory_listing) // dealing with directory listing
-        serve_directory_listing(client);
+        handle_directory_listing(client);
     else
     {
         if (res->is_cgi)

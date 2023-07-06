@@ -934,6 +934,8 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
     }
+    if (attr.code_to_page.find(404) != attr.code_to_page.end())
+        attr.pages_404.push_back(attr.code_to_page[404]);
 }
 
 bool ConfigFileParser::get_auto_indexing(std::vector<std::string> &line)
@@ -1043,6 +1045,9 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
         }
         j++;
     }
+    if (l_configs.code_to_page.find(404) != l_configs.code_to_page.end())
+        l_configs.pages_404.push_back(l_configs.code_to_page[404]);
+
 }
 
 void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::vector<std::string> > &location_blocks, t_server_configs *s_conf, int index)

@@ -37,7 +37,7 @@ void    Post::fill_response(t_client *client, int code, std::string status_line,
     if (sz(connection)) // type of connection
         res->add("connection", "closed");
     if (write_it)
-        res->write_response_in_socketfd(client->fd);
+        res->write_response_in_socketfd(client->fd, true);
 }
 
 void Post::client_served(t_client* client)

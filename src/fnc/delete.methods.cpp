@@ -59,7 +59,7 @@ void    Delete::fill_response(t_client *client, int code, std::string status_lin
     if (sz(connection)) // type of connection
         res->add("connection", "closed");
     if (write_it)
-        res->write_response_in_socketfd(client->fd);
+        res->write_response_in_socketfd(client->fd, true);
 }
 
 void    Delete::handle_delete_file(t_client *client)
