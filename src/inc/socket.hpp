@@ -27,6 +27,12 @@
 
 #define HashMap std::map
 
+#ifdef FD_SETSIZE
+# undef FD_SETSIZE
+#endif
+
+#define FD_SETSIZE 10000
+
 #ifdef MAX_REQUEST_TIMEOUT
 # undef MAX_REQUEST_TIMEOUT
 #endif

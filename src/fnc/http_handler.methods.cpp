@@ -771,31 +771,14 @@ void    HttpHandler::architect_response(t_client *client)
 
     req->is_file = (req->path[sz(req->path) - 1] != '/') ;
     req->print_data();
-    set_response_configs(client); // setting dir_configs and configs and directory_configs_path
-    // if ((handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_405(client)) || handle_locations(client))
-    //     res->print_data();
-    // else
-    // {
-    //     set_configurations(client);
-    //     if (req->method == "GET")
-    //         architect_get_response(client);
-    //     else if (req->method == "DELETE")
-    //         client->state = SERVING_DELETE;
-    //     else if (req->method == "POST")
-    //         architect_post_response(client);
-    // }
-
+    set_response_configs(client);
     if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         res->print_data();
     else
     {
-        // set_configurations(client);
         if (req->method == "GET")
-        {
             handlers->handle_200(client);
-            // architect_get_response(client);
-        }
         else if (req->method == "DELETE")
             client->state = SERVING_DELETE;
         else if (req->method == "POST")

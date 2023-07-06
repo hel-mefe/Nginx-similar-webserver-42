@@ -1,6 +1,10 @@
 # include "../inc/webServClass.hpp"
 # include "../inc/globals.hpp"
 
+/***
+* the main webserv class that encapsulates all the work 
+***/
+
 Webserver::Webserver()
 {
     parser = new ConfigFileParser();
@@ -43,8 +47,6 @@ Webserver::~Webserver()
 {
     return ;
 }
-
-// Debugging lines to show the data that was parsed
 
 void    Webserver::print_global_http_data()
 {

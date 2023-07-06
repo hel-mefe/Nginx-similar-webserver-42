@@ -1,5 +1,16 @@
 #include "../inc/poll.class.hpp"
 
+/**
+ * the default multiplexer which is poll
+ * this is where all the multiplexing work is being handled
+*/
+
+
+/**
+ * function that returns the sockaddr_in struct
+ * it initializes it with the usual values and returns it
+**/
+
 struct sockaddr_in *getsocketdata(PORT port)
 {
     struct sockaddr_in *data;
@@ -11,6 +22,11 @@ struct sockaddr_in *getsocketdata(PORT port)
     data->sin_family = AF_INET;
     return data;
 }
+
+/**
+ * function that returns a listener socket fd for the server
+ * it takes a port and binds the socket to that port
+**/
 
 SOCKET getsocketfd(int port)
 {
@@ -42,6 +58,15 @@ SOCKET getsocketfd(int port)
     return fd;
 }
 
+/**
+ * initializes the manager and returns it
+ * a manager is more like the analogy of someone who's tracking all the work
+ * gives orders depending on each situation, if a request has been received
+ * then it creates a new client and adds it to a data structure (std::map)
+ * also if a connection has been closed it removes that client
+ * in summary, the manager is responsible for all of these stuff
+**/
+
 t_manager *Poll::get_manager()
 {
     t_manager *_manager = new t_manager();
@@ -71,6 +96,10 @@ t_manager *Poll::get_manager()
     return _manager;
 }
 
+/**
+ * a function that handles the connection for the first time it gets knocking
+ * accepts the user, and tells the manager to track it
+*/
 void Poll::handle_connection(t_manager *manager, SOCKET fd)
 {
     t_server *server = manager->get_server(fd);
@@ -85,39 +114,30 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
         std::cout << "[CLIENT MAP FAILED]: client has not been added successfully!" << std::endl;
 }
 
-bool is_connection_closed(SOCKET fd)
-{
-    char c;
 
-    return recv(fd, &c, 0, 0) == 0;
-}
+/**
+ * handles the disconnection, basically does nothing just calls the manager to remove the client from the map
+ * used only for clarification seek
+*/
 
 void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
-    /*** LOGS HANDLING ****/
-    // std::string logline; // [client N] -> [year-month-day] - [time_start, time_end] - [timespent]
-    // t_server_configs    *s_configs = manager->clients_map[fd]->server->server_configs;
-    // if (s_configs->logsfile_fd != UNDEFINED) // logfile is defined
-    // {
-    //     std::cout << GREEN_BOLD << "[LOG WRITTEN] -> " << s_configs->logsfile_fd << " - " << s_configs->logsfile << std::endl;
-    //     logline = "[client " + std::to_string(manager->client_num) + "] => " + "[2022-21-06] - [10, 20] - [10s]\n" ;
-    //     int fd = open(s_configs->logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
-    //     std::cout << RED_BOLD << write(fd, logline.c_str(), sz(logline)) << std::endl;
-    //     std::cout << "[LOGLINE => " << logline << std::endl;
-    // }
-    // else
-    //     std::cout << CYAN_BOLD << "LOGFILE IS UNDEFINED!" << std::endl;
-    /***END LOGS HANDLING ***/
-
     std::cout << "Connection was closed" << std::endl;
     manager->remove_client(fd);
     std::cout << "NUMBER OF FREE PLACES -> " << MAX_FDS - sz(manager->clients_map) << std::endl;
 }
 
+/**
+ * returns true if we are dealing with a state that requires reading the header
+*/
 bool is_http_state(CLIENT_STATE state)
 {
     return (state == READING_HEADER || state == WAITING);
 }
+
+/**
+ * returns true if the client is being in a method serving state
+*/
 
 bool is_method_handler_state(CLIENT_STATE state)
 {
@@ -128,32 +148,32 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
 
-    if (!client)
-    {
-        std::cout << "[NO CLIENT]" << std::endl;
-        return;
-    }
-    // if (client->state == WAITING)
-    //     client->state = READING_HEADER;
     if (is_http_state(client->state))
-    {
-        //std::cout << CYAN_BOLD << "Http handler is working ..." << std::endl;
         http_handler->handle_http(client);
-    }
     else if (is_method_handler_state(client->state))
         method_handlers->at(client->request->method)->serve_client(client);
+
     if (client->state == SERVED)
         handle_disconnection(manager, fd);
 }
 
+/**
+ * main multiplexing method that keeps track of all the work
+ * depends on the following 3 functions:
+ *   - handle_connection for accepting connection at the first time
+ *   - handle_client for serving the client
+ *   - handle_disconnection for removing the client from the map of clients
+*/
 void Poll::multiplex()
 {
     t_manager *m = get_manager();
     http_handler = new HttpHandler();
+    struct pollfd *fds;
+
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
-    struct pollfd *fds;
     int num_sockets;
+
     std::cout << manager->fds[0].fd << std::endl;
     manager->client_num = 0;
     signal(SIGPIPE, SIG_IGN);
@@ -162,7 +182,10 @@ void Poll::multiplex()
         num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
         int revents = poll(manager->fds, MAX_FDS, -1);
         if (revents == -1)
-            std::cout << strerror(errno) << std::endl;
+        {
+            std::cerr << RED_BOLD << "[Crash in Poll]: Internal Server Error" << std::endl;
+            return ;
+        }
         for (int i = 0; i < MAX_FDS; i++)
         {
             if (manager->is_listener(manager->fds[i].fd) &&
@@ -172,7 +195,7 @@ void Poll::multiplex()
                 manager->client_num += 1;
             }
             else if ((manager->fds[i].revents & POLLIN) ||
-                     (manager->fds[i].revents & POLLOUT)) // client handling
+                     (manager->fds[i].revents & POLLOUT)) // handling client
                 handle_client(manager, manager->fds[i].fd);
             else if (manager->fds[i].revents & POLLHUP) // disconnection
                 handle_disconnection(manager, manager->fds[i].fd);

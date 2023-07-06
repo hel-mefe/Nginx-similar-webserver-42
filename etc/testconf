@@ -1,13 +1,14 @@
 http
 {
     allowed_methods GET DELETE POST
+    max_body_size 0
+
     server
     {
         server_name nice_server
         port 8080
 		root /www
         error_page 404 404.html
-
         location /error_pages
         {
             directory_listing on

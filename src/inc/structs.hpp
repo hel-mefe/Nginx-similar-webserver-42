@@ -77,6 +77,7 @@ typedef struct HttpConfigs
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
+    int                                 max_body_size;
 
     HttpConfigs()
     {

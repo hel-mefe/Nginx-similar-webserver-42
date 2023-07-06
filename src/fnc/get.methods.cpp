@@ -2,6 +2,11 @@
 # include <dirent.h>
 # include <unistd.h>
 
+
+/**
+ * sends a hex in the provided socket fd
+ * mainly used in chunked transfer-encoding
+*/
 void    Get::write_hex(SOCKET fd, int n)
 {
     std::string s_hex = "0123456789abcdef";
@@ -9,7 +14,7 @@ void    Get::write_hex(SOCKET fd, int n)
     if (n < 16)
     {
         std::cout << WHITE_BOLD << s_hex[n];
-        write(fd, &s_hex[n], 1);
+        send(fd, &s_hex[n], 1, 0);
     }
     else
     {
@@ -18,26 +23,42 @@ void    Get::write_hex(SOCKET fd, int n)
     }
 }
 
+/**
+ * sends a full chunk of characters to the provided socket fd
+ * hex\r\n msg\r\n
+ * note that msg can be of length 0 which means nothing will be sent
+ * this work by unsigned char* buff which is perfect for images and videos 
+*/
 void    Get::write_chunk(SOCKET fd, unsigned char *buff, int len)
 {
     write_hex(fd, len);
-    // std::cout << WHITE_BOLD << "\r\n" << buff << "\r\n" << WHITE << std::endl;
-    write(fd, "\r\n", 2);
+    send(fd, "\r\n", 2, 0);
     if (len)
-        write(fd, buff, len);
-    write(fd, "\r\n", 2);
+        send(fd, buff, len, 0);
+    send(fd, "\r\n", 2, 0);
 }
 
+/**
+ * sends a full chunk of characters to the provided socket fd
+ * hex\r\n msg\r\n
+ * note that msg can be of length 0 which means nothing will be sent
+ * the difference between it and the above function this deals with a string
+ * the above one deals with an unsigned char *buff
+*/
 void    Get::write_schunk(SOCKET fd, std::string &s, int len)
 {
     write_hex(fd, len);
     std::cout << YELLOW_BOLD << s << std::endl;
-    write(fd, "\r\n", 2);
+    send(fd, "\r\n", 2, 0);
     if (len)
-        write(fd, s.c_str(), len);
-    write(fd, "\r\n", 2);  
+        send(fd, s.c_str(), len, 0);
+    send(fd, "\r\n", 2, 0);  
 }
 
+/***
+ * 
+ * 
+*/
 void    Get::serve_cgi(t_client *client)
 {
     t_response *res;
@@ -53,7 +74,7 @@ void    Get::serve_cgi(t_client *client)
     read_fd = res->cgi_pipe[0];
     bzero(buff, MAX_BUFFER_SIZE);
     chunked_start = 0;
-    bts = read(read_fd, buff, MAX_BUFFER_SIZE);
+    bts = recv(read_fd, buff, MAX_BUFFER_SIZE, 0);
     bts = bts < 0 ? 0 : bts;
     if (!res->cgi_rn_found)
     {
@@ -63,7 +84,7 @@ void    Get::serve_cgi(t_client *client)
     std::cout << WHITE_BOLD << "BUFFER => " << buff << WHITE << std::endl;
     int i = 0;
     for (; i < chunked_start; i++)
-        write(client->fd, &buff[i], 1);
+        send(client->fd, &buff[i], 1, 0);
     write_chunk(client->fd, buff + i, bts - i);
     if (!bts)
     {
@@ -78,9 +99,7 @@ void    print_fd(int fd)
 {
     unsigned char buff[MAX_BUFFER_SIZE];
 
-    // std::cout << GREEN_BOLD << "PRINTING FD " << std::endl;
     read(fd, buff, MAX_BUFFER_SIZE);
-    // std::cout << RED_BOLD << buff << WHITE << std::endl;
     exit(0);
 }
 
@@ -133,9 +152,6 @@ void    Get::handle_cgi(t_client *client)
     args[1] = strdup(res->filepath.c_str()) ;
     args[2] = NULL;
     cgi_path = args[0];
-    // std::cout << WHITE_BOLD << "FILE_PATH => " << args[0] << std::endl;
-    // std::cout << "CGI_PATH => " << cgi_path << std::endl;
-
     if (res->cgi_pipe[0] == UNDEFINED) // pipe not piped 
     {
         if (!pipe(res->cgi_pipe))
@@ -158,14 +174,15 @@ void    Get::handle_cgi(t_client *client)
     close(res->cgi_pipe[1]);
     std::cout << "WAITING FOR PROCESS ..." << std::endl;
     waitpid(-1, &status, WNOHANG);
-    // print_fd(res->cgi_pipe[0]);
     serve_cgi(client);
 }
 
 /** 
- * handling static files file.html, file.txt, file.jpeg ... etc 
- * using chunked for transfer-encoding
+ * main function for handling any static file
+ * static files are file.html, file.txt, file.jpeg ... etc 
+ * this functions mainly depends on chunked for transfer-encoding
  **/
+
 void    Get::handle_static_file(t_client *client)
 {
     SOCKET                  sockfd;
@@ -186,7 +203,12 @@ void    Get::handle_static_file(t_client *client)
         std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }
 
-/*** start listing all the directories ***/
+
+/**
+ * one work this function does is listing the directories in the response struct
+ * the dir_link list is mainly kept for listing the directories
+*/
+
 void    Get::list_directories(t_client *client)
 {
     t_request               *req;
@@ -223,11 +245,7 @@ void    Get::list_directories(t_client *client)
     std::cout << "****** DIRECTORY LISTING HAS BEEN ENDED ... *********" << std::endl;
 }
 
-/**
- * <ul>
- * <a href="$dir_link"></a>
- * </ul>
-*/
+
 void    Get::serve_directory_listing(t_client *client)
 {
     t_request *req;
@@ -263,8 +281,12 @@ void    Get::serve_directory_listing(t_client *client)
     std::cout << RED_BOLD << " ****** END PRINTING THE DIRECTORY LISTING RESPONSE *******" << std::endl;
 
 }
-/*** end listing all the directories ***/
 
+/***
+ * the main function for directory listing
+ * does depend on the above function to list directories
+ * listing directories is served in normal mode not chunked transfer-encoding
+*/
 void    Get::handle_directory_listing(t_client *client)
 {
     t_response  *res;
@@ -288,21 +310,20 @@ void    Get::handle_directory_listing(t_client *client)
     send(client->fd, content_length.c_str(), sz(content_length), 0);
     send(client->fd, html.c_str(), sz(html), 0);
     client->state = SERVED;
-    // write_schunk(client->fd, html, sz(html), 0);
-    // send(client->fd, "0\r\n\r\n", 5, 0);
     std::cout << "-- end of directory listing -- " << std::endl;
 }
 
+
+/***
+ * main function for serving get request
+ * this function is the main function for GET
+*/
 void    Get::serve_client(t_client *client)
 {
-    SOCKET      sockfd;
-    int         bts;
     t_response  *res;
-    unsigned char        buff[MAX_BUFFER_SIZE];
 
     res = client->response;
-    sockfd = client->fd;
-    if (res->is_directory_listing) // dealing with directory listing
+    if (res->is_directory_listing)
         handle_directory_listing(client);
     else
     {

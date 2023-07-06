@@ -80,7 +80,6 @@ void    ConfigFileParser::extract_words_from_lines(std::vector<std::vector<std::
 {
     std::vector<std::string> word;
 
-    // std::cout << "LINES VEC = " << lines.size() << std::endl ;
     for (int i = 0; i < (int)lines.size(); i++)
     {
         word = get_word_vector(lines[i]);
@@ -88,7 +87,6 @@ void    ConfigFileParser::extract_words_from_lines(std::vector<std::vector<std::
             words.push_back(word);
         word.clear();
     }
-    // print_words(words);
 }
 
 bool is_brackets_correct(std::vector<std::vector<std::string> > &words)
@@ -485,6 +483,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("allowed_methods", METHOD_VECTOR));
     http_tokens.insert(std::make_pair("root", DIRECTORY));
     http_tokens.insert(std::make_pair("max_connections", INT));
+    http_tokens.insert(std::make_pair("max_body_size", INT));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
@@ -871,6 +870,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
 {
     attr.allowed_methods = conf->allowed_methods;
     attr.allowed_methods_set = conf->allowed_methods_set;
+    attr.max_body_size = conf->max_body_size;
     attr.root = conf->root;
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
@@ -1124,6 +1124,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
 {
     HashSet<std::string> already_parsed;
 
+    http_data->max_body_size = 1000000; //1mb
     for (int i = 0; i < sz(http_as_words); i++)
     {
         std::string token_name = http_as_words[i][0];
@@ -1141,6 +1142,8 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             }
             http_data->allowed_methods_set = vector_to_hashset(http_data->allowed_methods);
         }
+        else if (token_name == "max_body_size")
+            http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
     }
     return (true);
 }

@@ -2,6 +2,11 @@
 
 # define MAX_SHORT_INT 65536
 
+/***
+ * this class is mainly kept only for checking tokens if valid or not
+ * the list of tokens is specified as follows
+***/
+
 bool is_digit(char c)
 {
     return (c >= '0' && c <= '9');
