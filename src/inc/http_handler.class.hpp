@@ -53,12 +53,6 @@ class HttpHandler : public HttpHandlerInterface
         void    parse_request(t_client *client);
         void    architect_response(t_client *client);
 
-        bool handle_400(t_client *client);
-        bool handle_405(t_client *client);
-        bool handle_414(t_client *client);
-        bool handle_501(t_client *client);
-        bool handle_413(t_client *client);
-        bool handle_locations(t_client *client);
 
         bool    is_redirection(t_client *client);
         bool    is_method_valid(std::string &method);
@@ -68,8 +62,6 @@ class HttpHandler : public HttpHandlerInterface
         void    set_configurations(t_client *client);
         void    set_response_configs(t_client *client);
 
-        void    architect_get_response(t_client *client);
-        void    architect_delete_response(t_client *client);
         void    architect_post_response(t_client *client);
 
 
@@ -85,9 +77,6 @@ class HttpHandler : public HttpHandlerInterface
         void        set_root_file_path(t_client *client);
         std::string get_root_file_path(std::string &root, std::string &path, std::string &dirpath, bool sfile);
         std::string get_clean_file_path(std::string root, std::string path, std::string dirpath, bool zfile);
-        void        parse_first_line(t_request *req);
-
-        void        cleanify_response(t_response *res);
 } ;
 
 #endif

@@ -231,13 +231,6 @@ void    Get::handle_static_file(t_client *client)
         client->request_time = time(NULL);
     }
     std::cout << "end handling static file is running ..." << std::endl;
-    // if (bts > 0)
-    //     write_chunk(sockfd, buff, bts);
-    // if (bts < MAX_BUFFER_SIZE)
-    //     write_chunk(sockfd, buff, 0);
-    // client->state = (bts == MAX_BUFFER_SIZE ? client->state : SERVED);
-    // if (client->state == SERVED)
-    //     std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }
 
 
