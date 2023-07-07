@@ -2,7 +2,7 @@ PROGRAM = webserver
 SRC = src/fnc/*.cpp
 OBJ = src/fnc/*.o
 CC = c++
-FLAGS = -std=c++11
+FLAGS = -std=c++11 -fsanitize=address
 C_FLAGS = $(CC) $(FLAGS)
 
 all: $(PROGRAM)

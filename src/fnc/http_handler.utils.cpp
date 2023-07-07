@@ -120,10 +120,11 @@ bool    is_path_valid(std::string &path)
     return (!access(path.c_str(), F_OK));
 }
 
-bool    set_file_path(std::string &path, std::vector<std::string> &files)
+bool    set_file_path(std::string basepath, std::string &path, std::vector<std::string> &files)
 {
-    std::string cwdpath = getwd(NULL);
+    std::string cwdpath;
  
+    cwdpath = basepath;
     for (int i = 0; i < sz(files); i++)
     {
         std::string rpath;
@@ -179,12 +180,12 @@ int     get_rn_endpos(unsigned char *buff, int buff_size) // -1 means not found
     return (-1);
 }
 
-bool    is_directory_exist(std::string &path)
+bool    is_directory_exist(std::string basepath, std::string &path)
 {
     std::string fullpath;
     DIR         *d;
 
-    fullpath = getwd(NULL);
+    fullpath = basepath;
     fullpath += path;
     d = opendir(fullpath.c_str());
     if (d)

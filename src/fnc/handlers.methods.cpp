@@ -37,8 +37,8 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         if (res->is_directory_listing)
             ctype = "text/html";
         res->add("content-type", ctype);
-        if (!res->is_directory_listing)
-            res->add("transfer-encoding", "chunked");
+        // if (!res->is_directory_listing)
+        //     res->add("transfer-encoding", "chunked");
         res->add("connection", "closed");
         if (!res->is_cgi) // dealing with file
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
@@ -46,7 +46,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             std::cout << GREEN_BOLD << "***** DEALING WITH CGI ****" << std::endl ;
     }
     if (write_it)
-        res->write_response_in_socketfd(client->fd, !res->is_cgi && !res->is_directory_listing);
+        res->write_response_in_socketfd(client->fd, !sz(res->filepath));
 }
 
 
@@ -101,8 +101,9 @@ bool    Handlers::change_path(t_client *client)
     {
         std::cout << YELLOW_BOLD << "Dealing with Location Configs [d_configs] ..." << std::endl; 
         path_after_change = get_path_after_change(client, d_configs->root);
-        std::cout << "Path after change -> " << path_after_change << std::endl;
-        current_dir = std::string(getwd(NULL));
+        std::cout << "wjdi dayr kasketa hh" << std::endl;
+        current_dir = client->cwd;
+        std::cout<<"ds ffsafsf sf " <<std::endl;
         res->rootfilepath = path_after_change;
         res->filepath = current_dir + "/" + res->rootfilepath;
     }
@@ -122,12 +123,12 @@ bool    Handlers::change_path(t_client *client)
  * returns true if the s = (root + file) is exist and has the R_OK access
 */
 
-bool    Handlers::set_path_for_file(std::string &root, std::string &file)
+bool    Handlers::set_path_for_file(std::string &basepath, std::string &root, std::string &file)
 {
     std::string curr;
     std::string fullpath;
 
-    curr = getwd(NULL);
+    curr = basepath;
     fullpath = curr + "/" + root + "/" + file;
     if (!access(fullpath.c_str(), R_OK))
     {
@@ -159,9 +160,9 @@ bool    Handlers::handle_400(t_client *client)
     {
         error_page = code_to_page[400];
         path = res->root;
-        if (IN_MAP(code_to_page, 400) && set_path_for_file(path, error_page)) // error code is exist page provided in config file
+        if (IN_MAP(code_to_page, 400) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
         {
-            res->filepath = std::string(getwd(NULL)) + "/" + path + "/" + error_page;
+            res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 400, true);
             client->state = SERVING_GET;
@@ -201,9 +202,9 @@ bool Handlers::handle_414(t_client *client)
     {
         error_page = code_to_page[414];
         path = res->root;
-        if (IN_MAP(code_to_page, 414) && set_path_for_file(path, error_page)) // error code is exist page provided in config file
+        if (IN_MAP(code_to_page, 414) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
         {
-            res->filepath = std::string(getwd(NULL)) + "/" + path + "/" + error_page;
+            res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 414, true);
             client->state = SERVING_GET;
@@ -248,9 +249,9 @@ bool    Handlers::handle_501(t_client *client)
         {
             error_page = code_to_page[501];
             path = res->root;
-            if (IN_MAP(code_to_page, 501) && set_path_for_file(path, error_page)) // error code is exist page provided in config file
+            if (IN_MAP(code_to_page, 501) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
             {
-                res->filepath = std::string(getwd(NULL)) + "/" + path + "/" + error_page;
+                res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 501, true);
                 client->state = SERVING_GET;
@@ -297,9 +298,9 @@ bool Handlers::handle_413(t_client *client)
         {
             error_page = code_to_page[413];
             path = res->root;
-            if (IN_MAP(code_to_page, 413) && set_path_for_file(path, error_page)) // error code is exist page provided in config file
+            if (IN_MAP(code_to_page, 413) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
             {
-                res->filepath = std::string(getwd(NULL)) + "/" + path + "/" + error_page;
+                res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 413, true);
                 client->state = SERVING_GET;
@@ -353,9 +354,9 @@ bool    Handlers::handle_405(t_client *client)
         {
             error_page = code_to_page[405];
             path = res->root;
-            if (IN_MAP(code_to_page, 405) && set_path_for_file(path, error_page)) // error code is exist page provided in config file
+            if (IN_MAP(code_to_page, 405) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
             {
-                res->filepath = std::string(getwd(NULL)) + "/" + path + "/" + error_page;
+                res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 405, true);
                 client->state = SERVING_GET;
@@ -425,9 +426,9 @@ bool    Handlers::handle_404(t_client *client)
     s_configs = res->configs;
     files_404 = (d_configs) ? d_configs->pages_404 : s_configs->pages_404;
     root = res->root;
-    if (set_file_path(root, files_404))
+    if (set_file_path(client->cwd, root, files_404))
     {
-        res->filepath = std::string(getwd(NULL)) + "/" + root;
+        res->filepath = client->cwd + "/" + root;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
         fill_response(client, 404, true);
@@ -462,9 +463,9 @@ bool    Handlers::handle_200d(t_client *client)
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
     std::cout << "[handle_200 for directory]" << std::endl;
-    if (set_file_path(res->rootfilepath, indexes))
+    if (set_file_path(client->cwd, res->rootfilepath, indexes))
     {
-        res->filepath = std::string(getwd(NULL)) + "/" + res->rootfilepath;
+        res->filepath = client->cwd + "/" + res->rootfilepath;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
         fill_response(client, 200, true);
@@ -472,7 +473,7 @@ bool    Handlers::handle_200d(t_client *client)
     }
     else
     {
-        if (d_configs && d_configs->directory_listing && is_directory_exist(res->rootfilepath))
+        if (d_configs && d_configs->directory_listing && is_directory_exist(client->cwd, res->rootfilepath))
         {
             res->is_directory_listing = true ;
             std::cout << "[directory_listing is on ] ... running" << std::endl;

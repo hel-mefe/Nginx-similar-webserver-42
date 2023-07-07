@@ -2,22 +2,34 @@
 
 void    HttpHandler::handle_http(t_client *client)
 {
-    if (client->state == KEEP_ALIVE)
-        return ;
-    else if (client->state == READING_HEADER || client->state == WAITING)
+    int max_request_timeout = client->server->server_configs->max_request_timeout;
+
+    if (client->state == READING_HEADER || client->state == WAITING)
     {
         int time_passed = time(NULL) - client->request_time;
-        if (time_passed > MAX_REQUEST_TIMEOUT)
+        if (time_passed > max_request_timeout && client->state == READING_HEADER)
             client->state = SERVED;
         else
             client->state = (client->state == WAITING) ? READING_HEADER : WAITING;
         if (client->state == READING_HEADER && http_parser->read_header(client))
         {
-            http_parser->parse_request(client);
-            architect_response(client);
-            return ;
+            std::cout << RED_BOLD << "IS READING HEADER ..." << std::endl;
+            if (!http_parser->parse_request(client)) // request is not well-formed
+            {
+                std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
+                send(client->fd, bad_request.c_str(), sz(bad_request), 0);
+                client->state = SERVED;
+            }
+            else
+                architect_response(client);
         }
-    }       
+        else
+        {
+            std::cout << "WILL DISCONNECT DUE TO READ HEADER" << std::endl;
+            if (time_passed > max_request_timeout && client->state == READING_HEADER)
+                client->state = SERVED;
+        }
+    }
 }
 
 void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
@@ -40,7 +52,7 @@ void    HttpHandler::handle_path_error(t_client *client, int code) // only calle
     {
         client->state = SERVING_GET;
         set_root_file_path(client);
-        current_dir = getwd(NULL);
+        current_dir = client->cwd;
         if (current_dir[sz(current_dir) - 1] != '/')
             res->filepath = current_dir + res->rootfilepath;
     }
@@ -210,7 +222,7 @@ void    HttpHandler::fill_response(t_client *client, int code, bool write_it)
             std::cout << GREEN_BOLD << "***** DEALING WITH CGI ****" << std::endl ;
     }
     if (write_it)
-        res->write_response_in_socketfd(client->fd, !res->is_cgi);
+        res->write_response_in_socketfd(client->fd, false);
     // new_state = (connection == "keep-alive") ? KEEP_ALIVE : SERVED;
     // client->reset(new_state);
 }
@@ -236,7 +248,7 @@ bool    HttpHandler::set_redirection_path(t_client *client)
     d_configs = get_location_configs_from_path(client);
     std::string pathr = (d_configs) ? d_configs->root : s_configs->root;
     pathr += path;
-    if (path[sz(path) - 1] != '/' && is_directory_exist(pathr))
+    if (path[sz(path) - 1] != '/' && is_directory_exist(client->cwd, pathr))
     {
         std::cout << CYAN_BOLD << "THE DIRECTORY EXIST AND THE REDIRECTION IS WORKING " << std::endl;
         res->redirect_to = path + "/";
@@ -422,7 +434,7 @@ bool    HttpHandler::handle_locations(t_client *client)
     t_response                  *res;
     std::map<std::string, std::string>  *request_map;
     std::string                 connection;
-    std::string                 current_directory = getwd(NULL);
+    std::string                 current_directory;
     std::string                 path;
     std::string                 fullpath;
     CLIENT_STATE                new_state;
@@ -430,6 +442,7 @@ bool    HttpHandler::handle_locations(t_client *client)
     t_location_configs          *l_configs;
     t_server_configs            *s_configs;
 
+    current_directory = client->cwd;
     req = client->request;
     res = client->response;
     request_map = &req->request_map;
@@ -447,7 +460,7 @@ bool    HttpHandler::handle_locations(t_client *client)
         else if (IN_MAP(s_configs->code_to_page, 404))
             files_404.push_back(s_configs->code_to_page[404]);     
         std::string rootpath = l_configs ? l_configs->root : s_configs->root;
-        if (set_file_path(rootpath, files_404))
+        if (set_file_path(client->cwd, rootpath, files_404))
         {
             client->state = SERVING_GET;
             res->rootfilepath = rootpath;
@@ -484,7 +497,7 @@ void    HttpHandler::handle_file_path(t_client *client)
     res = client->response;
     s_configs = res->configs;
     l_configs = res->dir_configs;
-    rootfilepath = std::string(getwd(NULL)) + res->rootfilepath;
+    rootfilepath = client->cwd + res->rootfilepath;
     if (!is_path_valid(rootfilepath))
     {
         std::cout << "[handle_file_path] -> handling file path 404" << std::endl;
@@ -494,9 +507,9 @@ void    HttpHandler::handle_file_path(t_client *client)
         else if (IN_MAP(s_configs->code_to_page, 404))
             files_404.push_back(s_configs->code_to_page[404]);     
         std::string dirpath = get_longest_directory_prefix(client, rootfilepath, false);
-        std::string p = getwd(NULL);
+        std::string p = client->cwd;
         p += (l_configs) ? dirpath : s_configs->root;
-        if (!set_file_path(p, files_404))
+        if (!set_file_path(client->cwd, p, files_404))
         {
             res->rootfilepath = "";
             res->filepath = "";
@@ -507,7 +520,7 @@ void    HttpHandler::handle_file_path(t_client *client)
     }
     else
     {
-        res->filepath = std::string(getwd(NULL)) + res->rootfilepath;
+        res->filepath = std::string(client->cwd) + res->rootfilepath;
         res->code = 200;
     }
 }
@@ -528,7 +541,7 @@ bool    HttpHandler::set_directory_indexes(t_client *client) // takes directory 
     for (int i = 0; i < sz(indexes); i++)
     {
         std::string ipath = req->path + indexes[i];
-        std::string fullpath = std::string(getwd(NULL));
+        std::string fullpath = client->cwd;
         ipath = fullpath + ipath;
         if (is_path_valid(ipath))
         {
@@ -587,7 +600,7 @@ void    HttpHandler::handle_directory_path(t_client *client)
     std::string rootpath = s_configs->root;
     rootpath = (l_configs) ? rootpath + l_configs->root : rootpath;
     std::cout << GREEN_BOLD << "[HANDLING DIRECTORY WORKING ...]" << std::endl;
-    if (!set_file_path(rootfilepath, indexes))
+    if (!set_file_path(client->cwd, rootfilepath, indexes))
     {
         if (l_configs && l_configs->directory_listing)
         {
@@ -600,10 +613,10 @@ void    HttpHandler::handle_directory_path(t_client *client)
         }
         else
         {
-            if (set_file_path(rootpath, files_404))
+            if (set_file_path(client->cwd, rootpath, files_404))
             {
                 res->rootfilepath = rootpath;
-                res->filepath = std::string(getwd(NULL));
+                res->filepath = client->cwd;
                 if (res->filepath[sz(res->filepath) - 1] != '/')
                     res->filepath += "/";
                 res->filepath += res->rootfilepath[0] == '/' ? res->rootfilepath.substr(1) : res->rootfilepath;
@@ -620,7 +633,7 @@ void    HttpHandler::handle_directory_path(t_client *client)
     else
     {
         res->rootfilepath = rootfilepath;
-        res->filepath = std::string(getwd(NULL)) + res->rootfilepath;
+        res->filepath = client->cwd + res->rootfilepath;
         res->code = 200;
     }
 }
@@ -689,7 +702,7 @@ void    HttpHandler::architect_get_response(t_client *client)
         res->extension = get_extension(res->filepath);
         res->is_cgi = IN_MAP((s_configs->extension_cgi), res->extension);
         if (res->is_cgi)
-            res->cgi_path = std::string(getwd(NULL)) + "/" + s_configs->extension_cgi[res->extension];
+            res->cgi_path = client->cwd + "/" + s_configs->extension_cgi[res->extension];
         fill_response(client, res->code, true);
         client->state = (sz(res->filepath) || res->is_directory_listing ? SERVING_GET : SERVED);
     }
@@ -709,11 +722,13 @@ void    HttpHandler::architect_post_response(t_client *client)
     t_request    *req = client->request;
     t_response   *res = client->response;
     std::map<std::string, std::string>::iterator header = req->request_map.find("content-type");
-    std::string url = getwd(NULL) + res->rootfilepath;
+    std::string url;
 
+    url = client->cwd;
+    url += res->rootfilepath;
     if (res->is_cgi)
-        res->cgi_path = std::string(getwd(NULL)) + "/" + res->configs->extension_cgi[req->extension];
-    res->filepath = std::string(getwd(NULL)) + res->rootfilepath;
+        res->cgi_path = client->cwd + "/" + res->configs->extension_cgi[req->extension];
+    res->filepath = client->cwd + res->rootfilepath;
     if (access(url.c_str(), F_OK))
     { 
         fill_response(client, 404, true);

@@ -14,6 +14,7 @@ typedef struct client
     t_request       *request;
     t_response      *response;
     t_server        *server;
+    std::string     cwd;
 
     client(SOCKET _fd)
     {
@@ -45,6 +46,7 @@ typedef struct client
         server = _server;
         request = new t_request();
         response = new t_response();
+        std::cout << YELLOW_BOLD << "--> Client with " << fd << " has been created!" << std::endl;
     }
 
 
@@ -56,6 +58,26 @@ typedef struct client
             delete response ;
     }
 
+    void    check()
+    {
+        std::cout << "SLOT => " << slot << std::endl;
+        std::cout << "Client num => " << client_num << std::endl;
+        if (request)
+            std::cout << "Request is not null" << std::endl;
+        std::cout << request->method << std::endl;
+        std::cout << "not in request" << std::endl;
+        if (response)
+        {
+            std::cout << "response is not null" << std::endl;
+            std::cout << response->http_version << std::endl;
+        }
+        std::cout << "not in response" << std::endl;
+        if (server)
+        {
+            std::cout << "server is not null" << std::endl;
+            std::cout << "not in server" << std::endl;
+        }
+    }
     void    reset(CLIENT_STATE _state)
     {
         state = _state;

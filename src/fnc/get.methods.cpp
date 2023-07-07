@@ -1,7 +1,7 @@
 # include "../inc/get.class.hpp"
 # include <dirent.h>
 # include <unistd.h>
-
+# include <sys/stat.h>
 
 /**
  * sends a hex in the provided socket fd
@@ -183,6 +183,15 @@ void    Get::handle_cgi(t_client *client)
  * this functions mainly depends on chunked for transfer-encoding
  **/
 
+long    get_file_size(const char *filename)
+{
+    struct stat file_status;
+
+    if (stat(filename, &file_status) < 0)
+        return -1;
+    return (file_status.st_size);
+}
+
 void    Get::handle_static_file(t_client *client)
 {
     SOCKET                  sockfd;
@@ -191,16 +200,44 @@ void    Get::handle_static_file(t_client *client)
     t_request               *req;
     t_response              *res;
 
+    std::cout << "handling static file is running ..." << std::endl;
     req = client->request;
     res = client->response;
+    if (res->is_first_time)
+    {
+        long filesize = get_file_size(res->filepath.c_str());
+        std::cout << "FILE SIZE => " << filesize << std::endl;
+        std::string fs = "content-length: " + std::to_string(filesize) + "\r\n\r\n";
+        res->is_first_time = false;
+        send(client->fd, fs.c_str(), sz(fs), 0);
+    }
     sockfd = client->fd;
     bzero(buff, MAX_BUFFER_SIZE);
     bts = read(res->fd, buff, MAX_BUFFER_SIZE);
-    if (bts != -1)
-        write_chunk(sockfd, buff, bts);
-    client->state = (bts ? client->state : SERVED);
-    if (client->state == SERVED)
-        std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
+    if (send(client->fd, buff, bts, 0) == -1)
+    {
+        std::cout << "FD => " << client->fd << std::endl;
+        std::cout << "FILE FD => " << res->fd << std::endl;
+        std::cout << "Bytes read => " << bts << std::endl;
+        std::cout << "Buffer => " << buff << std::endl;
+        std::cout << CYAN_BOLD << "[NO SEND] ..." << std::endl;
+        std::cout << strerror(errno) << std::endl;
+    }
+    if (bts < MAX_BUFFER_SIZE)
+    {
+        if (send(client->fd, "\r\n", 2, 0) == -1)
+            std::cout << "[NO SEND] ... 2" << std::endl;
+        client->state = SERVED;
+        client->request_time = time(NULL);
+    }
+    std::cout << "end handling static file is running ..." << std::endl;
+    // if (bts > 0)
+    //     write_chunk(sockfd, buff, bts);
+    // if (bts < MAX_BUFFER_SIZE)
+    //     write_chunk(sockfd, buff, 0);
+    // client->state = (bts == MAX_BUFFER_SIZE ? client->state : SERVED);
+    // if (client->state == SERVED)
+    //     std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }
 
 
@@ -214,12 +251,15 @@ void    Get::list_directories(t_client *client)
     t_request               *req;
     t_response              *res;
     DIR                     *dirstream;
+    char                    buff_path[1024];
     std::string             fullpath;
     struct dirent           *d;
 
     req = client->request;
     res = client->response;
-    fullpath = getwd(NULL);
+    bzero(buff_path, 1024);
+    getcwd(buff_path, 1024);
+    fullpath = buff_path;
     fullpath += res->rootfilepath;
     dirstream = opendir(fullpath.c_str());
     if (!dirstream)
@@ -235,7 +275,7 @@ void    Get::list_directories(t_client *client)
         if (!d)
             break ;
         std::string dirname = d->d_name;
-        std::string abspath = getwd(NULL);
+        std::string abspath = buff_path;
         abspath = abspath + "/" + dirname;
         res->dir_link.push_back(std::make_pair(dirname, abspath));
         std::cout << dirname << std::endl;
@@ -309,7 +349,8 @@ void    Get::handle_directory_listing(t_client *client)
     content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
     send(client->fd, content_length.c_str(), sz(content_length), 0);
     send(client->fd, html.c_str(), sz(html), 0);
-    client->state = SERVED;
+    client->state = WAITING;
+    client->request_time = time(NULL);
     std::cout << "-- end of directory listing -- " << std::endl;
 }
 
@@ -322,6 +363,7 @@ void    Get::serve_client(t_client *client)
 {
     t_response  *res;
 
+    std::cout << "[GET] is running ..." << std::endl; 
     res = client->response;
     if (res->is_directory_listing)
         handle_directory_listing(client);
@@ -332,4 +374,5 @@ void    Get::serve_client(t_client *client)
         else
             handle_static_file(client);
     }
+    std::cout << "[GET] is finished ..." << std::endl;
 }

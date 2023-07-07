@@ -155,18 +155,6 @@ std::string    ConfigFileParser::get_identifier(std::pair<int, int> &start, std:
 
     int i = start.first, end_i = end.first;
     int j = start.second + is_bracket(words[start.first][start.second]), end_j = end.second;
-    // while (i <= end_i)
-    // {
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (i == end_i && j >= end_j) // end_j is a bracket I don't want to include it in
-    //             break ;
-    //         id += words[i][j];
-    //         j++;
-    //     }
-    //     j = 0;
-    //     i++;
-    // }
     i = end_i;
     j = end_j;
     bool found = false;
@@ -226,41 +214,10 @@ void    ConfigFileParser::push_node(std::pair<int, int> prev, std::pair<int, int
 
 void    ConfigFileParser::build_with_vector(std::vector<std::string> &vec, int i, int j)
 {
-    // int oldi = i, oldj = j;
-    // while (i < sz(words))
-    // {
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (is_bracket(words[i][j]))
-    //         {
-    //             if (words[i][j] == "{")
-    //             {
-    //                 build_with_vector(vec, i, j + 1);
-    //                 return ;
-    //             }
-    //             else
-    //             {
-    //                 vec.push_back(get_str(words, oldi, i, oldj, j));
-    //                 return ;
-    //             }
-    //         }
-    //         j++;
-    //     }
-    //     j = 0;
-    //     i++;
-    // }
-    // int start_i = brackets_q[0].second.first, end_i = brackets_q[sz(brackets_q) - 1].second.first;
-    // int start_j = brackets_q[0].second.second, end_j = brackets_q[sz(brackets_q) - 1].second.second;
-    // std::string ss = get_str(words, start_i, end_i, start_j, end_j);
-    // vec.push_back(ss);
     std::pair<int, int> first_all = std::make_pair(0, 0);
     push_node(first_all, brackets_q[0].second, brackets_q[sz(brackets_q) - 1].second);
     for (int i = 1; i < sz(brackets_q) - 1; i += 2)
-    {
-        // start_i = brackets_q[i].second.first, end_i = brackets_q[i + 1].second.first;
-        // start_j = brackets_q[i].second.second, end_j = brackets_q[i + 1].second.second;
         push_node(brackets_q[i - 1].second, brackets_q[i].second, brackets_q[i + 1].second);
-    }
 }
 
 void    ConfigFileParser::print_nodes()
@@ -278,20 +235,6 @@ void    ConfigFileParser::print_nodes()
         std::cout << std::endl ;
     }
 }
-
-// bool ConfigFileParser::parse_words()
-// {
-//     bool is_http_found = false;
-//     for (int i = 0; i < sz(words); i++)
-//     {
-//         for (int j = 0; j < sz(words[i]); j++)
-//         {
-//             if (words[i][j] == "http" || words[i][j] == "https")
-//                 parse_http_line(), is_http_found = true;
-//             else if (is_http_found())
-//         }
-//     }
-// }
 
 void    ConfigFileParser::parse_http_configs(int &i, int &j)
 {
@@ -313,8 +256,6 @@ void    ConfigFileParser::parse_http_configs(int &i, int &j)
         }
         if (!sz(http_as_words[sz(http_as_words) - 1]))
             http_as_words.pop_back() ;
-        // if (!sz(line_words) && sz(http_as_words))
-        //     http_as_words.pop_back();
         if ((j < sz(words[i]) && is_bracket(words[i][j])) || \
         (j < sz(words[i]) - 1 && is_bracket(words[i][j + 1])))
             break ;
@@ -322,8 +263,6 @@ void    ConfigFileParser::parse_http_configs(int &i, int &j)
         http_index++;
         i++;
     }
-    // http_as_words.pop_back();
-    // parse_http_words(http_words);
 }
 
 void    ConfigFileParser::parse_server_location(t_node &node, int &i, int &j)
@@ -343,7 +282,6 @@ void    ConfigFileParser::parse_server_location(t_node &node, int &i, int &j)
         j = 0;
         i++;
     }
-    // node.location_blocks.push_back(location_block);
 }
 
 void    ConfigFileParser::parse_server(int &i, int &j)
@@ -406,20 +344,6 @@ void    ConfigFileParser::parse_words(int a, int b)
         i = 1, j = 0;
     else if (sz(words[i]) == 1)
         i = 1, j = 1;
-    // while (i < sz(words) && words[i][j] != "{")
-    // {
-    //     j = 0;
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (!words[i][j].compare("}"))
-    //             break ;
-    //         j++;
-    //     }
-    //     if (j < sz(words[i]) && words[i][j] == "{")
-    //         break ;
-    //     i++;
-    // }
-    // j++;
     while (i < sz(words))
     {
         while (j < sz(words[i]))
@@ -427,8 +351,6 @@ void    ConfigFileParser::parse_words(int a, int b)
             while (j < sz(words[i]) && is_bracket(words[i][j]))
                 j++;
             parse_http_configs(i, j);
-            // while (j < sz(words[i]) && is_bracket(words[i][j]))
-            //     j++;
             if (i >= sz(words))
                 break ;
             parse_server(i, j);
@@ -485,6 +407,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("max_connections", INT));
     http_tokens.insert(std::make_pair("max_body_size", INT));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
+    http_tokens.insert(std::make_pair("max_request_timeout", INT));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
 
@@ -504,6 +427,7 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("fastCGI", CGI));
     server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
     server_tokens.insert(std::make_pair("register_logs", STRING));
+    server_tokens.insert(std::make_pair("max_request_timeout", INT));
 }
 
 void    ConfigFileParser::fill_location_hashmap()
@@ -532,47 +456,14 @@ void    ConfigFileParser::fill_tokens()
     fill_location_hashmap();
 }
 
-// bool    ConfigFileParser::parse_http_token(HttpConfig *configs, std::string token, int &i, int &j)
-// {
-//     while (i < sz(http_as_words))
-//     {
-//         while (j < sz(http_as_words[i]))
-//         {
-//             if (inHashMap(http_tokens, http_as_words[i][j]))
-//                 break ;
-//             j++;
-//         }
-//         j = 0;
-//         i++;
-//     }
-// }
-
 bool    ConfigFileParser::parse_http_line(int &i, int &j) // token already exists
 {
     std::string token_word = http_as_words[i][j];
     TOKEN token_type = http_tokens[token_word];
 
-    // if (token_type == DIRECTORY)
-    // {
-    //     if (is_directory(http))
-    // }
     return (true);
 }
 
-// bool    ConfigFileParser::parse_http()
-// {
-//     int i = 0;
-//     while (i < sz(http_as_words))
-//     {
-//         int j = 0;
-//         if (http_tokens.find(http_as_words[i][j]) == http_tokens.end())
-//             return (false) ;
-//         if (!parse_http_line(i, j))
-//             return (false);
-//         i++;
-//     }
-//     return (true);
-// }
 
 bool ConfigFileParser::is_http_line_valid(int row)
 {
@@ -812,13 +703,11 @@ bool ConfigFileParser::is_config_file_valid(std::string &config_file) // checks 
     fill_tokens();
     extract_lines_from_file(c_stream, lines);
     extract_words_from_lines(words);
-    // print_words(words);
     if (!is_brackets_correct(words))
     {
         c_stream.close();
         return (false);
     }
-    // std::cout << "BRACKETS ARE COMPLETELY CORRECT!" << std::endl;
     build_brackets_queue();
     std::vector<std::string> k;
     int words_size = count_words();
@@ -872,6 +761,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
     attr.allowed_methods_set = conf->allowed_methods_set;
     attr.max_body_size = conf->max_body_size;
     attr.root = conf->root;
+    attr.max_request_timeout = conf->max_request_timeout;
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
         if (nodes[i].id != "server")
@@ -933,6 +823,8 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             int code = std::atoi(nodes[i].words[j][1].c_str());
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
+        else if (token_name == "max_request_timeout")
+            attr.max_request_timeout = std::atoi(nodes[i].words[j][1].c_str());
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
@@ -990,7 +882,6 @@ void    ConfigFileParser::normalize_directories_vector(std::vector<std::string> 
 
 void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs, t_server_configs *s_conf, int i, int j, int ej)
 {
-    // for (int j = 1; j < sz(nodes[i].location_blocks) && j < ej; j++)
     while (j < ej && j < sz(nodes[i].location_blocks))
     {
         std::string token_name = nodes[i].location_blocks[j][0];
@@ -1019,15 +910,7 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
             l_configs.root = (l_configs.root[sz(l_configs.root) - 1] != '/') ? l_configs.root + "/" : l_configs.root;
         }
         else if (token_name == "redirect")
-        {
             l_configs.redirection = nodes[i].location_blocks[j][1];
-            // l_configs.pages_301 = get_vector_of_data(nodes[i].location_blocks[j]);
-            // normalize_directories_vector(l_configs.pages_301); // gha m3diin b had function w safi I'll change it later on l one string instead of vector dial redirections (does not make any sense to use vector)
-            // std::cout << "REDIRECTIONS IN PARSER" << std::endl;
-            // for (int i = 0; i < sz(l_configs.pages_301); i++)
-            //     std::cout << l_configs.pages_301[i] << std::endl;
-            // l_configs.pages_301_set = vector_to_hashset(l_configs.pages_301);
-        }
         else if (token_name == "not_found")
         {
             l_configs.pages_404 = get_vector_of_data(nodes[i].location_blocks[j]);
@@ -1070,16 +953,11 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         conf->allowed_methods_set = s_conf->allowed_methods_set;
         conf->indexes = s_conf->indexes;
         conf->indexes_set = s_conf->indexes_set;
-        // for (int i = 0; i < sz(conf->indexes); i++)
-        //     std::cout << conf->indexes[i] << std::endl;
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
         conf->code_to_page = s_conf->code_to_page;
-        // conf->root = s_conf->root; [!! I DO NOT NEED THE SERVER ROOT TO BE SET IN LOCATION AS DEFAULT]
         fill_location_attributes(*conf, s_conf, index, start, i);
-        std::cout << PURPLE_BOLD << "INTERVAL => " << start << " - " << i << WHITE << std::endl ;
         server->set_location_map(location, conf);
-        std::cout << YELLOW_BOLD << location << " " << conf->redirection << WHITE << std::endl;
     }
 }
 
@@ -1087,7 +965,6 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
 {
     HashSet<std::string> already_parsed;
 
-    std::cout << "Filling is running!" << std::endl;
     for (int i = 0; i < sz(nodes); i++)
     {
         t_server      *server = new t_server();
@@ -1096,27 +973,9 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
         std::string     location_name;
         fill_server_attributes(*attr, conf, i);
         handle_locations(server, nodes[i].location_blocks, attr, i);
-        // fill_location_attributes(*l_configs, i, *server);
-        // if (sz(nodes[i].location_blocks))
-        // {
-        //     location_name = nodes[i].location_blocks[0][1];
-        //     std::cout << "LOCATION BLOCKS" << std::endl;
-        //     for (int k = 0; k < sz(nodes[i].location_blocks); k++)
-        //     {
-        //         std::cout << "Line number - " << k << std::endl;
-        //         for (int j = 0; j < sz(nodes[i].location_blocks[k]); j++)
-        //         {
-        //             std::cout << nodes[i].location_blocks[k][j] << " " ;
-        //         }
-        //         std::cout << std::endl;
-        //     }
-        //     server->set_location_map(location_name, l_configs);
-        // }
         server->set_server_configs(attr);
         servers->push_back(server);
-        std::cout << "SERVER PUSHED!" << std::endl;
     }
-    std::cout << "yes true" << std::endl;
     return (true);
 }
 
@@ -1144,6 +1003,8 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
         }
         else if (token_name == "max_body_size")
             http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
+        else if (token_name == "max_request_timeout")
+            http_data->max_request_timeout = std::atoi(http_as_words[i][1].c_str());
     }
     return (true);
 }

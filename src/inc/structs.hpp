@@ -4,7 +4,8 @@
 # include "globals.hpp"
 
 # define DEFAULT_MAX_CONNECTIONS 1000
-# define DEFAULT_MAX_BODY_SIZE 2048
+# define DEFAULT_MAX_BODY_SIZE 2048 // in bytes
+# define DEFAULT_MAX_REQUEST_TIMEOUT 3 // in seconds
 
 typedef struct ServerAttributes
 {
@@ -26,12 +27,13 @@ typedef struct ServerAttributes
     HashSet<std::string>                pages_404_set;
     int                                 max_connections;
     int                                 max_body_size;
+    int                                 max_request_timeout;
     int                                 logsfile_fd;
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
 
-    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE) {}
+    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE), max_request_timeout(DEFAULT_MAX_REQUEST_TIMEOUT) {}
 }   t_server_configs;
 
 typedef struct LocationConfigs
@@ -78,12 +80,15 @@ typedef struct HttpConfigs
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
     int                                 max_body_size;
+    int                                 max_request_timeout;
 
     HttpConfigs()
     {
         directory_listing = true;
         auto_indexing = false;
         connection = false;
+        max_body_size = DEFAULT_MAX_BODY_SIZE;
+        max_request_timeout = DEFAULT_MAX_REQUEST_TIMEOUT;
     }
 }   t_http_configs;
 

@@ -8,7 +8,7 @@ bool    HttpParser::read_header(t_client *client)
     int bytes; 
     //add buffer to request class to append buff everytime u entered this function u didnt finish header
 
-    bytes = read(client->fd, buff, MAX_BUFFER_SIZE);
+    bytes = recv(client->fd, buff, MAX_BUFFER_SIZE, 0);
     if (bytes <= 0)
     {
         if (!bytes) // bytes == 0 connection closed
@@ -36,7 +36,7 @@ bool    HttpParser::read_header(t_client *client)
     return (false);
 }
 
-void    HttpParser::parse_first_line(t_request *req)
+bool    HttpParser::parse_first_line(t_request *req)
 {
     std::string line = req->lines[0];
     std::string method, path, http_version;
@@ -55,29 +55,42 @@ void    HttpParser::parse_first_line(t_request *req)
         req->filename = get_filename(req->path);
     }
     delete splitted;
+    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE") && (req->http_version == "HTTP/1.1"));
+
 }
 
-void    HttpParser::parse_request(t_client *client)
+bool    HttpParser::parse_request(t_client *client)
 {
     t_request *req;
 
     req = client->request;
-    parse_first_line(req);
+    if (!parse_first_line(req))
+        return (false) ;
+    std::cout << "PARSE FIRST LINE IS VALID" << std::endl;
     for (int i = 1; i < sz(req->lines); i++)
     {
         std::string line = req->lines[i], first, second;
-    
-        int j = 0, a = 0;
-        for (; j < sz(line) && isspace(line[j]); j++);
-        a = j;
-        for (; j < sz(line) && line[j] != ':'; j++);
-        first = get_lower_case(line.substr(a, j - a));
-        for (; j < sz(line) && isspace(line[j]); j++);
-        a = j + (line[j]== ':') + 1;
-        for (; j < sz(line) && line[j] != '\r'; j++);
-        second = get_lower_case(line.substr(a, j - a));
+
+        if (sz(line) < 3)
+            return (false) ;
+        size_t  spoint = line.find_first_of(":");
+        first = line.substr(0, spoint);
         first = trim_string(first);
+        second = line.substr(spoint);
         second = trim_string(second);
+        if (!sz(first) || !sz(second))
+            return (false) ;
+        // int j = 0, a = 0;
+        // for (; j < sz(line) && isspace(line[j]); j++);
+        // a = j;
+        // for (; j < sz(line) && line[j] != ':'; j++);
+        // first = get_lower_case(line.substr(a, j - a));
+        // for (; j < sz(line) && isspace(line[j]); j++);
+        // a = j + (line[j]== ':') + 1;
+        // for (; j < sz(line) && line[j] != '\r'; j++);
+        // second = get_lower_case(line.substr(a, j - a));
+        // first = trim_string(first);
+        // second = trim_string(second);
         if (first == "cookie")
         {
             if (!req->cookies.empty())
@@ -86,16 +99,9 @@ void    HttpParser::parse_request(t_client *client)
         }
         else
             req->request_map.insert(std::make_pair(first, second));
-
     }
-    /****** START PRINTING REQUEST ******/
-
-    // std::cout << WHITE << "***** PRINTING REQUEST MAP *****" << std::endl;
-    // for (auto x: req->request_map)
-    //     std::cout << x.first << " " << x.second << std::endl;
-    // std::cout << "***** END PRINTING REQUEST MAP *****" << std::endl;
-
-    /****** END PRINTING REQUEST *****/
+    std::cout << "REQUEST IS VALID" << std::endl;
+    return (true) ;
 }
 
 /*** END PARSING PART ***/

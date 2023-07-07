@@ -43,7 +43,7 @@ class Handlers
         bool    handle_200d(t_client *client);
 
         bool    change_path(t_client *client);
-        bool    set_path_for_file(std::string &root, std::string &file);
+        bool    set_path_for_file(std::string &basepath, std::string &root, std::string &file);
         std::string get_path_after_change(t_client *client, std::string root);
 
         void    fill_response(t_client *client, int code, bool write_it);

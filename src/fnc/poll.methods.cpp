@@ -49,7 +49,7 @@ SOCKET getsocketfd(int port)
         std::cerr << "ERROR IN BIND" << std::endl;
         exit(1);
     }
-    int ls = listen(fd, MAX_CLIENTS);
+    int ls = listen(fd, 10);
     if (ls < 0)
     {
         std::cerr << "ERROR IN LISTEN" << std::endl;
@@ -73,6 +73,7 @@ t_manager *Poll::get_manager()
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+    _manager->cwd = getwd(NULL);
     _manager->fds = new struct pollfd[MAX_FDS]();
     int i;
 
@@ -83,6 +84,7 @@ t_manager *Poll::get_manager()
         int port = servers->at(i)->server_configs->port;
         _manager->fds[i].fd = getsocketfd(port);
         _manager->fds[i].events = POLLIN;
+        _manager->fds[i].revents = 0;
         if (!_manager->add_server(_manager->fds[i].fd, servers->at(i)))
             std::cerr << "[SERVER MAP FAILED]: socket listener has not been added!" << std::endl;
     }
@@ -90,6 +92,7 @@ t_manager *Poll::get_manager()
     {
         _manager->fds[i].fd = UNDEFINED;
         _manager->fds[i].events = 0;
+        _manager->fds[i].revents = 0;
         _manager->add_slot(i);
     }
     this->manager = _manager;
@@ -104,14 +107,22 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
 {
     t_server *server = manager->get_server(fd);
     PORT port = server->server_configs->port;
-    struct sockaddr_in *data = getsocketdata(port);
-    socklen_t len = sizeof(*data);
-    SOCKET con = accept(fd, (sockaddr *)data, &len);
+    struct sockaddr_in _data;
+    bzero(&_data, sizeof(_data));
+    socklen_t len = sizeof((_data));
+    SOCKET con = accept(fd, (sockaddr *) &_data, &len);
     fcntl(con, F_SETFL, O_NONBLOCK);
+	setsockopt(con, SOL_SOCKET, SO_NOSIGPIPE, &_data, len);
     if (con < 0)
+    {
+        std::cout << "[accept error] - server internal error!" << std::endl;
+        std::cout << strerror(errno) << std::endl;
         exit(1);
+    }
     if (!manager->add_client(con, server))
         std::cout << "[CLIENT MAP FAILED]: client has not been added successfully!" << std::endl;
+    handle_client(manager, con);
+    std::cout << "client with socket fd " << con << " has been connected!" << std::endl;
 }
 
 
@@ -124,6 +135,7 @@ void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
     std::cout << "Connection was closed" << std::endl;
     manager->remove_client(fd);
+    std::cout << "client with socket fd " << fd << " has been disconnected!" << std::endl;
     std::cout << "NUMBER OF FREE PLACES -> " << MAX_FDS - sz(manager->clients_map) << std::endl;
 }
 
@@ -148,9 +160,12 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
 
+    std::cout << "Checking the client" << std::endl;
+    client->check();
+    std::cout << "client is clean has no issue" << std::endl;
     if (is_http_state(client->state))
         http_handler->handle_http(client);
-    else if (is_method_handler_state(client->state))
+    if (is_method_handler_state(client->state))
         method_handlers->at(client->request->method)->serve_client(client);
 
     if (client->state == SERVED)
@@ -164,6 +179,7 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
  *   - handle_client for serving the client
  *   - handle_disconnection for removing the client from the map of clients
 */
+
 void Poll::multiplex()
 {
     t_manager *m = get_manager();
@@ -184,21 +200,31 @@ void Poll::multiplex()
         if (revents == -1)
         {
             std::cerr << RED_BOLD << "[Crash in Poll]: Internal Server Error" << std::endl;
+            std::cout << strerror(errno) << std::endl;
             return ;
         }
         for (int i = 0; i < MAX_FDS; i++)
         {
-            if (manager->is_listener(manager->fds[i].fd) &&
-                manager->fds[i].revents & POLLIN) // connection
+            if (manager->fds[i].fd != -1)
             {
-                handle_connection(manager, manager->fds[i].fd);
-                manager->client_num += 1;
+                if (manager->is_listener(manager->fds[i].fd) &&
+                    manager->fds[i].revents & POLLIN) // server
+                {
+                    handle_connection(manager, manager->fds[i].fd); // connection
+                    manager->client_num += 1;
+                }
+                else // client
+                {
+                    if ((manager->fds[i].revents & POLLIN) ||
+                        (manager->fds[i].revents & POLLOUT)) // handling client
+                        handle_client(manager, manager->fds[i].fd);
+                    else if (manager->fds[i].revents & POLLHUP) // disconnection
+                    {
+                        handle_disconnection(manager, manager->fds[i].fd);
+                        manager->client_num -= 1;
+                    }
+                }
             }
-            else if ((manager->fds[i].revents & POLLIN) ||
-                     (manager->fds[i].revents & POLLOUT)) // handling client
-                handle_client(manager, manager->fds[i].fd);
-            else if (manager->fds[i].revents & POLLHUP) // disconnection
-                handle_disconnection(manager, manager->fds[i].fd);
         }
     }
 }

@@ -11,8 +11,8 @@ typedef struct manager
     std::map<SOCKET, t_client *>            clients_map; // maps every SOCKET to its t_socket data
     std::map<SOCKET, t_server *>            servers_map; // maps every SOCKET to its t_server data
     std::deque<int>                         free_slots;
+    std::string                             cwd;
     int                                     client_num;
-
 
     bool is_listener(SOCKET fd)
     {
@@ -66,6 +66,7 @@ typedef struct manager
         if (slot == -1)
             std::cout << "[SLOTS PROBLEM]: no slot exist" << std::endl;
         t_client *client = new t_client(fd, slot, server);
+        client->cwd = cwd;
         clients_map.insert(std::make_pair(fd, client));
         fds[slot].fd = fd;
         fds[slot].events = POLLIN | POLLOUT | POLLHUP;
@@ -78,12 +79,14 @@ typedef struct manager
     {
         if (!IN_MAP(clients_map, fd))
             return false ;
-        close(fd);
+        if (close(fd))
+            std::cout << RED_BOLD << "[ FD WAS NOT CLOSED ]" << std::endl;
         t_client *data = clients_map[fd];
         int i = data->slot;
         clients_map.erase(fd);
         fds[i].fd = -1;
         fds[i].events = 0;
+        fds[i].revents = 0;
         add_slot(i);
         delete data;
         return true ;

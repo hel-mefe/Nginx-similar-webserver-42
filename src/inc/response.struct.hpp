@@ -13,6 +13,7 @@ typedef struct response
     bool                                cgi_rn_found;
     bool                                cgi_running;
     bool                                is_directory_listing; // in case we have to list the directories inside
+    bool                                is_first_time;
     int                                 cgi_pipe[2];
     int                                 fd;
     int                                 code;
@@ -36,39 +37,53 @@ typedef struct response
 
     response() : configs(nullptr), dir_configs(nullptr), is_cgi(false), fd(UNDEFINED){
         cgi_rn_found = false;
+        is_first_time = true;
         cgi_pipe[0] = UNDEFINED;
         cgi_pipe[1] = UNDEFINED;
     }
-    ~response(){}
+    ~response()
+    {
+        if (fd != UNDEFINED)
+            close(fd);
+        if (cgi_pipe[0] != UNDEFINED)
+            close(cgi_pipe[0]);
+        if (cgi_pipe[1] != UNDEFINED)
+            close(cgi_pipe[1]);
+    }
 
     void    write_string(SOCKET fd, std::string s, bool rn)
     {
-        // std::cout << YELLOW_BOLD << "write_string -> " << s << WHITE << std::endl;
         for (int i = 0; i < sz(s); i++)
-            write(fd, &s[i], 1);
+            send(fd, &s[i], 1, 0);
         if (rn)
-            write(fd, "\r\n", 2);
+            send(fd, "\r\n", 2, 0);
     }
 
     void    write_response_in_socketfd(SOCKET fd, bool terminate)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
+        std::cout << GREEN_BOLD << " ********* HEADER SENT ********" << std::endl;
         write_string(fd, http_version, false);
-        write(fd, " ", 1);
+        send(fd, " ", 1, 0);
         write_string(fd, status_code, false);
-        write(fd, " ", 1);
+        send(fd, " ", 1, 0);
         write_string(fd, status_line, true);
+        std::cout << http_version << " " << status_code << " " << status_line << "\\r\\n" << std::endl;
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
             write_string(fd, first, false);
-            write(fd, ":", 1);
+            send(fd, ":", 1, 0);
             write_string(fd, second, true);
+            std::cout << first << " : " << second << " \\r\\n" << std::endl;
             it++;
         }
         if (terminate)
-            write(fd, "\r\n", 2);
-        std::cout << "Response has been written in " << fd << std::endl;
+        {
+            send(fd, "\r\n", 2, 0);
+            std::cout << "\\r\\n" << std::endl;
+        }
+        std::cout << WHITE_BOLD << "Response has been written in " << fd << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)
