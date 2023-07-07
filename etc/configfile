@@ -6,7 +6,7 @@ http
     {
         allowed_methods GET POST DELETE
         root /www
-        server_name name
+        server_name 10.11.11.3
         port 9080
         index index.html index.php home.html home.php
         not_found error_pages/404.html

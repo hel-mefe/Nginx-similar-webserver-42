@@ -59,7 +59,7 @@ t_manager *Poll::get_manager()
         _manager->fds[i].fd = getsocketfd(port);
         _manager->fds[i].events = POLLIN;
         if (!_manager->add_server(_manager->fds[i].fd, servers->at(i)))
-            std::cout << "[SERVER MAP FAILED]: socket listener has not been added!" << std::endl;
+            std::cerr << "[SERVER MAP FAILED]: socket listener has not been added!" << std::endl;
     }
     for (; i < MAX_FDS; i++)
     {

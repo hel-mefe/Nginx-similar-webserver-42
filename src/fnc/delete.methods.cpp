@@ -3,7 +3,7 @@
 # include <sys/types.h>
 # include <dirent.h>
 
-Delete::Delete(void) {del_files_num = 0;}
+Delete::Delete(void) {}
 Delete::~Delete(void) {}
 
 bool Delete::rmfiles(const char* dirname)
@@ -95,7 +95,7 @@ void    Delete::handle_delete_folder(t_client *client)
         if (!del_files_num)
             fill_response(client, 403, "Forbidden", true);
         else
-            fill_response(client, 409, "Conflict", true);
+            fill_response(client, 207, "Multi-Status", true);
     }
     del_files_num = 0;
 }
@@ -103,6 +103,8 @@ void    Delete::handle_delete_folder(t_client *client)
 
 void    Delete::serve_client(t_client *client)
 {
+    if(client->response->rootfilepath.back() != '/')
+        client->response->rootfilepath += "/";
     if (client->request->is_file)
         handle_delete_file(client);
     else

@@ -1,11 +1,5 @@
 # include "../inc/http_handler.utils.hpp"
 
-void    alert(std::string s, const char *color)
-{
-    std::cout << color << s << WHITE << std::endl;
-}
-
-
 bool    is_file(std::string &path)
 {
     int i = sz(path) - 1;

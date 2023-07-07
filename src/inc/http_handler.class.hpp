@@ -57,6 +57,7 @@ class HttpHandler : public HttpHandlerInterface
 
         bool    set_redirection_path(t_client *client);
         void    set_configurations(t_client *client);
+        void    set_response_configs(t_client *client);
 
         void    architect_get_response(t_client *client);
         void    architect_delete_response(t_client *client);
@@ -65,6 +66,7 @@ class HttpHandler : public HttpHandlerInterface
 
         void    handle_file_path(t_client *client);
         void    handle_directory_path(t_client *client);
+        void    handle_path_error(t_client *client, int code);
 
         bool    set_directory_indexes(t_client *client);
 

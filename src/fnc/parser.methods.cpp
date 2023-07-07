@@ -157,18 +157,6 @@ std::string    ConfigFileParser::get_identifier(std::pair<int, int> &start, std:
 
     int i = start.first, end_i = end.first;
     int j = start.second + is_bracket(words[start.first][start.second]), end_j = end.second;
-    // while (i <= end_i)
-    // {
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (i == end_i && j >= end_j) // end_j is a bracket I don't want to include it in
-    //             break ;
-    //         id += words[i][j];
-    //         j++;
-    //     }
-    //     j = 0;
-    //     i++;
-    // }
     i = end_i;
     j = end_j;
     bool found = false;
@@ -228,41 +216,10 @@ void    ConfigFileParser::push_node(std::pair<int, int> prev, std::pair<int, int
 
 void    ConfigFileParser::build_with_vector(std::vector<std::string> &vec, int i, int j)
 {
-    // int oldi = i, oldj = j;
-    // while (i < sz(words))
-    // {
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (is_bracket(words[i][j]))
-    //         {
-    //             if (words[i][j] == "{")
-    //             {
-    //                 build_with_vector(vec, i, j + 1);
-    //                 return ;
-    //             }
-    //             else
-    //             {
-    //                 vec.push_back(get_str(words, oldi, i, oldj, j));
-    //                 return ;
-    //             }
-    //         }
-    //         j++;
-    //     }
-    //     j = 0;
-    //     i++;
-    // }
-    // int start_i = brackets_q[0].second.first, end_i = brackets_q[sz(brackets_q) - 1].second.first;
-    // int start_j = brackets_q[0].second.second, end_j = brackets_q[sz(brackets_q) - 1].second.second;
-    // std::string ss = get_str(words, start_i, end_i, start_j, end_j);
-    // vec.push_back(ss);
     std::pair<int, int> first_all = std::make_pair(0, 0);
     push_node(first_all, brackets_q[0].second, brackets_q[sz(brackets_q) - 1].second);
     for (int i = 1; i < sz(brackets_q) - 1; i += 2)
-    {
-        // start_i = brackets_q[i].second.first, end_i = brackets_q[i + 1].second.first;
-        // start_j = brackets_q[i].second.second, end_j = brackets_q[i + 1].second.second;
         push_node(brackets_q[i - 1].second, brackets_q[i].second, brackets_q[i + 1].second);
-    }
 }
 
 void    ConfigFileParser::print_nodes()
@@ -280,20 +237,6 @@ void    ConfigFileParser::print_nodes()
         std::cout << std::endl ;
     }
 }
-
-// bool ConfigFileParser::parse_words()
-// {
-//     bool is_http_found = false;
-//     for (int i = 0; i < sz(words); i++)
-//     {
-//         for (int j = 0; j < sz(words[i]); j++)
-//         {
-//             if (words[i][j] == "http" || words[i][j] == "https")
-//                 parse_http_line(), is_http_found = true;
-//             else if (is_http_found())
-//         }
-//     }
-// }
 
 void    ConfigFileParser::parse_http_configs(int &i, int &j)
 {
@@ -315,8 +258,6 @@ void    ConfigFileParser::parse_http_configs(int &i, int &j)
         }
         if (!sz(http_as_words[sz(http_as_words) - 1]))
             http_as_words.pop_back() ;
-        // if (!sz(line_words) && sz(http_as_words))
-        //     http_as_words.pop_back();
         if ((j < sz(words[i]) && is_bracket(words[i][j])) || \
         (j < sz(words[i]) - 1 && is_bracket(words[i][j + 1])))
             break ;
@@ -324,8 +265,6 @@ void    ConfigFileParser::parse_http_configs(int &i, int &j)
         http_index++;
         i++;
     }
-    // http_as_words.pop_back();
-    // parse_http_words(http_words);
 }
 
 void    ConfigFileParser::parse_server_location(t_node &node, int &i, int &j)
@@ -345,7 +284,6 @@ void    ConfigFileParser::parse_server_location(t_node &node, int &i, int &j)
         j = 0;
         i++;
     }
-    // node.location_blocks.push_back(location_block);
 }
 
 void    ConfigFileParser::parse_server(int &i, int &j)
@@ -408,20 +346,6 @@ void    ConfigFileParser::parse_words(int a, int b)
         i = 1, j = 0;
     else if (sz(words[i]) == 1)
         i = 1, j = 1;
-    // while (i < sz(words) && words[i][j] != "{")
-    // {
-    //     j = 0;
-    //     while (j < sz(words[i]))
-    //     {
-    //         if (!words[i][j].compare("}"))
-    //             break ;
-    //         j++;
-    //     }
-    //     if (j < sz(words[i]) && words[i][j] == "{")
-    //         break ;
-    //     i++;
-    // }
-    // j++;
     while (i < sz(words))
     {
         while (j < sz(words[i]))
@@ -429,8 +353,6 @@ void    ConfigFileParser::parse_words(int a, int b)
             while (j < sz(words[i]) && is_bracket(words[i][j]))
                 j++;
             parse_http_configs(i, j);
-            // while (j < sz(words[i]) && is_bracket(words[i][j]))
-            //     j++;
             if (i >= sz(words))
                 break ;
             parse_server(i, j);
@@ -503,6 +425,7 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
     server_tokens.insert(std::make_pair("max_body_size", INT));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
+    server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
     server_tokens.insert(std::make_pair("register_logs", STRING));
 }
 
@@ -521,6 +444,8 @@ void    ConfigFileParser::fill_location_hashmap()
     location_tokens.insert(std::make_pair("upload", ON_OFF)); // off is the dafault value
     location_tokens.insert(std::make_pair("directory_listing", ON_OFF));
     location_tokens.insert(std::make_pair("location", LOCATION));
+    location_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
+
 }
 
 void    ConfigFileParser::fill_tokens()
@@ -628,23 +553,49 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     TOKEN       token_type;
 
     if (server_tokens.find(token_name) == server_tokens.end())
+    {
+        std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
+    }
     token_type = server_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
     || token_type == DIRECTORY || token_type == CONNECTION) && (sz(_words) != 2))
+    {
+        std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(_words) < 2))
+    {
+        if (token_type == METHOD_VECTOR)
+            std::cerr << RED_BOLD << "syntax error in the list of the provided methods" << std::endl;
+        else
+            std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
-    else if (token_type == CGI && sz(_words) != 3)
+    }
+    else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(_words) != 3)
+    {
+        if (token_type == CGI)
+            std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
+        else
+            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
         return (false);
+    }
     if (token_type == DIRECTORY)
         return (tc.is_directory(_words[1]));
     else if (token_type == SHORT_INT)
+    {
+        if (!tc.is_short_int(_words[1]))
+            std::cerr << RED_BOLD << "Invalid port" << std::endl;
         return (tc.is_short_int(_words[1]));
+    }
     else if (token_type == INT)
         return (tc.is_int(_words[1]));
     else if (token_type == METHOD)
+    {
+        if (!tc.is_method(_words[1]))
+            std::cerr << RED_BOLD << "Invalid method" << std::endl;
         return (tc.is_method(_words[1]));
+    }
     else if (token_type == CONNECTION)
         return (tc.is_connection(_words[1]));
     else if (token_type == METHOD_VECTOR)
@@ -652,13 +603,18 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         for (int i = 1; i < sz(_words); i++)
         {
             if (!tc.is_method(_words[i]))
+            {
+                std::cerr << RED_BOLD << "Invalid method" << std::endl;
                 return (false);
+            }
         }
     }
     else if (token_type == ON_OFF)
         return (tc.is_on_off(_words[1]));
     else if (token_type == CGI)
         return (tc.is_cgi(_words[1], _words[2]));
+    else if (token_type == ERROR_PAGE)
+        return (tc.is_code(_words[1]));
     return (true);
 }
 
@@ -668,13 +624,33 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     TOKEN       token_type;
 
     if (location_tokens.find(token_name) == location_tokens.end())
+    {
+        std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
+    }
     token_type = location_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
     || token_type == DIRECTORY || token_type == CONNECTION) && (sz(block) != 2))
+    {
+        std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(block) < 2))
+    {
+        if (token_type == METHOD_VECTOR)
+            std::cerr << RED_BOLD << "syntax error in the list of the provided methods" << std::endl;
+        else
+            std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
+    }
+    else if ((token_type == CGI || token_type == ERROR_PAGE) && sz(block) != 3)
+    {
+        if (token_type == CGI)
+            std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
+        else
+            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
+        return (false) ;
+    }
     if (token_type == DIRECTORY)
         return (tc.is_directory(block[1]));
     else if (token_type == SHORT_INT)
@@ -682,7 +658,11 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     else if (token_type == INT)
         return (tc.is_int(block[1]));
     else if (token_type == METHOD)
+    {
+        if (!tc.is_method(block[1]))
+            std::cerr << RED_BOLD << "Invalid method" << std::endl;
         return (tc.is_method(block[1]));
+    }
     else if (token_type == CONNECTION)
         return (tc.is_connection(block[1]));
     else if (token_type == METHOD_VECTOR)
@@ -690,13 +670,18 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         for (int i = 1; i < sz(block); i++)
         {
             if (!tc.is_method(block[i]))
+            {
+                std::cerr << RED_BOLD << "Invalid method" << std::endl;
                 return (false);
+            }
         }
     }
     else if (token_type == ON_OFF)
         return (tc.is_on_off(block[1]));
     else if (token_type == CGI)
         return (tc.is_cgi(block[1], block[2]));
+    else if (token_type == ERROR_PAGE)
+        return (tc.is_code(block[1]));
     return (true);
 }
 
@@ -708,7 +693,7 @@ bool ConfigFileParser::is_servers_valid()
         {
             if (!is_server_line_valid(nodes[i].words[j]))
             {
-                std::cout << "SERVER ERROR -> " << i << std::endl ;
+                std::cerr << RED_BOLD << "(syntax error at server word -> " << j << ")" << std::endl ;
                 return (false);
             }
         }
@@ -716,11 +701,7 @@ bool ConfigFileParser::is_servers_valid()
         {
             if (!is_location_block_valid(nodes[i].location_blocks[k]))
             {
-                std::cout << "LOCATION ERROR -> " << i << std::endl;
-                for (int j = 0; j < sz(nodes[i].location_blocks[k]); j++)
-                {
-                    std::cout << nodes[i].location_blocks[k][j] << " " ;
-                }
+                std::cerr << RED_BOLD << "(syntax error at location block line -> " << k << ")" << std::endl ;
                 return (false) ;
             }
         }
@@ -770,21 +751,6 @@ bool ConfigFileParser::is_config_file_valid(std::string &config_file) // checks 
         return (false) ;
     }
     parse_words(brackets_q.front().second.first, brackets_q.front().second.second);
-    // print_http_words();
-    // if (!parse_http())
-    //     return (false);
-    // if (!parse_servers())
-    //     return (false);
-    // print_all();
-    // c_stream.close();
-    // print_nodes();
-
-    /**Debugging lines**/
-    // if (is_http_valid())
-    //     std::cout << "YES HTTP IS VALID" << std::endl;
-    // if (is_servers_valid())
-    //     std::cout << "YES SERVERS ARE VALID" << std::endl;
-    // print_nodes1(); -> print the data of all the servers and their blocks
     is_everything_valid = (is_http_valid() && is_servers_valid());
     c_stream.close();
     return (is_everything_valid) ;
@@ -794,10 +760,7 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 {
     std::string extension = line[1];
     std::string cgi_path = line[2];
-    std::string fullpath = getwd(NULL);
-
-    fullpath += cgi_path;
-    if (access(fullpath.c_str(), X_OK))
+    if (access(cgi_path.c_str(), X_OK))
     {
         std::cout << "INSERTING ERROR " << std::endl;
         throw ParsingExceptionCgi();
@@ -884,6 +847,11 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
                 close(attr.logsfile_fd);
             attr.logsfile_fd = open(attr.logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
         }
+        else if (token_name == "error_page")
+        {
+            int code = std::atoi(nodes[i].words[j][1].c_str());
+            attr.code_to_page[code] = nodes[i].words[j][2];
+        }
     }
 }
 
@@ -899,7 +867,7 @@ bool ConfigFileParser::get_connection(std::vector<std::string> &line)
 
 int ConfigFileParser::get_port(std::vector<std::string> &line)
 {
-    return (std::stoi(line[1]));
+    return (std::atoi(line[1].c_str()));
 }
 
 std::vector<std::string> ConfigFileParser::get_vector_of_data(std::vector<std::string> &line)
@@ -986,6 +954,12 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
             l_configs.upload = get_auto_indexing(nodes[i].location_blocks[j]);
         else if (token_name == "directory_listing")
             l_configs.directory_listing = get_auto_indexing(nodes[i].location_blocks[j]);
+        else if (token_name == "error_page")
+        {
+            int code = std::atoi(nodes[i].location_blocks[j][1].c_str());
+            std::string page = nodes[i].location_blocks[j][2];
+            l_configs.code_to_page[code] = page;
+        }
         j++;
     }
 }
@@ -1014,6 +988,7 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         //     std::cout << conf->indexes[i] << std::endl;
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
+        conf->code_to_page = s_conf->code_to_page;
         // conf->root = s_conf->root; [!! I DO NOT NEED THE SERVER ROOT TO BE SET IN LOCATION AS DEFAULT]
         fill_location_attributes(*conf, s_conf, index, start, i);
         std::cout << PURPLE_BOLD << "INTERVAL => " << start << " - " << i << WHITE << std::endl ;
@@ -1088,7 +1063,7 @@ bool ConfigFileParser::parse_config_file(std::string config_file, t_http_configs
 {
     if (!is_config_file_valid(config_file)) // O(N) to check if the file is valid or not
     {
-        std::cout << "Config file is not valid" << std::endl;
+        std::cerr << RED_BOLD << "Config file is not valid" << std::endl;
         return (false);
     }
     return (fill_http_data(http_data) && fill_servers_data(servers, http_data));

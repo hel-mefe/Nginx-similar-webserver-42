@@ -1,0 +1,31 @@
+http
+{
+    allowed_methods GET POST DELETE
+    root /www
+    server
+    {
+        server_name nice_server
+        fastCGI .php /goinfre/ymourchi/test/cgi-bin/php-cgi
+        fastCGI .pl /usr/bin/perl
+        fastCGI .py /usr/bin/python
+        allowed_methods GET POST DELETE
+        max_body_size 200000000
+        root /
+        port 9080
+        error_page 100 /error_pages/100_page.html
+        error_page 200 /error_pages/200_page.html
+        error_page 404 /error_pages/404_page.html
+        location /loc
+        {
+            error_page 100 /override_100.html
+        }
+        location /
+        {
+            error_page 404 /error_pages/404_page.html
+            allowed_methods GET POST DELETE
+            index index.html
+            upload on
+            directory_listing on
+        }
+    }
+}
