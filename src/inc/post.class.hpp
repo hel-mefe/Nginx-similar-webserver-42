@@ -20,7 +20,7 @@ class Post : public MethodHandler
         void    serve_cgi(t_client*, char**, int);
         void    create_file(t_client*);
         void    fill_response(t_client*, int, std::string, bool);
-        void    parse_cgi_output(t_client* client);
+        void    parse_cgi_output(t_client*);
         ~Post();
 } ;
 

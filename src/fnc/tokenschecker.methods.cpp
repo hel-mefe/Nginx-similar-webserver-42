@@ -79,8 +79,14 @@ bool TokensChecker::is_extension(std::string s)
 
 bool TokensChecker::is_cgi(std::string extension, std::string path)
 {
-    std::string fullpath = getwd(NULL);
+    return (is_extension(extension) && !access(path.c_str(), X_OK));
+}
 
+bool TokensChecker::is_code(std::string s)
+{
+    int code;
+
+<<<<<<< HEAD
     fullpath += path;
     return (is_extension(extension) && !access(fullpath.c_str(), X_OK));
 }
@@ -89,6 +95,8 @@ bool TokensChecker::is_code(std::string s)
 {
     int code;
 
+=======
+>>>>>>> atlas
     code = std::atoi(s.c_str());
     return (code > 0 && code < 515);
 }

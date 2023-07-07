@@ -50,36 +50,37 @@ void Post::client_served(t_client* client)
         return;
     }
     fill_response(client, 201, "Created!", true);
-    std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
+    std::cout << GREEN_BOLD << "POST REQUEST IS SERVED" << WHITE << std::endl;
     client->state = SERVED;
 }
 
 void    Post::create_file(t_client* client)
 {
-    if (!client->response->is_cgi)
+    std::string root;
+    if (client->response->is_cgi)
+        root = "/tmp/cgi_in";
+    else
     {
-        std::string filename;
+        root = getwd(NULL) +  client->response->rootfilepath;
         if (!client->request->filename.empty())
-            filename.append(client->request->filename);
+            root.append(client->request->filename);
         else
-            filename.append("file");
-        for (int i = 0; i < INT_MAX; i++)
-        {
-            std::string file_path = getwd(NULL) + client->response->rootfilepath;
-            file_path.append(filename);
-            if (i)
-                file_path.append(intToString(i));
+            root.append("Uploaded_file");
+    }
+    for (int i = 0; i < INT_MAX; i++)
+    {
+        std::string file_path(root);
+        if (i)
+            file_path.append(intToString(i));
+        if (!client->response->is_cgi)
             file_path.append(client->request->extension);
-            if (access(file_path.c_str(), F_OK))
-            {
-                client->request->file = open(file_path.c_str(), O_CREAT | O_APPEND | O_RDWR);
-                break;
-            }
-            file_path.clear();
+        if (access(file_path.c_str(), F_OK))
+        {
+            client->request->file = open(file_path.c_str(), O_CREAT | O_APPEND | O_RDWR, 0777);
+            client->request->cgi_in = file_path;
+            break;
         }
     }
-    else
-        client->request->file = open("/tmp/cgi_input", O_CREAT | O_TRUNC | O_WRONLY, 0777);
 }
 
 char** Post::convert_cgi_env(t_client* client)
@@ -107,7 +108,8 @@ void    Post::fill_cgi_env(t_client* client)
     client->response->cgi_env["CONTENT_LENGTH="] = intToString(client->request->body_size);
     client->response->cgi_env["SCRIPT_FILENAME="] = client->response->filepath;
     client->response->cgi_env["PATH_INFO="] = client->response->filepath;
-    client->response->cgi_env["CONTENT_TYPE="] = client->request->request_map.at("content-type");
+    if (client->request->method == "POST")
+        client->response->cgi_env["CONTENT_TYPE="] = client->request->request_map.at("content-type");
     if (!client->request->cookies.empty())
         client->response->cgi_env["HTTP_COOKIE="] = client->request->cookies;
 }
@@ -115,16 +117,27 @@ void    Post::fill_cgi_env(t_client* client)
 void    Post::serve_cgi(t_client* client, char** env, int args_size)
 {
     int status;
-    std::cout << CYAN_BOLD << "HANDLING CGI ..." << std::endl;
-    std::cout << "CGI PATH ==> " << WHITE << client->response->cgi_path << std::endl;
+    std::cout << CYAN_BOLD << "... HANDLING CGI ..." << std::endl;
+    std::cout << "CGI PATH ==> " << client->response->cgi_path << WHITE << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));
     args[0] = strdup(client->response->cgi_path.c_str());
     args[1] = strdup(client->response->filepath.c_str());
     args[2] = NULL;
+    for (int i = 0; i < INT_MAX; i++)
+    {
+        std::string file_path = "/tmp/cgi_out";
+        if (i)
+            file_path.append(intToString(i));
+        if (access(file_path.c_str(), F_OK))
+        {
+            client->request->cgi_out = file_path;
+            break;
+        }
+    }
     client->response->cgi_pid = fork();
     if (client->response->cgi_pid < 0)
     {
-        std::cerr << RED_BOLD << "Forking for CGI failed!" << WHITE << std::endl;
+        std::cerr << RED_BOLD << "FORKING FOR CGI FAILED!" << WHITE << std::endl;
         fill_response(client, 501, "Internal Server Error", true);
         client->state = SERVED;
         return;
@@ -132,17 +145,21 @@ void    Post::serve_cgi(t_client* client, char** env, int args_size)
     if (!client->response->cgi_pid)
     {
         int cgi_io[2];
-        cgi_io[0] = open("/tmp/cgi_input", O_RDONLY);
-        cgi_io[1] = open("/tmp/cgi_output", O_CREAT | O_TRUNC | O_WRONLY, 0777);
-        if (cgi_io[0] > 0)
-            dup2(cgi_io[0], 0);
-        if (cgi_io[1] != 1)
-            dup2(cgi_io[1], 1);
-        if (execve(args[0], args, env))
+        if (client->request->method == "POST")
         {
-            std::cerr << RED_BOLD << "EXECVE OR CGI IS NOT WORKING" << WHITE << std::endl;
-            exit(-1);
+            cgi_io[0] = open(client->request->cgi_in.c_str(), O_RDONLY);
+            if (cgi_io[0] > 0)
+                dup2(cgi_io[0], 0);
+            else
+                exit(42);
         }
+        cgi_io[1] = open(client->request->cgi_out.c_str(), O_CREAT | O_APPEND | O_RDWR, 0777);
+        if (cgi_io[1] > 0)
+            dup2(cgi_io[1], 1);
+        else
+            exit(42);
+        if (execve(args[0], args, env))
+            exit(42);
     }
     memory_freeder(env, args, args_size);
     client->response->cgi_running = true;
@@ -150,24 +167,44 @@ void    Post::serve_cgi(t_client* client, char** env, int args_size)
 
 void Post::parse_cgi_output(t_client* client)
 {
-    int cgi_out = open("/tmp/cgi_output", O_RDONLY), rbytes = 0;
-    char buff[MAX_BUFFER_SIZE];
+    int cgi_out = open(client->request->cgi_out.c_str(), O_RDONLY), rbytes = 0;
     if (cgi_out < 0)
     {
         fill_response(client, 501, "Internal Server Error", true);
+        std::cerr << RED_BOLD <<"SERVER COUDN'T OPEN CGI OUTPUT FILE!" << WHITE << std::endl;
         client->state = SERVED;
         return ;
     }
-    write(client->fd, "HTTP/1.1 200 OK\r\n", 17);
+    char buff[MAX_BUFFER_SIZE];
+    send(client->fd, "HTTP/1.1", 8, 0);
+    rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
+    if (rbytes)
+    {
+        std::string str(buff, rbytes);
+        size_t epos = str.find("\r\n");
+        std::string line(str, 0, epos + 2);
+        size_t spos = line.find("Status:");
+        if(spos == std::string::npos)
+            send(client->fd, " 200 OK\r\n", 9, 0);
+        else
+        {
+            line.erase(0, 7);
+            send(client->fd, line.c_str(), line.size(), 0);
+            str.erase(0, epos + 2);
+        }
+        send(client->fd, str.c_str(), str.size(), 0);
+    }
     while(true)
     {
         rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
         if (!rbytes)
             break;
-        write(client->fd, buff, rbytes);
+        send(client->fd, buff, rbytes, 0);
     }
+    send(client->fd, "\r\n", 2, 0);
     client->state = SERVED;
-    std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
+    close(cgi_out);
+    std::cout << WHITE << "REQUEST IS SERVED" << std::endl;
 }
 
 void Post::serve_client(t_client *client)
@@ -180,6 +217,7 @@ void Post::serve_client(t_client *client)
         create_file(client);
         if (client->request->file < 0)
         {
+            std::cerr << RED_BOLD << "SERVER COUDN'T OPEN UPLOAD FILE!" << WHITE << std::endl;
             fill_response(client, 501, "Internal Server Error", true);
             client->state = SERVED;
             return;
@@ -190,14 +228,16 @@ void Post::serve_client(t_client *client)
     {
         fill_response(client, 408, "Request Timeout", true);
         if (client->response->cgi_running)
+        {
             kill(client->response->cgi_pid, SIGKILL);
+        }
         client->state = SERVED;
         return;
     }
     if (!client->response->cgi_running)
     {
         char buff[MAX_BUFFER_SIZE];
-        int rbytes = read(client->fd, buff, MAX_BUFFER_SIZE);
+        int rbytes = recv(client->fd, buff, MAX_BUFFER_SIZE, 0);
         if (!rbytes)
         {
             client->state = SERVED;
@@ -211,15 +251,18 @@ void Post::serve_client(t_client *client)
             parse_chunked_body(client);
     }
     int status;
-    if (client->response->cgi_running && waitpid(-1, &status, WNOHANG) > 0)
+    int rt = waitpid(-1, &status, WNOHANG);
+    if (client->response->cgi_running && rt > 0)
     {
-        if ((WIFEXITED(status) && WEXITSTATUS(status) == -1))
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
         {
             client->state = SERVED;
+            std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
             fill_response(client, 501, "Internal Server Error", true);
             return;
         }
-        parse_cgi_output(client);
+        if (rt == client->response->cgi_pid)
+            parse_cgi_output(client);
     }
 }
 

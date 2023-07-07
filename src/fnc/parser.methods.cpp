@@ -582,7 +582,11 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     else if (token_type == CGI)
         return (tc.is_cgi(_words[1], _words[2]));
     else if (token_type == ERROR_PAGE)
+<<<<<<< HEAD
         return (tc.is_code(_words[1])) ;
+=======
+        return (tc.is_code(_words[1]));
+>>>>>>> atlas
     return (true);
 }
 
@@ -726,10 +730,7 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 {
     std::string extension = line[1];
     std::string cgi_path = line[2];
-    std::string fullpath = getwd(NULL);
-
-    fullpath += cgi_path;
-    if (access(fullpath.c_str(), X_OK))
+    if (access(cgi_path.c_str(), X_OK))
     {
         std::cout << "INSERTING ERROR " << std::endl;
         throw ParsingExceptionCgi();
@@ -823,8 +824,11 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             int code = std::atoi(nodes[i].words[j][1].c_str());
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
+<<<<<<< HEAD
         else if (token_name == "max_request_timeout")
             attr.max_request_timeout = std::atoi(nodes[i].words[j][1].c_str());
+=======
+>>>>>>> atlas
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
@@ -956,6 +960,10 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
         conf->code_to_page = s_conf->code_to_page;
+<<<<<<< HEAD
+=======
+        // conf->root = s_conf->root; [!! I DO NOT NEED THE SERVER ROOT TO BE SET IN LOCATION AS DEFAULT]
+>>>>>>> atlas
         fill_location_attributes(*conf, s_conf, index, start, i);
         server->set_location_map(location, conf);
     }

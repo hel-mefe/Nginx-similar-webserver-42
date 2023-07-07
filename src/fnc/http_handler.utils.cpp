@@ -1,5 +1,6 @@
 # include "../inc/http_handler.utils.hpp"
 
+<<<<<<< HEAD
 std::string get_cleanified_path(std::string s)
 {
     std::string res;
@@ -21,6 +22,8 @@ void    alert(std::string s, const char *color)
 }
 
 
+=======
+>>>>>>> atlas
 bool    is_file(std::string &path)
 {
     int i = sz(path) - 1;

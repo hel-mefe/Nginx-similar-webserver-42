@@ -1,4 +1,5 @@
 # include "../inc/http_handler.class.hpp"
+# include <sys/stat.h>
 
 void    HttpHandler::handle_http(t_client *client)
 {
@@ -13,6 +14,7 @@ void    HttpHandler::handle_http(t_client *client)
             client->state = (client->state == WAITING) ? READING_HEADER : WAITING;
         if (client->state == READING_HEADER && http_parser->read_header(client))
         {
+<<<<<<< HEAD
             std::cout << RED_BOLD << "IS READING HEADER ..." << std::endl;
             if (!http_parser->parse_request(client)) // request is not well-formed
             {
@@ -23,13 +25,26 @@ void    HttpHandler::handle_http(t_client *client)
             else
                 architect_response(client);
         }
-        else
-        {
-            std::cout << "WILL DISCONNECT DUE TO READ HEADER" << std::endl;
-            if (time_passed > max_request_timeout && client->state == READING_HEADER)
-                client->state = SERVED;
+=======
+            http_parser->parse_request(client);
+            architect_response(client);
+            return ;
         }
+    }       
+}
+
+std::string get_cleanified_path(std::string s)
+{
+    std::string res;
+    bool flag = true;
+
+    for (int i = 0; i < sz(s); i++)
+    {
+        if (s[i] != '/' || (s[i] == '/' && flag))
+            res += s[i];
+        flag = !(s[i] == '/');
     }
+    return (res);
 }
 
 void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
@@ -38,12 +53,93 @@ void    HttpHandler::handle_path_error(t_client *client, int code) // only calle
     t_response *res = client->response;
     std::map<int, std::string>          code_to_page;
     std::string                 error_page;
-    std::string                 current_dir;
 
     if (res->dir_configs)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
+    error_page = getwd(NULL);
+    error_page += (res->dir_configs) ? res->dir_configs->root : res->configs->root;
+    if (error_page[sz(error_page) - 1] != '/')
+        error_page += "/";
+    error_page += code_to_page[code];
+    std::cerr << RED_BOLD << error_page << WHITE << std::endl;
+    if (!access(error_page.c_str(), R_OK))
+    {
+        client->state = SERVING_GET;
+        set_root_file_path(client);
+    }
+    else
+        client->state = SERVED;
+    res->rootfilepath = get_cleanified_path(res->rootfilepath);
+    res->filepath = get_cleanified_path(res->filepath);
+}
+
+bool    HttpHandler::handle_501(t_client *client)
+{
+    t_request *req = client->request;
+    std::map<std::string, std::string>::iterator it = req->request_map.find("transfer-encoding");
+
+    if (it != req->request_map.end())
+    {
+        if (it->second == "chunked")
+            req->is_chunked = true;
+>>>>>>> atlas
+        else
+        {
+            std::cout << "WILL DISCONNECT DUE TO READ HEADER" << std::endl;
+            if (time_passed > max_request_timeout && client->state == READING_HEADER)
+                client->state = SERVED;
+        }
+    }
+<<<<<<< HEAD
+=======
+    return false ;
+}
+
+bool    HttpHandler::handle_400(t_client *client)
+{
+    t_request *req = client->request;
+    t_response *res = client->response;
+    std::map<std::string, std::string>  *request_map = &req->request_map;
+    std::map<int, std::string>          code_to_page;
+
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+    if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
+    !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
+    {
+        fill_response(client, 400, true);
+        if (IN_MAP(code_to_page, 400)) // error code is exist page provided in config file
+            handle_path_error(client, 400);
+        else
+            client->state = SERVED;
+        return true ;
+    }
+    return false ;
+>>>>>>> atlas
+}
+
+void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
+{
+    t_request *req = client->request;
+    t_response *res = client->response;
+<<<<<<< HEAD
+    std::map<int, std::string>          code_to_page;
+    std::string                 error_page;
+    std::string                 current_dir;
+=======
+    std::map<std::string, std::string>  *request_map = &req->request_map;
+    std::map<int, std::string>          code_to_page;
+>>>>>>> atlas
+
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+<<<<<<< HEAD
     error_page = (res->dir_configs) ? res->dir_configs->root : res->configs->root;
     if (error_page[sz(error_page) - 1] != '/')
         error_page += "/";
@@ -62,6 +158,80 @@ void    HttpHandler::handle_path_error(t_client *client, int code) // only calle
     res->filepath = get_cleanified_path(res->filepath);
 }
 
+=======
+    if (sz(req->path) >= MAX_REQUEST_URI_SIZE)
+    {
+        fill_response(client, 414, true);
+        if (IN_MAP(code_to_page, 414)) // error code is exist page provided in config file
+            handle_path_error(client, 414) ;
+        else
+            client->state = SERVED;
+        return true ;
+    }
+    return false ;
+}
+
+bool    HttpHandler::handle_405(t_client *client)
+{
+    t_request *req;
+    t_response *res;
+    t_location_configs  *l_configs;
+    t_server_configs    *s_configs;
+    std::map<std::string, std::string>  *request_map;
+    std::map<int, std::string>          code_to_page;
+
+    req = client->request;
+    res = client->response;
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+    request_map = &req->request_map;
+    l_configs = get_location_configs_from_path(client);
+    s_configs = client->server->server_configs;
+    std::vector<std::string>    allowed_methods = (l_configs) ? l_configs->allowed_methods : s_configs->allowed_methods;
+    /*** Method is not allowed ****/
+    if (std::find(allowed_methods.begin(), allowed_methods.end(), req->method) == allowed_methods.end())
+    {
+        fill_response(client, 405, true);
+        if (IN_MAP(code_to_page, 405)) // error code is exist page provided in config file
+            handle_path_error(client, 405) ;
+        else
+            client->state = SERVED;
+        return true ;
+    }
+    return (false);
+}
+
+bool HttpHandler::handle_413(t_client *client)
+{
+    t_request *req = client->request;
+    t_response *res = client->response;
+    t_server_configs *sconf = client->server->server_configs;
+    std::map<std::string, std::string>  *request_map;
+    std::map<int, std::string>          code_to_page;
+
+    request_map = &req->request_map;
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+    if (IN_MAP((*request_map), "content-length"))
+    {
+        req->content_length = std::atoi(request_map->at("content-length").c_str());
+        if(sconf->max_body_size < req->content_length)
+        {
+            fill_response(client, 413, true);
+            if (IN_MAP(code_to_page, 413)) // error code is exist page provided in config file
+                handle_path_error(client, 413) ;
+            else
+                client->state = SERVED;
+            return true;
+        }
+    }
+    return false;
+}
+>>>>>>> atlas
 
 void    HttpHandler::fill_response(t_client *client, int code, bool write_it)
 {
@@ -246,10 +416,75 @@ void    HttpHandler::set_configurations(t_client *client)
     res->configs = client->server->server_configs;
     res->is_cgi = (req->extension == ".php" || req->extension == ".pl");
     if (res->is_cgi)
-        res->cgi_path = res->configs->extension_cgi[res->extension];
+        res->cgi_path = res->configs->extension_cgi[req->extension];
     set_root_file_path(client); // needed for GET and DELETE
 }
 
+<<<<<<< HEAD
+=======
+bool    HttpHandler::handle_locations(t_client *client)
+{
+    t_request                   *req;
+    t_response                  *res;
+    std::map<std::string, std::string>  *request_map;
+    std::string                 connection;
+    std::string                 current_directory = getwd(NULL);
+    std::string                 path;
+    std::string                 fullpath;
+    CLIENT_STATE                new_state;
+    std::vector<std::string>    files_404;
+    t_location_configs          *l_configs;
+    t_server_configs            *s_configs;
+    std::map<int, std::string>          code_to_page;
+
+    request_map = &req->request_map;
+    if (res->dir_configs)
+        code_to_page = res->dir_configs->code_to_page;
+    else
+        code_to_page = res->configs->code_to_page;
+
+    req = client->request;
+    res = client->response;
+    request_map = &req->request_map;
+    l_configs = get_location_configs_from_path(client);
+    s_configs = client->server->server_configs;
+    path = s_configs->root + req->path;
+    fullpath = current_directory + path;
+    std::cout << GREEN_BOLD << "[THE FULL PATH IN LOCATIONS] ==> " << fullpath << std::endl;
+    if (req->is_file && !is_path_valid(fullpath))
+    {
+        std::cout << "[handle_locations] -> THE PATH IS NOT VALID AND WORKING WITH 404" << std::endl;
+        files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;        
+        std::string rootpath = l_configs ? l_configs->root : s_configs->root;
+        if (set_file_path(rootpath, files_404))
+        {
+            client->state = SERVING_GET;
+            res->rootfilepath = rootpath;
+        }
+        else
+            client->state = SERVED;
+        res->filepath = current_directory + res->rootfilepath;
+        res->filename = req->path;
+        req->extension = get_extension(res->filepath);
+        res->extension = req->extension;
+        fill_response(client, 404, true);
+        if (IN_MAP(code_to_page, 404)) // error code is exist page provided in config file
+            handle_path_error(client, 404);
+        else
+            client->state = SERVED;
+        return true ;
+    }
+    else if (is_redirection(client)) // also sets the redirecto_to
+    {
+        std::cout << "REDIREEEECTION ...." << std::endl;
+        fill_response(client, 301, true);
+        return true ;
+    }
+    return false ;
+}
+
+
+>>>>>>> atlas
 void    HttpHandler::handle_file_path(t_client *client)
 {
     t_request                   *req;
@@ -405,6 +640,74 @@ void    HttpHandler::handle_directory_path(t_client *client)
 }
 
 
+<<<<<<< HEAD
+=======
+    for (int i = 0; i < sz(filepath); i++)
+    {
+        if (!flag || (flag && filepath[i] != '/'))
+            slist.push_back(filepath[i]);
+        flag = (filepath[i] == '/'); 
+    }
+    char    *s = new char[sz(slist) + 1];
+    int i = 0;
+    for (auto x: slist)
+        s[i++] = x;
+    s[i] = 0;
+    res->filepath = s;
+    delete[] s;
+    slist.clear();
+    flag = false ;
+    for (int i = 0; i < sz(rootfilepath); i++)
+    {
+        if (!flag || (flag && rootfilepath[i] != '/'))
+            slist.push_back(rootfilepath[i]);
+        flag = (rootfilepath[i] == '/'); 
+    }
+    s = new char[sz(slist) + 1];
+    i = 0;
+    for (auto x: slist)
+        s[i++] = x;
+    s[i] = 0;
+    res->rootfilepath = s;
+    slist.clear();
+    delete[] s;
+}
+
+void    HttpHandler::architect_get_response(t_client *client)
+{
+    t_request           *req = client->request;
+    t_response          *res = client->response;
+    t_server_configs    *s_configs;
+    t_location_configs  *l_configs;
+
+    s_configs = res->configs;
+    l_configs = res->dir_configs;
+    if (req->is_file) // file
+        handle_file_path(client);
+    else // directory
+        handle_directory_path(client);
+
+    if (sz(res->filepath) && access(res->filepath.c_str(), R_OK)) // forbidden
+    {
+        fill_response(client, 403, true);
+        client->state = SERVED ;
+    }
+    else // Access allowed
+    {
+        std::cout << GREEN_BOLD << " -- WE ARE DEALING WITH THIS FILE PATH ==> " << res->filepath << std::endl;
+        client->state = (sz(res->filepath) || res->is_directory_listing ? SERVING_GET : SERVED);
+    }
+    cleanify_response(res);
+    std::cout << "CLEANIFIED FILEPATH ==> " << res->filepath << std::endl;
+    std::cout << "CLEANIFIED ROOTFILEPATH ==> " << res->rootfilepath << std::endl;
+}
+
+void    HttpHandler::architect_delete_response(t_client *client)
+{
+    std::cout << RED_BOLD << "ARHICTECTURING DELETE RESPONSE ..." << WHITE << std::endl;
+    client->state = SERVING_DELETE;
+}
+>>>>>>> atlas
 
 void    HttpHandler::architect_post_response(t_client *client)
 {
@@ -413,11 +716,15 @@ void    HttpHandler::architect_post_response(t_client *client)
     std::map<std::string, std::string>::iterator header = req->request_map.find("content-type");
     std::string url;
 
+<<<<<<< HEAD
     url = client->cwd;
     url += res->rootfilepath;
     if (res->is_cgi)
         res->cgi_path = client->cwd + "/" + res->configs->extension_cgi[req->extension];
     res->filepath = client->cwd + res->rootfilepath;
+=======
+    res->filepath = std::string(getwd(NULL)) + res->rootfilepath;
+>>>>>>> atlas
     if (access(url.c_str(), F_OK))
     { 
         fill_response(client, 404, true);
@@ -446,6 +753,7 @@ void    HttpHandler::architect_post_response(t_client *client)
  * - responsible for setting configs and dir_configs
  * - responsible for setting directory_configs_path
 */
+<<<<<<< HEAD
 
 void    HttpHandler::set_response_configs(t_client *client)
 {
@@ -461,15 +769,15 @@ void    HttpHandler::set_response_configs(t_client *client)
 }
 
 void    HttpHandler::architect_response(t_client *client)
+=======
+void    HttpHandler::set_response_configs(t_client *client)
+>>>>>>> atlas
 {
-    t_request *req;
-    t_response *res;
-    std::map<std::string, std::string>  *request_map;
-    std::string connection;
-    CLIENT_STATE    new_state;
+    t_response  *res;
+    t_request   *req;
 
-    req = client->request;
     res = client->response;
+<<<<<<< HEAD
     request_map = &req->request_map;
 
     req->is_file = (req->path[sz(req->path) - 1] != '/') ;
@@ -477,6 +785,31 @@ void    HttpHandler::architect_response(t_client *client)
     set_response_configs(client);
     if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
+=======
+    req = client->request;
+    res->dir_configs = get_location_configs_from_path(client);
+    res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
+    res->configs = client->server->server_configs;
+}
+void    HttpHandler::architect_response(t_client *client)
+{
+    t_request *req = client->request;
+    t_response *res = client->response;
+    std::string fullpath = getwd(NULL);
+    struct stat path_info;
+    std::map<std::string, std::string>  *request_map = &req->request_map;
+    fullpath.append(client->server->server_configs->root);
+    fullpath.append(req->path);
+    stat(fullpath.c_str(), &path_info);
+    if (S_ISREG(path_info.st_mode))
+        req->is_file = true;
+    else if (S_ISDIR(path_info.st_mode))
+        req->is_file = false;
+    //req->is_file = (req->path[sz(req->path) - 1] != '/');
+    req->print_data();
+    set_response_configs(client); // setting dir_configs and configs and directory_configs_path
+    if ((handle_400(client) || handle_414(client) || handle_501(client) || handle_413(client) || handle_405(client)) || handle_locations(client))
+>>>>>>> atlas
         res->print_data();
     else
     {
