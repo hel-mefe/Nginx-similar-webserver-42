@@ -160,9 +160,6 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
 
-    std::cout << "Checking the client" << std::endl;
-    client->check();
-    std::cout << "client is clean has no issue" << std::endl;
     if (is_http_state(client->state))
         http_handler->handle_http(client);
     if (is_method_handler_state(client->state))

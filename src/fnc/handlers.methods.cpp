@@ -8,7 +8,6 @@
  * the documentation is written for each function above it
 */
 
-/** a function that fills the response with the given code and writes it if write_it is set to true **/
 void    Handlers::fill_response(t_client *client, int code, bool write_it)
 {
     t_request *req;
@@ -17,7 +16,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     std::string connection;
     CLIENT_STATE    new_state;
 
-    std::cout << "[fill_response] is running ..." << std::endl;
     req = client->request;
     res = client->response;
     request_map = &req->request_map;
@@ -37,8 +35,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         if (res->is_directory_listing)
             ctype = "text/html";
         res->add("content-type", ctype);
-        // if (!res->is_directory_listing)
-        //     res->add("transfer-encoding", "chunked");
         res->add("connection", "closed");
         if (!res->is_cgi) // dealing with file
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
@@ -48,7 +44,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     if (write_it)
         res->write_response_in_socketfd(client->fd, !sz(res->filepath));
 }
-
 
 /** this function is used to change the path from its state to another state depending on the root provided
  * let's suppose we have a path like this /dir1/dir2 and also let's suppose that /dir1 is defined in the config file 
@@ -73,7 +68,6 @@ std::string Handlers::get_path_after_change(t_client *client, std::string root)
     else
         resp = p;
     resp = get_cleanified_path(resp);
-    std::cout << "[PATH AFTER CHANGE]: " << resp << std::endl;
     return (resp);
 }
 
@@ -83,6 +77,7 @@ std::string Handlers::get_path_after_change(t_client *client, std::string root)
  * - meanwhile the function above takes just a string and does what necessary depending on the configs
  * provided in both the server configs and the location configs
 ***/
+
 bool    Handlers::change_path(t_client *client)
 {
     t_request           *req;
@@ -92,18 +87,16 @@ bool    Handlers::change_path(t_client *client)
     std::string         path_after_change;
     std::string         current_dir;
 
-    std::cout << GREEN_BOLD << "Staring [Change path] ..." << std::endl;
     req = client->request;
     res = client->response;
     d_configs = res->dir_configs;
     s_configs = res->configs;
+    path_after_change = "";
+    current_dir = "";
     if (d_configs)
     {
-        std::cout << YELLOW_BOLD << "Dealing with Location Configs [d_configs] ..." << std::endl; 
         path_after_change = get_path_after_change(client, d_configs->root);
-        std::cout << "wjdi dayr kasketa hh" << std::endl;
         current_dir = client->cwd;
-        std::cout<<"ds ffsafsf sf " <<std::endl;
         res->rootfilepath = path_after_change;
         res->filepath = current_dir + "/" + res->rootfilepath;
     }
@@ -148,9 +141,10 @@ bool    Handlers::handle_400(t_client *client)
     t_response *res = client->response;
     std::map<std::string, std::string>  *request_map = &req->request_map;
     std::map<int, std::string>          code_to_page;
-    std::string error_page;
-    std::string path;
+    std::string error_page = "";
+    std::string path = "";
 
+    
     if (res->dir_configs)
         code_to_page = res->dir_configs->code_to_page;
     else
@@ -191,8 +185,8 @@ bool Handlers::handle_414(t_client *client)
     t_response *res = client->response;
     std::map<std::string, std::string>  *request_map = &req->request_map;
     std::map<int, std::string>          code_to_page;
-    std::string error_page;
-    std::string path;
+    std::string error_page = "";
+    std::string path = "";
 
     if (res->dir_configs)
         code_to_page = res->dir_configs->code_to_page;
@@ -234,8 +228,8 @@ bool    Handlers::handle_501(t_client *client)
     t_response *res = client->response;
     std::map<std::string, std::string>::iterator it = req->request_map.find("transfer-encoding");
     std::map<int, std::string> code_to_page;
-    std::string error_page;
-    std::string path;
+    std::string error_page = "";
+    std::string path = "";
 
     if (res->dir_configs)
         code_to_page = res->dir_configs->code_to_page;
@@ -283,8 +277,8 @@ bool Handlers::handle_413(t_client *client)
     t_server_configs *sconf = client->server->server_configs;
     std::map<std::string, std::string>  *request_map;
     std::map<int, std::string>          code_to_page;
-    std::string                         error_page;
-    std::string                         path;
+    std::string                         error_page = "";
+    std::string                         path = "";
 
     request_map = &req->request_map;
     if (res->dir_configs)
@@ -331,8 +325,8 @@ bool    Handlers::handle_405(t_client *client)
     t_server_configs    *s_configs;
     std::map<std::string, std::string>  *request_map;
     std::map<int, std::string>          code_to_page;
-    std::string                         error_page;
-    std::string                         path;
+    std::string                         error_page = "";
+    std::string                         path = "";
 
     req = client->request;
     res = client->response;
@@ -419,7 +413,6 @@ bool    Handlers::handle_404(t_client *client)
     std::string         root;
     std::vector<std::string> files_404;
 
-    std::cout << "[handle_404] is running ..." << std::endl;
     res = client->response;
     req = client->request;
     d_configs = res->dir_configs;
@@ -431,8 +424,18 @@ bool    Handlers::handle_404(t_client *client)
         res->filepath = client->cwd + "/" + root;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
-        fill_response(client, 404, true);
-        client->state = SERVING_GET;
+        if (!access(res->filepath.c_str(), R_OK))
+        {
+            fill_response(client, 404, true);
+            client->state = SERVING_GET;
+        }
+        else
+        {
+            res->filepath = "";
+            res->rootfilepath = "";
+            fill_response(client, 403, true);
+            client->state = SERVED;
+        }
     }
     else
     {
@@ -441,7 +444,6 @@ bool    Handlers::handle_404(t_client *client)
         client->state = SERVED;
         fill_response(client, 404, true);
     }
-    std::cout << "[handle_404] has ended!" << std::endl;
     return (true) ;
 }
 
@@ -462,21 +464,29 @@ bool    Handlers::handle_200d(t_client *client)
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
-    std::cout << "[handle_200 for directory]" << std::endl;
     if (set_file_path(client->cwd, res->rootfilepath, indexes))
     {
         res->filepath = client->cwd + "/" + res->rootfilepath;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
-        fill_response(client, 200, true);
-        client->state = SERVING_GET;
+        if (!access(res->filepath.c_str(), R_OK))
+        {
+            fill_response(client, 200, true);
+            client->state = SERVING_GET;
+        }
+        else
+        {
+            res->filepath = "";
+            res->rootfilepath = "";
+            fill_response(client, 403, true);
+            client->state = SERVED;
+        }
     }
     else
     {
         if (d_configs && d_configs->directory_listing && is_directory_exist(client->cwd, res->rootfilepath))
         {
             res->is_directory_listing = true ;
-            std::cout << "[directory_listing is on ] ... running" << std::endl;
             fill_response(client, 200, true);
             client->state = SERVING_GET;
         }
@@ -503,14 +513,21 @@ bool Handlers::handle_200f(t_client *client)
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
-    if (!access(res->filepath.c_str(), R_OK))
+    if (!access(res->filepath.c_str(), R_OK)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
         fill_response(client, 200, true);
         client->state = SERVING_GET;
     }
-    else
+    else if (!access(res->filepath.c_str(), F_OK)) // 403 forbidden
+    {
+        res->filepath = "";
+        res->rootfilepath = "";
+        fill_response(client, 403, true);
+        client->state = SERVED;
+    }
+    else // 404 not found
         handle_404(client);
     return (true) ;
 }

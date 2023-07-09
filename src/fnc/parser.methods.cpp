@@ -408,6 +408,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("max_body_size", INT));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
     http_tokens.insert(std::make_pair("max_request_timeout", INT));
+    http_tokens.insert(std::make_pair("multiplexer", MULTIP));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
 
@@ -471,10 +472,12 @@ bool ConfigFileParser::is_http_line_valid(int row)
     TOKEN       token_type;
 
     token_name = http_as_words[row][0];
+    if (sz(token_name) && token_name[0] == '#') // comment
+        return true ;
     if (http_tokens.find(token_name) == http_tokens.end())
         return (false) ;
     token_type = http_tokens[token_name];
-    if ((token_type == DIRECTORY || token_type == SHORT_INT || token_type == INT || token_type == ON_OFF ||\
+    if ((token_type == DIRECTORY || token_type == MULTIP || token_type == SHORT_INT || token_type == INT || token_type == ON_OFF ||\
     token_type == METHOD || token_type == STRING) && (sz(http_as_words[row]) != 2))
         return (false);
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(http_as_words[row]) < 2))
@@ -499,6 +502,8 @@ bool ConfigFileParser::is_http_line_valid(int row)
         return (tc.is_on_off(http_as_words[row][1]));
     else if (token_type == CGI)
         return (tc.is_cgi(http_as_words[row][1], http_as_words[row][2]));
+    else if (token_type == MULTIP)
+        return (tc.is_multiplexer(http_as_words[row][1]));
     return (true);
 }
 
@@ -520,6 +525,8 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     std::string token_name = _words[0];
     TOKEN       token_type;
 
+    if (sz(token_name) && token_name[0] == '#')
+        return true ;
     if (server_tokens.find(token_name) == server_tokens.end())
     {
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
@@ -591,6 +598,8 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     std::string token_name = block[0];
     TOKEN       token_type;
 
+    if (sz(token_name) && token_name[0] == '#')
+        return (true) ;
     if (location_tokens.find(token_name) == location_tokens.end())
     {
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
@@ -598,7 +607,7 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     }
     token_type = location_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
-    || token_type == DIRECTORY || token_type == CONNECTION) && (sz(block) != 2))
+    || token_type == DIRECTORY || token_type == ON_OFF || token_type == CONNECTION) && (sz(block) != 2))
     {
         std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);

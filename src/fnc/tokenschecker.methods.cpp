@@ -92,3 +92,8 @@ bool TokensChecker::is_code(std::string s)
     code = std::atoi(s.c_str());
     return (code > 0 && code < 515);
 }
+
+bool TokensChecker::is_multiplexer(std::string s)
+{
+    return (s == "poll");
+}

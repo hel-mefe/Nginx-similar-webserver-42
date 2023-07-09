@@ -25,206 +25,10 @@ void    HttpHandler::handle_http(t_client *client)
         }
         else
         {
-            std::cout << "WILL DISCONNECT DUE TO READ HEADER" << std::endl;
             if (time_passed > max_request_timeout && client->state == READING_HEADER)
                 client->state = SERVED;
         }
     }
-}
-
-void    HttpHandler::handle_path_error(t_client *client, int code) // only called if code is exist in map
-{
-    t_request *req = client->request;
-    t_response *res = client->response;
-    std::map<int, std::string>          code_to_page;
-    std::string                 error_page;
-    std::string                 current_dir;
-
-    if (res->dir_configs)
-        code_to_page = res->dir_configs->code_to_page;
-    else
-        code_to_page = res->configs->code_to_page;
-    error_page = (res->dir_configs) ? res->dir_configs->root : res->configs->root;
-    if (error_page[sz(error_page) - 1] != '/')
-        error_page += "/";
-    error_page += code_to_page[code];
-    if (!access(error_page.c_str(), R_OK))
-    {
-        client->state = SERVING_GET;
-        set_root_file_path(client);
-        current_dir = client->cwd;
-        if (current_dir[sz(current_dir) - 1] != '/')
-            res->filepath = current_dir + res->rootfilepath;
-    }
-    else
-        client->state = SERVED;
-    res->rootfilepath = get_cleanified_path(res->rootfilepath);
-    res->filepath = get_cleanified_path(res->filepath);
-}
-
-bool    HttpHandler::handle_501(t_client *client)
-{
-    t_request *req = client->request;
-    std::map<std::string, std::string>::iterator it = req->request_map.find("transfer-encoding");
-
-    if (it != req->request_map.end())
-    {
-        if (it->second == "chunked")
-            req->is_chunked = true;
-        else
-        {
-            fill_response(client, 501, true);
-            client->state = SERVED;
-            return true ;
-        }
-    }
-    return false ;
-}
-
-bool    HttpHandler::handle_400(t_client *client)
-{
-    t_request *req = client->request;
-    t_response *res = client->response;
-    std::map<std::string, std::string>  *request_map = &req->request_map;
-    std::map<int, std::string>          code_to_page;
-
-    if (res->dir_configs)
-        code_to_page = res->dir_configs->code_to_page;
-    else
-        code_to_page = res->configs->code_to_page;
-    if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
-    !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
-    {
-        fill_response(client, 400, true);
-        if (IN_MAP(code_to_page, 400)) // error code is exist page provided in config file
-            handle_path_error(client, 400);
-        else
-            client->state = SERVED;
-        return true ;
-    }
-    return false ;
-}
-
-bool HttpHandler::handle_414(t_client *client)
-{
-    t_request *req = client->request;
-    t_response *res = client->response;
-    std::map<std::string, std::string>  *request_map = &req->request_map;
-    std::map<int, std::string>          code_to_page;
-
-    if (res->dir_configs)
-        code_to_page = res->dir_configs->code_to_page;
-    else
-        code_to_page = res->configs->code_to_page;
-    if (sz(req->path) >= MAX_REQUEST_URI_SIZE)
-    {
-        fill_response(client, 414, true);
-        if (IN_MAP(code_to_page, 414)) // error code is exist page provided in config file
-            handle_path_error(client, 414) ;
-        else
-            client->state = SERVED;
-        return true ;
-    }
-    return false ;
-}
-
-bool    HttpHandler::handle_405(t_client *client)
-{
-    t_request *req;
-    t_response *res;
-    t_location_configs  *l_configs;
-    t_server_configs    *s_configs;
-    std::map<std::string, std::string>  *request_map;
-    std::map<int, std::string>          code_to_page;
-
-    req = client->request;
-    res = client->response;
-    if (res->dir_configs)
-        code_to_page = res->dir_configs->code_to_page;
-    else
-        code_to_page = res->configs->code_to_page;
-    request_map = &req->request_map;
-    l_configs = get_location_configs_from_path(client);
-    s_configs = client->server->server_configs;
-    std::vector<std::string>    allowed_methods = (l_configs) ? l_configs->allowed_methods : s_configs->allowed_methods;
-    /*** Method is not allowed ****/
-    if (std::find(allowed_methods.begin(), allowed_methods.end(), req->method) == allowed_methods.end())
-    {
-        fill_response(client, 405, true);
-        if (IN_MAP(code_to_page, 405)) // error code is exist page provided in config file
-            handle_path_error(client, 405) ;
-        else
-            client->state = SERVED;
-        return true ;
-    }
-    return (false);
-}
-
-bool HttpHandler::handle_413(t_client *client)
-{
-    t_request *req = client->request;
-    t_response *res = client->response;
-    t_server_configs *sconf = client->server->server_configs;
-    std::map<std::string, std::string>  *request_map;
-    std::map<int, std::string>          code_to_page;
-
-    request_map = &req->request_map;
-    if (res->dir_configs)
-        code_to_page = res->dir_configs->code_to_page;
-    else
-        code_to_page = res->configs->code_to_page;
-    if (IN_MAP((*request_map), "content-length"))
-    {
-        req->content_length = std::atoi(request_map->at("content-length").c_str());
-        if(sconf->max_body_size < req->content_length)
-        {
-            fill_response(client, 413, true);
-            if (IN_MAP(code_to_page, 413)) // error code is exist page provided in config file
-                handle_path_error(client, 413) ;
-            else
-                client->state = SERVED;
-            return true;
-        }
-    }
-    return false;
-}
-
-void    HttpHandler::fill_response(t_client *client, int code, bool write_it)
-{
-    t_request *req;
-    t_response *res;
-    std::map<std::string, std::string>  *request_map;
-    std::string connection;
-    CLIENT_STATE    new_state;
-
-    req = client->request;
-    res = client->response;
-    request_map = &req->request_map;
-    std::cout << RED_BOLD << code << " -> " << codes->at(code) << WHITE << std::endl;
-    res->http_version = HTTP_VERSION;
-    res->status_code = std::to_string(code);
-    res->status_line = codes->at(code);
-    connection = req->get_param("connection"); // used for keep-alive
-    if (sz(connection)) // type of connection
-        res->add("connection", "closed");
-    if (sz(res->redirect_to)) // redirection exist
-        res->add("location", res->redirect_to);
-    if (sz(res->filepath))
-    {
-        std::string ext = res->extension;
-        std::string ctype = IN_MAP((*mimes), ext) ? mimes->at(ext) : "text/plain";
-        res->add("content-type", ctype);
-        res->add("transfer-encoding", "chunked");
-        res->add("connection", "closed");
-        if (!res->is_cgi) // dealing with file
-            res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
-        else
-            std::cout << GREEN_BOLD << "***** DEALING WITH CGI ****" << std::endl ;
-    }
-    if (write_it)
-        res->write_response_in_socketfd(client->fd, false);
-    // new_state = (connection == "keep-alive") ? KEEP_ALIVE : SERVED;
-    // client->reset(new_state);
 }
 
 bool    HttpHandler::set_redirection_path(t_client *client)
@@ -273,14 +77,6 @@ bool    HttpHandler::set_redirection_path(t_client *client)
     return false ;
 }
 
-bool    HttpHandler::is_redirection(t_client *client)
-{
-    /*** IN CASE OF FILE ***/
-    // if (req->is_file)
-    //     return false ;
-    return (client->request->method == "GET" && set_redirection_path(client));
-}
-
 bool    HttpHandler::is_method_valid(std::string &method)
 {
     return (method == "POST" || method == "GET" || method == "DELETE");
@@ -303,13 +99,9 @@ t_location_configs  *HttpHandler::get_location_configs_from_path(t_client *clien
         {
             std::string rpath = path.substr(0, i + 1);
             if (IN_MAP((*dir_configs), rpath))
-            {
-                std::cout << GREEN_BOLD << "LOCATION WAS FOUND -> " << rpath << WHITE << std::endl;
                 return dir_configs->at(rpath);
-            }
         }
     }
-    std::cout << RED_BOLD << "LOCATION WAS NOT FOUND!" << WHITE << std::endl;
     return nullptr ;
 }
 
@@ -368,7 +160,6 @@ std::string HttpHandler::get_clean_file_path(std::string root, std::string path,
     std::string res = first_part + second_part;
     if ((!zfile && sz(res) && res[sz(res) - 1] == '/') || (!sz(res)))
         res += "/";
-    std::cout << "THE RESULT CLEAN FILE PATH ===> " << res << std::endl;
     return res ;
 }
 
@@ -389,25 +180,12 @@ void    HttpHandler::set_root_file_path(t_client *client)
     if (d_configs)
     {
         root = d_configs->root;
-        std::cout << "ROOT IN LOCATION => " << root << std::endl;
-        std::cout << "ROOT IN SERVER ==> " << s_configs->root << std::endl;
-        std::cout << "REQ PATH => " << path << std::endl;
         res->rootfilepath = s_configs->root + get_clean_file_path(root, req->path, res->directory_configs_path, req->is_file);
-        // if (req->is_file)
-        //     res->rootfilepath = get_root_file_path(root, req->path, res->directory_configs_path, true);
-        // else
-        //     res->rootfilepath = get_root_file_path(root, req->path, res->directory_configs_path, false);
-        std::cerr << "AFTER ROOT FILE PATH => " << res->rootfilepath << std::endl;
-        // std::cout << YELLOW_BOLD << "DIRECTORY CONFIGS NEW ROOT PATH -> " << res->rootfilepath << WHITE << std::endl;
-        // alert("DIRECTORY CONFIGS NEW ROOT PATH -> ", YELLOW_BOLD);
-        // alert(res->rootfilepath, GREEN_BOLD);
     }
     else
     {
         root = s_configs->root;
         res->rootfilepath = root + req->path;
-        // alert("SERVER CONFIGS NEW ROOT PATH -> ", YELLOW_BOLD);
-        // alert(res->rootfilepath, GREEN_BOLD);
     }
 }
 
@@ -420,7 +198,6 @@ void    HttpHandler::set_configurations(t_client *client)
         res->dir_configs = get_location_configs_from_path(client);
     if (!sz(res->directory_configs_path))
         res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
-    std::cout << YELLOW_BOLD << "WE ARE DEALING WITH THIS LOCATION ===> " << res->directory_configs_path << std::endl;
     res->configs = client->server->server_configs;
     res->is_cgi = (req->extension == ".php" || req->extension == ".pl");
     if (res->is_cgi)
@@ -428,102 +205,6 @@ void    HttpHandler::set_configurations(t_client *client)
     set_root_file_path(client); // needed for GET and DELETE
 }
 
-bool    HttpHandler::handle_locations(t_client *client)
-{
-    t_request                   *req;
-    t_response                  *res;
-    std::map<std::string, std::string>  *request_map;
-    std::string                 connection;
-    std::string                 current_directory;
-    std::string                 path;
-    std::string                 fullpath;
-    CLIENT_STATE                new_state;
-    std::vector<std::string>    files_404;
-    t_location_configs          *l_configs;
-    t_server_configs            *s_configs;
-
-    current_directory = client->cwd;
-    req = client->request;
-    res = client->response;
-    request_map = &req->request_map;
-    l_configs = get_location_configs_from_path(client);
-    s_configs = client->server->server_configs;
-    path = s_configs->root + req->path;
-    fullpath = current_directory + "/" + path;
-    std::cout << GREEN_BOLD << "[THE FULL PATH IN LOCATIONS] ==> " << fullpath << std::endl;
-    if (req->is_file && !is_path_valid(fullpath))
-    {
-        std::cout << "[handle_locations] -> THE PATH IS NOT VALID AND WORKING WITH 404" << std::endl;
-        files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;
-        if (l_configs && IN_MAP(l_configs->code_to_page, 404))
-            files_404.push_back(l_configs->code_to_page[404]);
-        else if (IN_MAP(s_configs->code_to_page, 404))
-            files_404.push_back(s_configs->code_to_page[404]);     
-        std::string rootpath = l_configs ? l_configs->root : s_configs->root;
-        if (set_file_path(client->cwd, rootpath, files_404))
-        {
-            client->state = SERVING_GET;
-            res->rootfilepath = rootpath;
-        }
-        else
-            client->state = SERVED;
-        res->filepath = current_directory + res->rootfilepath;
-        res->filename = req->path;
-        req->extension = get_extension(res->filepath);
-        res->extension = req->extension;
-        fill_response(client, 404, true);
-        return true ;
-    }
-    else if (is_redirection(client)) // also sets the redirecto_to
-    {
-        std::cout << "REDIREEEECTION ...." << std::endl;
-        fill_response(client, 301, true);
-        return true ;
-    }
-    return false ;
-}
-
-
-void    HttpHandler::handle_file_path(t_client *client)
-{
-    t_request                   *req;
-    t_response                  *res;
-    t_server_configs            *s_configs;
-    t_location_configs          *l_configs;
-    std::string                 rootfilepath;
-    std::vector<std::string>    files_404;   
-
-    req = client->request;
-    res = client->response;
-    s_configs = res->configs;
-    l_configs = res->dir_configs;
-    rootfilepath = client->cwd + res->rootfilepath;
-    if (!is_path_valid(rootfilepath))
-    {
-        std::cout << "[handle_file_path] -> handling file path 404" << std::endl;
-        files_404 = (l_configs) ? l_configs->pages_404 : s_configs->pages_404;
-        if (l_configs && IN_MAP(l_configs->code_to_page, 404))
-            files_404.push_back(l_configs->code_to_page[404]);
-        else if (IN_MAP(s_configs->code_to_page, 404))
-            files_404.push_back(s_configs->code_to_page[404]);     
-        std::string dirpath = get_longest_directory_prefix(client, rootfilepath, false);
-        std::string p = client->cwd;
-        p += (l_configs) ? dirpath : s_configs->root;
-        if (!set_file_path(client->cwd, p, files_404))
-        {
-            res->rootfilepath = "";
-            res->filepath = "";
-        }
-        else
-            res->filepath = p;
-        res->code = 404;
-    }
-    else
-    {
-        res->filepath = std::string(client->cwd) + res->rootfilepath;
-        res->code = 200;
-    }
-}
 
 bool    HttpHandler::set_directory_indexes(t_client *client) // takes directory and sets files 
 {
@@ -574,148 +255,6 @@ std::string HttpHandler::get_longest_directory_prefix(t_client *client, std::str
     return "";
 }
 
-void    HttpHandler::handle_directory_path(t_client *client)
-{
-    t_request                   *req;
-    t_response                  *res;
-    t_server_configs            *s_configs;
-    t_location_configs          *l_configs;
-    std::vector<std::string>    indexes;
-    std::vector<std::string>    files_404;
-    std::string                 rootfilepath;
-    std::string                 path;
-    std::string                 cwd;
-
-    req = client->request;
-    res = client->response;
-    s_configs = res->configs;
-    l_configs = res->dir_configs;
-    indexes = (l_configs ? l_configs->indexes : s_configs->indexes);
-    files_404 = (l_configs ? l_configs->pages_404 : s_configs->pages_404);
-    if (l_configs && IN_MAP(l_configs->code_to_page, 404))
-        files_404.push_back(l_configs->code_to_page[404]);
-    else
-        files_404.push_back(s_configs->code_to_page[404]);
-    rootfilepath = res->rootfilepath;
-    std::string rootpath = s_configs->root;
-    rootpath = (l_configs) ? rootpath + l_configs->root : rootpath;
-    std::cout << GREEN_BOLD << "[HANDLING DIRECTORY WORKING ...]" << std::endl;
-    if (!set_file_path(client->cwd, rootfilepath, indexes))
-    {
-        if (l_configs && l_configs->directory_listing)
-        {
-            res->code = 200;
-            res->is_directory_listing = true;
-            res->add("content-type", "text/html");
-            res->add("transfer-encoding", "chunked");
-            res->write_response_in_socketfd(res->fd, true);
-            std::cout << GREEN_BOLD << "DIRECTORY LISTING IS ON!" << WHITE << std::endl;
-        }
-        else
-        {
-            if (set_file_path(client->cwd, rootpath, files_404))
-            {
-                res->rootfilepath = rootpath;
-                res->filepath = client->cwd;
-                if (res->filepath[sz(res->filepath) - 1] != '/')
-                    res->filepath += "/";
-                res->filepath += res->rootfilepath[0] == '/' ? res->rootfilepath.substr(1) : res->rootfilepath;
-                std::cout << PURPLE_BOLD << res->rootfilepath  << WHITE << std::endl;
-            }
-            else
-            {
-                res->rootfilepath = "";
-                res->filepath = "";
-            }
-            res->code = 404;
-        }
-    }
-    else
-    {
-        res->rootfilepath = rootfilepath;
-        res->filepath = client->cwd + res->rootfilepath;
-        res->code = 200;
-    }
-}
-
-void    HttpHandler::cleanify_response(t_response *res)
-{
-    std::string filepath = res->filepath;
-    std::string rootfilepath = res->rootfilepath;
-    std::list<char> slist;
-    bool    flag = false;
-
-    for (int i = 0; i < sz(filepath); i++)
-    {
-        if (!flag || (flag && filepath[i] != '/'))
-            slist.push_back(filepath[i]);
-        flag = (filepath[i] == '/'); 
-    }
-    char    *s = new char[sz(slist) + 1];
-    int i = 0;
-    for (auto x: slist)
-        s[i++] = x;
-    s[i] = 0;
-    res->filepath = s;
-    delete[] s;
-    slist.clear();
-    flag = false ;
-    for (int i = 0; i < sz(rootfilepath); i++)
-    {
-        if (!flag || (flag && rootfilepath[i] != '/'))
-            slist.push_back(rootfilepath[i]);
-        flag = (rootfilepath[i] == '/'); 
-    }
-    s = new char[sz(slist) + 1];
-    i = 0;
-    for (auto x: slist)
-        s[i++] = x;
-    s[i] = 0;
-    res->rootfilepath = s;
-    slist.clear();
-    delete[] s;
-}
-
-void    HttpHandler::architect_get_response(t_client *client)
-{
-    t_request           *req = client->request;
-    t_response          *res = client->response;
-    t_server_configs    *s_configs;
-    t_location_configs  *l_configs;
-
-    s_configs = res->configs;
-    l_configs = res->dir_configs;
-    if (req->is_file) // file
-        handle_file_path(client);
-    else // directory
-        handle_directory_path(client);
-
-    if (!res->is_directory_listing && sz(res->filepath) && access(res->filepath.c_str(), R_OK)) // forbidden
-    {
-        std::cout << "FORBIDDEN => " << res->filepath << std::endl;
-        fill_response(client, 403, true);
-        client->state = SERVED ;
-    }
-    else if (!res->is_directory_listing) // Access allowed
-    {
-        std::cout << GREEN_BOLD << " -- WE ARE DEALING WITH THIS FILE PATH ==> " << res->filepath << std::endl;
-        res->extension = get_extension(res->filepath);
-        res->is_cgi = IN_MAP((s_configs->extension_cgi), res->extension);
-        if (res->is_cgi)
-            res->cgi_path = client->cwd + "/" + s_configs->extension_cgi[res->extension];
-        fill_response(client, res->code, true);
-        client->state = (sz(res->filepath) || res->is_directory_listing ? SERVING_GET : SERVED);
-    }
-    cleanify_response(res);
-    std::cout << "CLEANIFIED FILEPATH ==> " << res->filepath << std::endl;
-    std::cout << "CLEANIFIED ROOTFILEPATH ==> " << res->rootfilepath << std::endl;
-}
-
-void    HttpHandler::architect_delete_response(t_client *client)
-{
-    std::cout << RED_BOLD << "ARHICTECTURING DELETE RESPONSE ..." << WHITE << std::endl;
-    client->state = SERVING_DELETE;
-}
 
 void    HttpHandler::architect_post_response(t_client *client)
 {
@@ -731,13 +270,13 @@ void    HttpHandler::architect_post_response(t_client *client)
     res->filepath = client->cwd + res->rootfilepath;
     if (access(url.c_str(), F_OK))
     { 
-        fill_response(client, 404, true);
+        handlers->fill_response(client, 404, true);
         client->state = SERVED;
         return;
     }
     if (!res->dir_configs->upload)
     {
-        fill_response(client, 403, true);
+        handlers->fill_response(client, 403, true);
         client->state = SERVED;
         return;
     }

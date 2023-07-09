@@ -48,7 +48,6 @@ void    Get::write_chunk(SOCKET fd, unsigned char *buff, int len)
 void    Get::write_schunk(SOCKET fd, std::string &s, int len)
 {
     write_hex(fd, len);
-    std::cout << YELLOW_BOLD << s << std::endl;
     send(fd, "\r\n", 2, 0);
     if (len)
         send(fd, s.c_str(), len, 0);
@@ -68,7 +67,6 @@ void    Get::serve_cgi(t_client *client)
     int read_fd;
     int chunked_start;
 
-    std::cout << YELLOW_BOLD << "CGI IS BEING SERVED ..." << WHITE << std::endl;
     res = client->response;
     req = client->request;
     read_fd = res->cgi_pipe[0];
@@ -81,7 +79,6 @@ void    Get::serve_cgi(t_client *client)
         res->cgi_rn_found = true;
         chunked_start = get_rn_endpos(buff, MAX_BUFFER_SIZE);
     }
-    std::cout << WHITE_BOLD << "BUFFER => " << buff << WHITE << std::endl;
     int i = 0;
     for (; i < chunked_start; i++)
         send(client->fd, &buff[i], 1, 0);
@@ -95,14 +92,6 @@ void    Get::serve_cgi(t_client *client)
     }
 }
 
-void    print_fd(int fd)
-{
-    unsigned char buff[MAX_BUFFER_SIZE];
-
-    read(fd, buff, MAX_BUFFER_SIZE);
-    exit(0);
-}
-
 char    **Get::convert_env_map(std::map<std::string, std::string> &m)
 {
     int env_size = sz(m);
@@ -114,9 +103,9 @@ char    **Get::convert_env_map(std::map<std::string, std::string> &m)
     if (!env)
         return (nullptr) ;
     i = 0;
-    for (auto x: m)
+    for (std::map<std::string, std::string>::iterator it = m.begin(); it != m.end(); it++)
     {
-        std::string s = x.first + "=" + x.second;
+        std::string s = it->first + "=" + it->second;
         env[i++] = strdup(s.c_str());
         std::cout << "ENV => " << i - 1 << " - " << env[i - 1] << std::endl;
     }
@@ -164,15 +153,12 @@ void    Get::handle_cgi(t_client *client)
         close(res->cgi_pipe[0]);
         close(res->cgi_pipe[1]);
         if (execve(cgi_path, args, env))
-            std::cout << "FAILED! - " << strerror(errno) << std::endl;
-        std::cout << "EXECVE NOT WORKING" << std::endl;
+            std::cout << "EXECVE FAILED! - " << strerror(errno) << std::endl;
     }
-    std::cout << "WILL FREE ARGUMENTS NOW ..." << std::endl;
     free(args[0]);
     free(args[1]);
     free(args);
     close(res->cgi_pipe[1]);
-    std::cout << "WAITING FOR PROCESS ..." << std::endl;
     waitpid(-1, &status, WNOHANG);
     serve_cgi(client);
 }
@@ -200,13 +186,11 @@ void    Get::handle_static_file(t_client *client)
     t_request               *req;
     t_response              *res;
 
-    std::cout << "handling static file is running ..." << std::endl;
     req = client->request;
     res = client->response;
     if (res->is_first_time)
     {
         long filesize = get_file_size(res->filepath.c_str());
-        std::cout << "FILE SIZE => " << filesize << std::endl;
         std::string fs = "content-length: " + std::to_string(filesize) + "\r\n\r\n";
         res->is_first_time = false;
         send(client->fd, fs.c_str(), sz(fs), 0);
@@ -230,14 +214,6 @@ void    Get::handle_static_file(t_client *client)
         client->state = SERVED;
         client->request_time = time(NULL);
     }
-    std::cout << "end handling static file is running ..." << std::endl;
-    // if (bts > 0)
-    //     write_chunk(sockfd, buff, bts);
-    // if (bts < MAX_BUFFER_SIZE)
-    //     write_chunk(sockfd, buff, 0);
-    // client->state = (bts == MAX_BUFFER_SIZE ? client->state : SERVED);
-    // if (client->state == SERVED)
-    //     std::cout << PURPLE_BOLD << "*** FROM GET CLIENT SERVED ***" << WHITE << std::endl ;
 }
 
 
@@ -251,75 +227,33 @@ void    Get::list_directories(t_client *client)
     t_request               *req;
     t_response              *res;
     DIR                     *dirstream;
-    char                    buff_path[1024];
     std::string             fullpath;
     struct dirent           *d;
 
     req = client->request;
     res = client->response;
-    bzero(buff_path, 1024);
-    getcwd(buff_path, 1024);
-    fullpath = buff_path;
+    fullpath = client->cwd;
     fullpath += res->rootfilepath;
     dirstream = opendir(fullpath.c_str());
     if (!dirstream)
     {
-        std::cout << "DIR STREAM IS NULL ==> " << fullpath << std::endl;
+        std::cout << RED_BOLD << "DIR STREAM IS NULL ==> " << fullpath << std::endl;
         client->state = SERVED;
         return ;
     }
-    std::cout << "****** DIRECTORY LISTING IS STARTING NOW ... *********" << std::endl;
     while (1)
     {
         d = readdir(dirstream);
         if (!d)
             break ;
         std::string dirname = d->d_name;
-        std::string abspath = buff_path;
-        abspath = abspath + "/" + dirname;
+        std::string abspath = client->cwd;
+        abspath = abspath + "/" + res->rootfilepath + "/" + dirname;
         res->dir_link.push_back(std::make_pair(dirname, abspath));
         std::cout << dirname << std::endl;
         std::cout << abspath << std::endl;
     }
     closedir(dirstream);
-    std::cout << "****** DIRECTORY LISTING HAS BEEN ENDED ... *********" << std::endl;
-}
-
-
-void    Get::serve_directory_listing(t_client *client)
-{
-    t_request *req;
-    t_response *res;
-    std::list<std::string>   keep;
-    char        dir[1025];
-
-    bzero(dir, 1025);
-    req = client->request;
-    res = client->response;
-    list_directories(client);
-    std::string ultag = "<ul>";
-    std::string uletag = "</ul>";
-    std::cout << RED_BOLD << " ****** PRINTING THE DIRECTORY LISTING RESPONSE *******" << std::endl;
-    write_schunk(client->fd, ultag, sz(ultag));
-    for (auto dirlink: res->dir_link)
-    {
-        std::cout << RED_BOLD << "GOT INTO THE WHILE" << std::endl;
-        std::string name = dirlink.first;
-        std::string link = dirlink.second;
-        std::string tag = "<li><a href=\"";
-        tag += req->path + name + "\" /> " + name + "</li>" ;
-        keep.push_back(tag);
-        std::cout << "THE FULL TAG IS => " << tag << std::endl;
-    }
-    std::cout << "ENDED THE WHILE" << std::endl;
-    std::string endline = "";
-    for (auto k: keep)
-        write_schunk(client->fd, k, sz(k));
-    write_schunk(client->fd, uletag, sz(uletag));
-    write_schunk(client->fd, endline, 0);
-    client->state = SERVED;
-    std::cout << RED_BOLD << " ****** END PRINTING THE DIRECTORY LISTING RESPONSE *******" << std::endl;
-
 }
 
 /***
@@ -333,15 +267,22 @@ void    Get::handle_directory_listing(t_client *client)
     t_request   *req;
     std::string html;
     std::string content_length;
+    DIR         *D;
 
     res = client->response;
     req = client->request;
     list_directories(client);
     html = "<html><head><title>Index of</title></head><body><br /><h2>Index of</h2><hr /><ul>";
-    for (auto d: res->dir_link)
+    for (std::list<std::pair<std::string, std::string>>::iterator it = res->dir_link.begin(); it != res->dir_link.end(); it++)
     {
-        std::string dir = d.first;
-        std::string link = d.second;
+        std::string dir = it->first;
+        std::string link = it->second;
+        D = opendir(link.c_str());
+        if (D)
+        {
+            dir += "/";
+            closedir(D);
+        }
         std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
         html += tag;
     }
@@ -349,9 +290,8 @@ void    Get::handle_directory_listing(t_client *client)
     content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
     send(client->fd, content_length.c_str(), sz(content_length), 0);
     send(client->fd, html.c_str(), sz(html), 0);
-    client->state = WAITING;
+    client->state = SERVED;
     client->request_time = time(NULL);
-    std::cout << "-- end of directory listing -- " << std::endl;
 }
 
 
@@ -374,5 +314,4 @@ void    Get::serve_client(t_client *client)
         else
             handle_static_file(client);
     }
-    std::cout << "[GET] is finished ..." << std::endl;
 }

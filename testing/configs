@@ -1,0 +1,33 @@
+http
+{
+  allowed_methods GET POST DELETE
+  max_request_timeout 2
+  multiplexer poll
+
+  server
+  {
+    port 8080
+    server_name server
+    
+    error_page 404 error_pages/404.html
+    error_page 403 error_pages/403.html
+
+    index index.html
+
+    # comment 1
+
+    location /listing
+    {
+      directory_listing on
+    }
+
+    # comment 2
+
+    location /testing/indexes
+    {
+      index index1.html index2.html index3.html
+    }
+    #comment 3
+  }
+
+}

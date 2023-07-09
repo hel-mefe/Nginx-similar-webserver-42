@@ -78,7 +78,8 @@ enum TOKEN
     CONNECTION,
     CGI,
     LOCATION,
-    ERROR_PAGE
+    ERROR_PAGE,
+    MULTIP
 } ;
 
 enum MULTIPLEXER
