@@ -151,7 +151,6 @@ void parse_cgi_output(t_client* client)
             break;
         send(client->fd, buff, rbytes, 0);
     }
-    send(client->fd, "\r\n", 2, 0);
     client->state = SERVED;
     close(cgi_out);
 }

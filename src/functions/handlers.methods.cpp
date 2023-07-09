@@ -32,7 +32,12 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
     }
     if (write_it)
+    {
+        if (client->request->method == "GET")
         res->write_response_in_socketfd(client->fd, !sz(res->filepath));
+        else
+        res->write_response_in_socketfd(client->fd, true);
+    }
 }
 
 /** this function is used to change the path from its state to another state depending on the root provided
@@ -478,12 +483,16 @@ bool    Handlers::handle_200d(t_client *client)
 */
 bool Handlers::handle_200f(t_client *client)
 {
-    t_response          *res = client->response;
+    t_response *res = client->response;
+    t_request  *req = client->request;
 
     if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
+        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
+        if (res->is_cgi)
+        res->cgi_path = res->configs->extension_cgi[req->extension];
         if (!res->is_cgi)
             fill_response(client, 200, true);
         client->state = SERVING_GET;

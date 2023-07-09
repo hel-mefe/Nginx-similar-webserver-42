@@ -57,6 +57,9 @@ void Post::serve_client(t_client *client)
         client->request_time = time(NULL);
         res->cgi_running = false;
         req->body_size = 0;
+        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
+        if (res->is_cgi)
+            res->cgi_path = res->configs->extension_cgi[req->extension];
         create_file(client);
         if (req->file < 0)
         {
@@ -66,9 +69,6 @@ void Post::serve_client(t_client *client)
             return;
         }
         req->first_time = false;
-        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
-        if (res->is_cgi)
-            res->cgi_path = res->configs->extension_cgi[req->extension];
     }
     else if (time(NULL) - client->request_time > 30)
     {
@@ -94,19 +94,21 @@ void Post::serve_client(t_client *client)
         else
             parse_chunked_body(client);
     }
-    int status;
-    int rt = waitpid(-1, &status, WNOHANG);
-    if (res->cgi_running && rt > 0)
+    if (res->cgi_running)
     {
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
-        {
-            client->state = SERVED;
-            std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
-            fill_response(client, 501, "Internal Server Error", true);
-            return;
-        }
+        int status;
+        int rt = waitpid(-1, &status, WNOHANG);
         if (rt == res->cgi_pid)
+        {
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
+            {
+                client->state = SERVED;
+                std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
+                fill_response(client, 501, "Internal Server Error", true);
+                return;
+            }
             parse_cgi_output(client);
+        }
     }
 }
 

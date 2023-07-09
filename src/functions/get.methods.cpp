@@ -116,22 +116,19 @@ void    Get::handle_directory_listing(t_client *client)
 */
 void    Get::serve_client(t_client *client)
 {
-    t_response  *res = client->response;
-    t_request  *req = client->request;
+    t_request* req = client->request;
+    t_response* res = client->response;
 
-    if (client->request->first_time)
+    if (req->first_time)
     {
         client->request_time = time(NULL);
-        client->request->first_time = false;
-        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
-        if (res->is_cgi)
-        res->cgi_path = res->configs->extension_cgi[req->extension];
+        req->first_time = false;
     }
     else if (time(NULL) - client->request_time > 30)
     {
         fill_response(client, 408, "Request Timeout", true);
-        if (client->response->cgi_running)
-            kill(client->response->cgi_pid, SIGKILL);
+        if (res->cgi_running)
+            kill(res->cgi_pid, SIGKILL);
         client->state = SERVED;
         return;
     }
@@ -144,21 +141,23 @@ void    Get::serve_client(t_client *client)
             if (!res->cgi_running)
             {
                 fill_cgi_env(client);
-                serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
+                serve_cgi(client, convert_cgi_env(client), res->cgi_env.size());
             }
-            int status;
-            int rt = waitpid(-1, &status, WNOHANG);
-            if (client->response->cgi_running && rt > 0)
+            if (res->cgi_running)
             {
-                if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
+                int status;
+                int rt = waitpid(-1, &status, WNOHANG);
+                if (rt == res->cgi_pid)
                 {
-                    client->state = SERVED;
-                    std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
-                    fill_response(client, 501, "Internal Server Error", true);
-                    return;
-                }
-                if (rt == client->response->cgi_pid)
+                    if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
+                    {
+                        client->state = SERVED;
+                        std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
+                        fill_response(client, 501, "Internal Server Error", true);
+                        return;
+                    }
                     parse_cgi_output(client);
+                }
             }
         }
         else

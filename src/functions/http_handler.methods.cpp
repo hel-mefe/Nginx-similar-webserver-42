@@ -159,7 +159,6 @@ void    HttpHandler::set_response_configs(t_client *client)
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
     res->configs = client->server->server_configs;
     res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
-    res->filepath = client->cwd + "/" + res->rootfilepath;
 }
 
 void    HttpHandler::architect_response(t_client *client)
@@ -182,6 +181,7 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
         {
             std::string header = req->request_map.at("Content-Type");
+            handlers->change_path(client);
             if (!res->dir_configs->upload)
             {
                 std::cerr << RED_BOLD << "error: upload is not allowed!" << WHITE << std::endl;
@@ -194,11 +194,11 @@ void    HttpHandler::architect_response(t_client *client)
             {
                 if (it->second == header)
                 {
-                    req->extension = it->first;
+                    res->extension = it->first;
                     return;
                 }
             }
-            req->extension = ".txt";
+            res->extension = ".txt";
         }
     }
 }
