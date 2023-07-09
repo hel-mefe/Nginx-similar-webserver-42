@@ -1,14 +1,16 @@
 http
 {
     allowed_methods GET DELETE POST
-    max_body_size 0
-
     server
     {
         server_name nice_server
-        port 8080
+        fastCGI .php /goinfre/ymourchi/test/cgi-bin/php-cgi
+        fastCGI .pl /usr/bin/perl
+        fastCGI .py /usr/bin/python
+        max_body_size 200000000
+        port 9080
 		root /www
-        error_page 404 404.html
+        error_page 404 /error_pages/404.html
         location /error_pages
         {
             directory_listing on
@@ -16,6 +18,17 @@ http
         
         location /testing
         {
+            allowed_methods GET POST
+            directory_listing on
+            index index.oho index.php index.html
+            root /testing/
+            upload on
+        }
+        location /
+        {
+            root /www
+            upload on
+            allowed_methods GET POST
             directory_listing on
             index index.oho index.php index.html
         }

@@ -194,20 +194,6 @@ void    Webserver::init_codes()
 
 void    Webserver::run() // sockets of all servers will run here
 {
-    // /*** PRINTING THE DATA ***/
-    // std::cout << "RUNNING ..." << std::endl;
-    // // servers->at(0)->print_http();
-    // for (int i = 0; i < sz((*servers)); i++)
-    // {
-    //     std::cout << "\n" << PURPLE_BOLD << "SERVER NUMBER " << i + 1 << "\n" << std::endl;
-    //     servers->at(i)->http_configs = http_configs;
-    //     servers->at(i)->print_data();
-    //     // servers->at(i)->print_data();
-    // }
-    // std::cout << RED_BOLD << "PRINTING CGIS " << WHITE_BOLD << std::endl;
-    // for (auto x: servers->at(0)->server_configs->extension_cgi)
-    //     std::cout << x.first << " " << x.second << std::endl;
-    // /*** END PRINTING THE DATA ***/
     init_mimes();
     init_codes();
     multiplexer->set_configs(http_configs);

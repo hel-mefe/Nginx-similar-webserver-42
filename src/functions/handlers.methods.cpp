@@ -17,6 +17,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
+    std::cout << CYAN_BOLD << code << " : " << res->status_line << WHITE << std::endl;
     res->add("connection", "closed");
     if (sz(res->redirect_to)) // redirection exists
         res->add("location", res->redirect_to);
@@ -135,8 +136,8 @@ bool    Handlers::handle_400(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
-    !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
+    if ((req->method == "POST" && (!IN_MAP((*request_map), "Content-Type") || (!IN_MAP((*request_map), "Transfer-Encoding") && \
+    !IN_MAP((*request_map), "Content-Length")))) || !is_request_uri_valid(req->path))
     {
         error_page = code_to_page[400];
         path = res->root;
@@ -211,7 +212,7 @@ bool    Handlers::handle_501(t_client *client)
 {
     t_request *req = client->request;
     t_response *res = client->response;
-    std::map<std::string, std::string>::iterator it = req->request_map.find("transfer-encoding");
+    std::map<std::string, std::string>::iterator it = req->request_map.find("Transfer-Encoding");
     std::map<int, std::string> code_to_page;
     std::string error_page = "";
     std::string path = "";
@@ -270,9 +271,9 @@ bool Handlers::handle_413(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    if (IN_MAP((*request_map), "content-length"))
+    if (IN_MAP((*request_map), "Content-Length"))
     {
-        req->content_length = std::atoi(request_map->at("content-length").c_str());
+        req->content_length = std::atoi(request_map->at("Content-Length").c_str());
         if(sconf->max_body_size < req->content_length)
         {
             error_page = code_to_page[413];
@@ -326,30 +327,26 @@ bool    Handlers::handle_405(t_client *client)
     /*** Method is not allowed ****/
     if (std::find(allowed_methods.begin(), allowed_methods.end(), req->method) == allowed_methods.end())
     {
-    if (IN_MAP((*request_map), "content-length"))
-    {
-        req->content_length = std::atoi(request_map->at("content-length").c_str());
-        if(s_configs->max_body_size < req->content_length)
+        error_page = code_to_page[405];
+        path = res->root;
+        if (IN_MAP(code_to_page, 405) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
         {
-            error_page = code_to_page[405];
-            path = res->root;
-            if (IN_MAP(code_to_page, 405) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
-            {
-                res->filepath = client->cwd + "/" + path + "/" + error_page;
-                res->filepath = get_cleanified_path(res->filepath);
-                fill_response(client, 405, true);
+            res->filepath = client->cwd + "/" + path + "/" + error_page;
+            res->filepath = get_cleanified_path(res->filepath);
+            fill_response(client, 405, true);
+            if (req->method == "GET")
                 client->state = SERVING_GET;
-            }
             else
-            {
-                res->filepath = "";
-                res->rootfilepath = "";
-                fill_response(client, 405, true);
                 client->state = SERVED;
-            }
-            return true ;
         }
-    }
+        else
+        {
+            res->filepath = "";
+            res->rootfilepath = "";
+            fill_response(client, 405, true);
+            client->state = SERVED;
+        }
+        return true ;
     }
     return (false);
 }
@@ -481,14 +478,14 @@ bool    Handlers::handle_200d(t_client *client)
 */
 bool Handlers::handle_200f(t_client *client)
 {
-    t_response          *res;
+    t_response          *res = client->response;
 
-    res = client->response;
     if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
-        fill_response(client, 200, true);
+        if (!res->is_cgi)
+            fill_response(client, 200, true);
         client->state = SERVING_GET;
     }
     else if (!access(res->filepath.c_str(), F_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 403 forbidden

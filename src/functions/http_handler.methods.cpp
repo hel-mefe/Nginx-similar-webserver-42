@@ -96,103 +96,6 @@ t_location_configs  *HttpHandler::get_location_configs_from_path(t_client *clien
     return nullptr ;
 }
 
-std::string HttpHandler::get_root_file_path(std::string &root, std::string &path, std::string &dirpath, bool sfile)
-{
-    int i = 0 ;
-    std::string suffix;
-    std::string res;
-
-    for (; i < sz(path) && i < sz(dirpath) && path[i] == dirpath[i]; i++)
-        i++ ;
-    if (i < sz(path))
-    {
-        if (path[i] == '/')
-            i--;
-        while (i >= 0 && path[i] != '/')
-            i--;
-        if (i < sz(path))
-            suffix = path.substr(i, sz(path) - i);
-        if (suffix[sz(suffix) - 1] != '/')
-        {
-            if (!sfile && ((sz(suffix) && suffix[sz(suffix) - 1] != '/') || !sz(suffix)))
-                suffix = suffix + "/";
-        }
-        if (suffix[0] != '/')
-            suffix = "/" + suffix;
-        res = root + suffix;
-    }
-    else
-    {
-        if (sfile)
-            res = "/" + root;
-        else
-            res = "/" + root + "/";
-    }
-    return res ;
-}
-
-std::string HttpHandler::get_clean_file_path(std::string root, std::string path, std::string dirpath, bool zfile)
-{
-    // root is the root /www for ex
-    // path is the path in request /image.jpeg for example
-    // dirpath is the directory path
-    /** the resString = [from_start, pos_of_dirpath[ + rootstring ***/
-    size_t pos = path.find_first_of(dirpath);
-    std::string first_part = path.substr(0, pos);
-    if (sz(root))
-        first_part += root;
-    else
-        first_part += dirpath;
-    std::string second_part = path.substr(pos + sz(dirpath));
-    std::string res = first_part + second_part;
-    if ((!zfile && sz(res) && res[sz(res) - 1] == '/') || (!sz(res)))
-        res += "/";
-    return res ;
-}
-
-void    HttpHandler::set_root_file_path(t_client *client)
-{
-    t_location_configs *d_configs;
-    t_server_configs   *s_configs;
-    t_request          *req;
-    t_response         *res;
-    std::string        path;
-    std::string        root;
-
-    req = client->request;
-    res = client->response;
-    d_configs = client->response->dir_configs;
-    s_configs = client->server->server_configs;
-    path = req->path;
-    if (d_configs)
-    {
-        root = d_configs->root;
-        res->rootfilepath = s_configs->root + get_clean_file_path(root, req->path, res->directory_configs_path, req->is_file);
-    }
-    else
-    {
-        root = s_configs->root;
-        res->rootfilepath = root + req->path;
-    }
-}
-
-void    HttpHandler::set_configurations(t_client *client)
-{
-    t_request *req = client->request;
-    t_response *res = client->response;
-
-    if (!res->dir_configs)
-        res->dir_configs = get_location_configs_from_path(client);
-    if (!sz(res->directory_configs_path))
-        res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
-    res->configs = client->server->server_configs;
-    res->is_cgi = (req->extension == ".php" || req->extension == ".pl");
-    if (res->is_cgi)
-        res->cgi_path = res->configs->extension_cgi[res->extension];
-    set_root_file_path(client); // needed for GET and DELETE
-}
-
-
 bool    HttpHandler::set_directory_indexes(t_client *client) // takes directory and sets files 
 {
     t_request                   *req;
@@ -241,50 +144,10 @@ std::string HttpHandler::get_longest_directory_prefix(t_client *client, std::str
     }
     return "";
 }
-
-
-void    HttpHandler::architect_post_response(t_client *client)
-{
-    t_request    *req = client->request;
-    t_response   *res = client->response;
-    std::map<std::string, std::string>::iterator header = req->request_map.find("content-type");
-    std::string url;
-
-    url = client->cwd;
-    url += res->rootfilepath;
-    if (res->is_cgi)
-        res->cgi_path = client->cwd + "/" + res->configs->extension_cgi[req->extension];
-    res->filepath = client->cwd + res->rootfilepath;
-    if (access(url.c_str(), F_OK))
-    { 
-        handlers->fill_response(client, 404, true);
-        client->state = SERVED;
-        return;
-    }
-    if (!res->dir_configs->upload)
-    {
-        handlers->fill_response(client, 403, true);
-        client->state = SERVED;
-        return;
-    }
-    client->state = SERVING_POST;
-    for (std::map<std::string, std::string>::iterator it = mimes->begin(); it != mimes->end(); it++)
-    {
-        if (it->second == header->second)
-        {
-            req->extension = it->first;
-            return;
-        }
-    }
-    req->extension = ".txt";
-}
-
 /**
  * - responsible for setting configs and dir_configs
  * - responsible for setting directory_configs_path
 */
-
-
 void    HttpHandler::set_response_configs(t_client *client)
 {
     t_response  *res;
@@ -295,21 +158,21 @@ void    HttpHandler::set_response_configs(t_client *client)
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
     res->configs = client->server->server_configs;
-    res->root = res->dir_configs ? res->dir_configs->root : res->configs->root; 
+    res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
+    res->filepath = client->cwd + "/" + res->rootfilepath;
 }
 
 void    HttpHandler::architect_response(t_client *client)
 {
-    t_request *req;
-    std::string connection;
+    t_request *req = client->request;
+    t_response *res = client->response;
 
-    req = client->request;
-    req->is_file = (req->path[sz(req->path) - 1] != '/') ;
+    //req->print_data();
+    req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
     if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         return ;
-        // client->response->print_data();
     else
     {
         if (req->method == "GET")
@@ -317,6 +180,25 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "DELETE")
             client->state = SERVING_DELETE;
         else if (req->method == "POST")
-            architect_post_response(client);
+        {
+            std::string header = req->request_map.at("Content-Type");
+            if (!res->dir_configs->upload)
+            {
+                std::cerr << RED_BOLD << "error: upload is not allowed!" << WHITE << std::endl;
+                handlers->fill_response(client, 403, true);
+                client->state = SERVED;
+                return;
+            }
+            client->state = SERVING_POST;
+            for (std::map<std::string, std::string>::iterator it = mimes->begin(); it != mimes->end(); it++)
+            {
+                if (it->second == header)
+                {
+                    req->extension = it->first;
+                    return;
+                }
+            }
+            req->extension = ".txt";
+        }
     }
 }

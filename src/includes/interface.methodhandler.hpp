@@ -12,4 +12,12 @@ class MethodHandler
         virtual ~MethodHandler(){};
 } ;
 
+std::string intToString(int num);
+char**      convert_cgi_env(t_client* client);
+void        memory_freeder(char **env, char** args, int env_size);
+void        fill_response(t_client *client, int code, std::string status_line, bool write_it);
+void        fill_cgi_env(t_client* client);
+void        serve_cgi(t_client* client, char** env, int args_size);
+void        parse_cgi_output(t_client* client);
+
 #endif

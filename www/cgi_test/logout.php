@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_COOKIE['name']) && isset($_C
     setcookie('name', '', time() - 3600);
     setcookie('email', '', time() - 3600);
     setcookie('avatar', '', time() - 3600);
-    header("Location: cookies.php");
+    header("Location: cookie.php");
     exit;
 }
 ?>

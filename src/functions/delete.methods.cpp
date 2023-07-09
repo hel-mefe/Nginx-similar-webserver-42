@@ -3,10 +3,10 @@
 # include <sys/types.h>
 # include <dirent.h>
 
-Delete::Delete(void) {del_files_num = 0;}
+Delete::Delete(void) {}
 Delete::~Delete(void) {}
 
-bool Delete::rmfiles(const char* dirname)
+bool Delete::rmfiles(const char* dirname, int* del_files)
 {
     char stat = true;
     DIR* dirp = opendir(dirname);
@@ -21,7 +21,7 @@ bool Delete::rmfiles(const char* dirname)
             if (entname != "." && entname != "..")
             {
                 path.append("/");
-                if(!rmfiles(path.c_str()))
+                if(!rmfiles(path.c_str(), del_files))
                     stat = false;
             }
         }
@@ -30,7 +30,7 @@ bool Delete::rmfiles(const char* dirname)
             if(remove(path.c_str()))
                 stat = false;
             else
-                del_files_num++;
+                (*del_files)++;
         }
         dp = readdir(dirp);
     }
@@ -38,24 +38,6 @@ bool Delete::rmfiles(const char* dirname)
     if (stat)
         remove(dirname);
     return stat;
-}
-
-void    Delete::fill_response(t_client *client, int code, std::string status_line, bool write_it)
-{
-    t_request *req;
-    t_response *res;
-    std::string connection;
-
-    req = client->request;
-    res = client->response;
-    res->http_version = HTTP_VERSION;
-    res->status_code = std::to_string(code);
-    res->status_line = status_line ;
-    connection = req->get_param("connection"); // used for keep-alive
-    if (sz(connection)) // type of connection
-        res->add("connection", "closed");
-    if (write_it)
-        res->write_response_in_socketfd(client->fd, true);
 }
 
 void    Delete::handle_delete_file(t_client *client)
@@ -81,16 +63,16 @@ void    Delete::handle_delete_folder(t_client *client)
 
     if (access(path.c_str(), F_OK))
         fill_response(client, 404, "Not Found", true);
-    else if (rmfiles(path.c_str()))
+    else if (rmfiles(path.c_str(), &res->del_files))
         fill_response(client, 204, "No Content", true);
     else
     {
-        if (!del_files_num)
+        if (!res->del_files)
             fill_response(client, 403, "Forbidden", true);
         else
             fill_response(client, 409, "Conflict", true);
     }
-    del_files_num = 0;
+    res->del_files = 0;
 }
 
 

@@ -654,10 +654,8 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 {
     std::string extension = line[1];
     std::string cgi_path = line[2];
-    std::string fullpath = getwd(NULL);
 
-    fullpath += cgi_path;
-    if (access(fullpath.c_str(), X_OK))
+    if (access(cgi_path.c_str(), X_OK))
     {
         std::cerr << "[Webserv42]: Internal server token error " << std::endl;
         throw ParsingExceptionCgi();

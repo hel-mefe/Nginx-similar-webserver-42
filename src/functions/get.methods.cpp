@@ -2,163 +2,7 @@
 # include <dirent.h>
 # include <unistd.h>
 # include <sys/stat.h>
-
-/**
- * sends a hex in the provided socket fd
- * mainly used in chunked transfer-encoding
-*/
-void    Get::write_hex(SOCKET fd, int n)
-{
-    std::string s_hex = "0123456789abcdef";
-
-    if (n < 16)
-        send(fd, &s_hex[n], 1, 0);
-    else
-    {
-        write_hex(fd, n / 16); // get first char
-        write_hex(fd, n % 16); // get others recursively
-    }
-}
-
-/**
- * sends a full chunk of characters to the provided socket fd
- * hex\r\n msg\r\n
- * note that msg can be of length 0 which means nothing will be sent
- * this work by unsigned char* buff which is perfect for images and videos 
-*/
-void    Get::write_chunk(SOCKET fd, unsigned char *buff, int len)
-{
-    write_hex(fd, len);
-    send(fd, "\r\n", 2, 0);
-    if (len)
-        send(fd, buff, len, 0);
-    send(fd, "\r\n", 2, 0);
-}
-
-/**
- * sends a full chunk of characters to the provided socket fd
- * hex\r\n msg\r\n
- * note that msg can be of length 0 which means nothing will be sent
- * the difference between it and the above function this deals with a string
- * the above one deals with an unsigned char *buff
-*/
-void    Get::write_schunk(SOCKET fd, std::string &s, int len)
-{
-    write_hex(fd, len);
-    send(fd, "\r\n", 2, 0);
-    if (len)
-        send(fd, s.c_str(), len, 0);
-    send(fd, "\r\n", 2, 0);  
-}
-
-/***
- * 
- * 
-*/
-void    Get::serve_cgi(t_client *client)
-{
-    t_response *res;
-    unsigned char buff[MAX_BUFFER_SIZE];
-    int bts;
-    int read_fd;
-    int chunked_start;
-
-    res = client->response;
-    read_fd = res->cgi_pipe[0];
-    bzero(buff, MAX_BUFFER_SIZE);
-    chunked_start = 0;
-    bts = recv(read_fd, buff, MAX_BUFFER_SIZE, 0);
-    bts = bts < 0 ? 0 : bts;
-    if (!res->cgi_rn_found)
-    {
-        res->cgi_rn_found = true;
-        chunked_start = get_rn_endpos(buff, MAX_BUFFER_SIZE);
-    }
-    int i = 0;
-    for (; i < chunked_start; i++)
-        send(client->fd, &buff[i], 1, 0);
-    write_chunk(client->fd, buff + i, bts - i);
-    if (!bts)
-    {
-        close(res->cgi_pipe[0]);
-        res->cgi_path[0] = UNDEFINED;
-        res->cgi_path[1] = UNDEFINED;
-        client->state = SERVED;
-    }
-}
-
-char    **Get::convert_env_map(std::map<std::string, std::string> &m)
-{
-    int env_size = sz(m);
-    int i;
-    char    **env;
-
-    env = (char **)malloc((env_size + 1) * sizeof(char *));
-    env[env_size] = nullptr;
-    if (!env)
-        return (nullptr) ;
-    i = 0;
-    for (std::map<std::string, std::string>::iterator it = m.begin(); it != m.end(); it++)
-    {
-        std::string s = it->first + "=" + it->second;
-        env[i++] = strdup(s.c_str());
-    }
-    return env;
-}
-
-void    Get::handle_cgi(t_client *client)
-{
-    t_request   *req;
-    t_response  *res;
-    char        **args;
-    char        *cgi_path;
-    char        **env;
-    int         status;
-    std::map<std::string, std::string>  cgi_env;
-
-    res = client->response;
-    req = client->request;
-    cgi_env["SCRIPT_FILENAME"] = res->filepath;
-    cgi_env["REQUEST_METHOD"] = "GET";
-    cgi_env["REDIRECT_STATUS"] = "200";
-    cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-    cgi_env["HTTP_PROTOCOL"] = "HTTP/1.1";
-    cgi_env["HTTP_COOKIE"] = req->cookies;
-    env = convert_env_map(cgi_env);
-    args = (char **) malloc (3 * sizeof(char *));
-    args[0] = strdup(res->cgi_path.c_str());
-    args[1] = strdup(res->filepath.c_str()) ;
-    args[2] = NULL;
-    cgi_path = args[0];
-    if (res->cgi_pipe[0] == UNDEFINED)
-    {
-        if (!pipe(res->cgi_pipe))
-        {
-            std::cerr << RED_BOLD << "[Webserv42]: Internal server pipe error" << std::endl;
-            exit(1);
-        }
-    }
-    if (fork() == 0)
-    {
-        dup2(res->cgi_pipe[0], 0);
-        dup2(res->cgi_pipe[1], 1);
-        close(res->cgi_pipe[0]);
-        close(res->cgi_pipe[1]);
-        execve(cgi_path, args, env);
-    }
-    free(args[0]);
-    free(args[1]);
-    free(args);
-    close(res->cgi_pipe[1]);
-    waitpid(-1, &status, WNOHANG);
-    serve_cgi(client);
-}
-
-/** 
- * main function for handling any static file
- * static files are file.html, file.txt, file.jpeg ... etc 
- * this functions mainly depends on chunked for transfer-encoding
- **/
+#include <signal.h>
 
 long    get_file_size(const char *filename)
 {
@@ -272,15 +116,51 @@ void    Get::handle_directory_listing(t_client *client)
 */
 void    Get::serve_client(t_client *client)
 {
-    t_response  *res;
+    t_response  *res = client->response;
+    t_request  *req = client->request;
 
-    res = client->response;
-    if (res->is_directory_listing)
+    if (client->request->first_time)
+    {
+        client->request_time = time(NULL);
+        client->request->first_time = false;
+        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
+        if (res->is_cgi)
+        res->cgi_path = res->configs->extension_cgi[req->extension];
+    }
+    else if (time(NULL) - client->request_time > 30)
+    {
+        fill_response(client, 408, "Request Timeout", true);
+        if (client->response->cgi_running)
+            kill(client->response->cgi_pid, SIGKILL);
+        client->state = SERVED;
+        return;
+    }
+    if (res->is_directory_listing) // dealing with directory listing
         handle_directory_listing(client);
     else
     {
         if (res->is_cgi)
-            handle_cgi(client);
+        {
+            if (!res->cgi_running)
+            {
+                fill_cgi_env(client);
+                serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
+            }
+            int status;
+            int rt = waitpid(-1, &status, WNOHANG);
+            if (client->response->cgi_running && rt > 0)
+            {
+                if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
+                {
+                    client->state = SERVED;
+                    std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
+                    fill_response(client, 501, "Internal Server Error", true);
+                    return;
+                }
+                if (rt == client->response->cgi_pid)
+                    parse_cgi_output(client);
+            }
+        }
         else
             handle_static_file(client);
     }

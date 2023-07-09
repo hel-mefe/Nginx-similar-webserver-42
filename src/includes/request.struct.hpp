@@ -18,6 +18,8 @@ typedef struct request
     bool                                is_file;
     std::string                         method;
     std::string                         path;
+    std::string                         cgi_in;
+    std::string                         cgi_out;
     std::string                         http_version;
     std::string                         extension;
     std::string                         filename;
@@ -26,8 +28,19 @@ typedef struct request
     std::string                         body;
     std::string                         cookies;
 
-    request(){body_size = 0; first_time = true; is_chunked = false; data = false; endwr = false;}
-    ~request(){}
+    request()
+    {
+        body_size = 0;
+        first_time = true;
+        is_chunked = false;
+        data = false;
+        endwr = false;
+    }
+    ~request()
+    {
+        remove(cgi_in.c_str());
+        remove(cgi_out.c_str());
+    }
 
     bool is_provided(std::string e)
     {

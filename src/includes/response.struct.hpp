@@ -14,6 +14,7 @@ typedef struct response
     bool                                cgi_running;
     bool                                is_directory_listing; // in case we have to list the directories inside
     bool                                is_first_time;
+    int                                 del_files;
     int                                 cgi_pipe[2];
     int                                 fd;
     int                                 code;
@@ -40,6 +41,7 @@ typedef struct response
         is_first_time = true;
         cgi_pipe[0] = UNDEFINED;
         cgi_pipe[1] = UNDEFINED;
+        del_files = 0;
     }
     ~response()
     {
