@@ -1,8 +1,8 @@
 PROGRAM = webserver
-SRC = src/fnc/*.cpp
-OBJ = src/fnc/*.o
+SRC = src/functions/*.cpp
+OBJ = src/functions/*.o
 CC = c++
-FLAGS = -std=c++11 -fsanitize=address
+FLAGS = -std=c++98 -fsanitize=address -Wall -Wextra -Werror
 C_FLAGS = $(CC) $(FLAGS)
 
 all: $(PROGRAM)
@@ -11,7 +11,7 @@ $(PROGRAM): $(OBJ)
 	$(C_FLAGS) $(OBJ) -o webserver
 
 $(OBJ): $(SRC)
-	cd src/fnc && $(C_FLAGS) -c *.cpp
+	cd src/functions && $(C_FLAGS) -c *.cpp
 
 clean:
 	rm -f $(OBJ)

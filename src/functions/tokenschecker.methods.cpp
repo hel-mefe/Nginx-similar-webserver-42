@@ -1,4 +1,4 @@
-# include "../inc/tokenschecker.class.hpp"
+# include "../includes/tokenschecker.class.hpp"
 
 # define MAX_SHORT_INT 65536
 
@@ -19,11 +19,13 @@ TokensChecker::TokensChecker()
 
 TokensChecker::TokensChecker(const TokensChecker& c)
 {
+    (void)c;
     return ;
 }
 
 TokensChecker& TokensChecker::operator=(const TokensChecker &c)
 {
+    (void)c;
     return *this ;
 }
 
@@ -39,11 +41,11 @@ bool TokensChecker::is_directory(std::string s)
 
 bool TokensChecker::is_short_int(std::string s)
 {
-    int i = 0, num = 0;
+    int num = 0;
 
     if (!is_int(s))
         return (false);
-    num = std::stoi(s);
+    num = std::atoi(s.c_str());
     return (num < MAX_SHORT_INT);
 }
 

@@ -1,15 +1,20 @@
-#include "../inc/poll.class.hpp"
+#include "../includes/poll.class.hpp"
 
 /**
  * the default multiplexer which is poll
  * this is where all the multiplexing work is being handled
 */
 
-
 /**
  * function that returns the sockaddr_in struct
  * it initializes it with the usual values and returns it
 **/
+
+void    write_error(const std::string err_msg)
+{
+    std::cout << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
+    exit(1);
+}
 
 struct sockaddr_in *getsocketdata(PORT port)
 {
@@ -38,23 +43,14 @@ SOCKET getsocketfd(int port)
     data_len = sizeof(*data);
     SOCKET fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0)
-    {
-        std::cerr << "SOCKET ERROR" << std::endl;
-        exit(1);
-    }
+        write_error("Internal server socket error") ;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &oplen, sizeof(oplen));
     int bs = bind(fd, (struct sockaddr *)data, data_len);
     if (bs < 0)
-    {
-        std::cerr << "ERROR IN BIND" << std::endl;
-        exit(1);
-    }
+        write_error("Internal server socket bind error");
     int ls = listen(fd, 10);
     if (ls < 0)
-    {
-        std::cerr << "ERROR IN LISTEN" << std::endl;
-        exit(1);
-    }
+        write_error("Internal server socket listen error");
     return fd;
 }
 
@@ -67,18 +63,21 @@ SOCKET getsocketfd(int port)
  * in summary, the manager is responsible for all of these stuff
 **/
 
-t_manager *Poll::get_manager()
+void    Poll::set_manager()
 {
     t_manager *_manager = new t_manager();
+
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->cwd = getwd(NULL);
     _manager->fds = new struct pollfd[MAX_FDS]();
-    int i;
-
-    i = 0;
-    std::cout << "NUMBER OF SERVERS => " << sz((*servers)) << std::endl;
+    // manager->handlers.insert(std::make_pair("GET", new Get()));
+    // manager->handlers.insert(std::make_pair("POST", new Post()));
+    // manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+    if (!sz(_manager->cwd))
+        write_error("Internal server getcwd() error");
+    int i = 0;
     for (; i < sz((*servers)); i++)
     {
         int port = servers->at(i)->server_configs->port;
@@ -86,7 +85,7 @@ t_manager *Poll::get_manager()
         _manager->fds[i].events = POLLIN;
         _manager->fds[i].revents = 0;
         if (!_manager->add_server(_manager->fds[i].fd, servers->at(i)))
-            std::cerr << "[SERVER MAP FAILED]: socket listener has not been added!" << std::endl;
+            write_error("Internal server error related to server management");
     }
     for (; i < MAX_FDS; i++)
     {
@@ -96,33 +95,28 @@ t_manager *Poll::get_manager()
         _manager->add_slot(i);
     }
     this->manager = _manager;
-    return _manager;
 }
 
 /**
  * a function that handles the connection for the first time it gets knocking
  * accepts the user, and tells the manager to track it
 */
+
 void Poll::handle_connection(t_manager *manager, SOCKET fd)
 {
     t_server *server = manager->get_server(fd);
-    PORT port = server->server_configs->port;
     struct sockaddr_in _data;
+
     bzero(&_data, sizeof(_data));
     socklen_t len = sizeof((_data));
     SOCKET con = accept(fd, (sockaddr *) &_data, &len);
     fcntl(con, F_SETFL, O_NONBLOCK);
 	setsockopt(con, SOL_SOCKET, SO_NOSIGPIPE, &_data, len);
     if (con < 0)
-    {
-        std::cout << "[accept error] - server internal error!" << std::endl;
-        std::cout << strerror(errno) << std::endl;
-        exit(1);
-    }
+        write_error("Internal server socket accept error");
     if (!manager->add_client(con, server))
-        std::cout << "[CLIENT MAP FAILED]: client has not been added successfully!" << std::endl;
+        write_error("Internal server client error");
     handle_client(manager, con);
-    std::cout << "client with socket fd " << con << " has been connected!" << std::endl;
 }
 
 
@@ -133,10 +127,7 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
 
 void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
-    std::cout << "Connection was closed" << std::endl;
     manager->remove_client(fd);
-    std::cout << "client with socket fd " << fd << " has been disconnected!" << std::endl;
-    std::cout << "NUMBER OF FREE PLACES -> " << MAX_FDS - sz(manager->clients_map) << std::endl;
 }
 
 /**
@@ -163,7 +154,7 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
     if (is_http_state(client->state))
         http_handler->handle_http(client);
     if (is_method_handler_state(client->state))
-        method_handlers->at(client->request->method)->serve_client(client);
+        manager->handlers[client->request->method]->serve_client(client);
 
     if (client->state == SERVED)
         handle_disconnection(manager, fd);
@@ -179,27 +170,17 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 
 void Poll::multiplex()
 {
-    t_manager *m = get_manager();
+    set_manager();
     http_handler = new HttpHandler();
-    struct pollfd *fds;
 
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
-    int num_sockets;
-
-    std::cout << manager->fds[0].fd << std::endl;
-    manager->client_num = 0;
     signal(SIGPIPE, SIG_IGN);
     while (1)
     {
-        num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
         int revents = poll(manager->fds, MAX_FDS, -1);
         if (revents == -1)
-        {
-            std::cerr << RED_BOLD << "[Crash in Poll]: Internal Server Error" << std::endl;
-            std::cout << strerror(errno) << std::endl;
-            return ;
-        }
+            write_error("Internal server multiplexer error, poll returned -1 in revents");
         for (int i = 0; i < MAX_FDS; i++)
         {
             if (manager->fds[i].fd != -1)

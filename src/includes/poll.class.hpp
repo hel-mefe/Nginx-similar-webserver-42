@@ -54,7 +54,7 @@ class Poll : public MultiplexerInterface
         void    set_codes(HashMap<int, std::string> *_codes){codes = _codes;}
         void    set_mimes(HashMap<std::string, std::string> *_mimes){mimes = _mimes;} 
 
-        t_manager *get_manager();
+        void    set_manager();
 
         void        handle_connection(t_manager *manager, SOCKET fd);
         void        handle_disconnection(t_manager *manager, SOCKET fd);

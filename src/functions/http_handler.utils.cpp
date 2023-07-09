@@ -1,4 +1,4 @@
-# include "../inc/http_handler.utils.hpp"
+# include "../includes/http_handler.utils.hpp"
 
 std::string get_cleanified_path(std::string s)
 {
@@ -85,7 +85,6 @@ std::string get_filename(std::string &s)
 std::vector<std::string>    *split_first_line(std::string &s)
 {
     std::vector<std::string>    *splitted = new std::vector<std::string>();
-    bool flag = false;
     int i = 0;
     for (; i < sz(s) && isspace(s[i]); i++);
     while (i < sz(s) && sz((*splitted)) != 3)

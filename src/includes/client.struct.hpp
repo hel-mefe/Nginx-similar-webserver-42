@@ -46,7 +46,6 @@ typedef struct client
         server = _server;
         request = new t_request();
         response = new t_response();
-        std::cout << YELLOW_BOLD << "--> Client with " << fd << " has been created!" << std::endl;
     }
 
 
@@ -85,7 +84,6 @@ typedef struct client
             delete response;
         if (request)
             delete request;
-        std::cout << YELLOW_BOLD << "Connection has been reset -> " << (_state == KEEP_ALIVE ? "KEEP_ALIVE" : "CLOSED") << WHITE << std::endl;
         response = new t_response();
         request = new t_request();
     }

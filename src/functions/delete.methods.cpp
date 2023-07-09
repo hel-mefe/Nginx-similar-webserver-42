@@ -1,5 +1,5 @@
-# include "../inc/delete.class.hpp"
-# include "../inc/http_handler.utils.hpp"
+# include "../includes/delete.class.hpp"
+# include "../includes/http_handler.utils.hpp"
 # include <sys/types.h>
 # include <dirent.h>
 
@@ -16,7 +16,6 @@ bool Delete::rmfiles(const char* dirname)
     {
         std::string entname(dp->d_name);
         std::string path = dirname + entname;
-        std::cout << path << std::endl;
         if(dp->d_type == DT_DIR)
         {
             if (entname != "." && entname != "..")
@@ -47,7 +46,6 @@ void    Delete::fill_response(t_client *client, int code, std::string status_lin
     t_response *res;
     std::map<std::string, std::string>  *request_map;
     std::string connection;
-    CLIENT_STATE    new_state;
 
     req = client->request;
     res = client->response;
@@ -68,9 +66,7 @@ void    Delete::handle_delete_file(t_client *client)
     std::string                 path;
 
     res = client->response;
-    std::cout << RED_BOLD << "DELETE SERVING IS RUNNING FOR FILE..." << WHITE << std::endl;
-    path = std::string(getwd(NULL)) + res->rootfilepath;
-    std::cout << YELLOW_BOLD << "FULL PATH OF FILE => " << path << WHITE << std::endl;
+    path = client->cwd + res->rootfilepath;
     if (access(path.c_str(), F_OK))
         fill_response(client, 404, "Not Found", true);
     else if (!remove(path.c_str())) // deleted succesfully
@@ -83,9 +79,8 @@ void    Delete::handle_delete_file(t_client *client)
 void    Delete::handle_delete_folder(t_client *client)
 {
     t_response  *res = client->response;
-    std::string path = std::string(getwd(NULL)) + res->rootfilepath;
-    std::cout << RED_BOLD << "DELETE SERVING IS RUNNING FOR FOLDER..." << WHITE << std::endl;
-    std::cout << CYAN_BOLD << "FOLDER PATH => " << path << std::endl;
+    std::string path = client->cwd + res->rootfilepath;
+
     if (access(path.c_str(), F_OK))
         fill_response(client, 404, "Not Found", true);
     else if (rmfiles(path.c_str()))

@@ -1,5 +1,5 @@
-# include "../inc/webServClass.hpp"
-# include "../inc/globals.hpp"
+# include "../includes/webserv.class.hpp"
+# include "../includes/globals.hpp"
 
 #define LOGO GREEN_BOLD"\n\n██╗    ██╗███████╗██████╗ ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗       ██╗  ██╗██████╗ \n\
 ██║    ██║██╔════╝██╔══██╗██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗      ██║  ██║╚════██╗ \n\
@@ -12,12 +12,12 @@ int main(int ac, char **av)
 {
     if (ac != 2)
     {
-        std::cout << "please provide arguments" << std::endl; 
+        std::cout << LOGO << std::endl;
+        std::cout << WHITE_BOLD << "Please run webserv with the required arguments ./webserv [configfile]" << std::endl; 
         return (1) ; 
     }
     try
     {
-        int conf = open(av[1], O_RDONLY);
         MultiplexerInterface *multiplexer = new Poll();
         Webserver *ws = new Webserver(av[1], multiplexer);
         char buff[1000];

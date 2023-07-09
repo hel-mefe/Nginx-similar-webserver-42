@@ -1,4 +1,4 @@
-# include "../inc/get.class.hpp"
+# include "../includes/get.class.hpp"
 # include <dirent.h>
 # include <unistd.h>
 # include <sys/stat.h>
@@ -107,7 +107,6 @@ char    **Get::convert_env_map(std::map<std::string, std::string> &m)
     {
         std::string s = it->first + "=" + it->second;
         env[i++] = strdup(s.c_str());
-        std::cout << "ENV => " << i - 1 << " - " << env[i - 1] << std::endl;
     }
     return env;
 }
@@ -124,24 +123,19 @@ void    Get::handle_cgi(t_client *client)
 
     res = client->response;
     req = client->request;
-    std::cout << CYAN_BOLD << "HANDLING CGI IN GET ...." << std::endl;
     cgi_env["SCRIPT_FILENAME"] = res->filepath;
-    // cgi_env["SCRIPT_NAME"] = client->server->server_configs->extension_cgi[res->extension];
     cgi_env["REQUEST_METHOD"] = "GET";
     cgi_env["REDIRECT_STATUS"] = "200";
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi_env["HTTP_PROTOCOL"] = "HTTP/1.1";
     cgi_env["HTTP_COOKIE"] = req->cookies;
-    std::cout << CYAN_BOLD << "END INIT MAP ...." << std::endl;
     env = convert_env_map(cgi_env);
-    std::cout << CYAN_BOLD << "AFTER CONVERT ...." << std::endl;
     args = (char **) malloc (3 * sizeof(char *));
-    std::cout << "CGI PATH ==> " << res->cgi_path << std::endl;
     args[0] = strdup(res->cgi_path.c_str());
     args[1] = strdup(res->filepath.c_str()) ;
     args[2] = NULL;
     cgi_path = args[0];
-    if (res->cgi_pipe[0] == UNDEFINED) // pipe not piped 
+    if (res->cgi_pipe[0] == UNDEFINED)
     {
         if (!pipe(res->cgi_pipe))
             std::cout << GREEN_BOLD << "PIPED!" << std::endl;
@@ -273,7 +267,7 @@ void    Get::handle_directory_listing(t_client *client)
     req = client->request;
     list_directories(client);
     html = "<html><head><title>Index of</title></head><body><br /><h2>Index of</h2><hr /><ul>";
-    for (std::list<std::pair<std::string, std::string>>::iterator it = res->dir_link.begin(); it != res->dir_link.end(); it++)
+    for (std::list<std::pair<std::string, std::string> >::iterator it = res->dir_link.begin(); it != res->dir_link.end(); it++)
     {
         std::string dir = it->first;
         std::string link = it->second;
@@ -303,7 +297,6 @@ void    Get::serve_client(t_client *client)
 {
     t_response  *res;
 
-    std::cout << "[GET] is running ..." << std::endl; 
     res = client->response;
     if (res->is_directory_listing)
         handle_directory_listing(client);

@@ -105,7 +105,14 @@ typedef struct server
         dir_configs = new HashMap<std::string, t_location_configs *>();
     }
 
-    ~server(){}
+    ~server()
+    {
+        delete server_configs;
+        delete http_configs;
+        for (HashMap<std::string, t_location_configs *>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
+            delete it->second;
+        delete dir_configs;
+    }
 
     void    set_location_map(std::string path, t_location_configs *configs)
     {
@@ -153,8 +160,6 @@ typedef struct server
         std::cout << "auto_indexing ->" << (server_configs->auto_indexing ? "on" : "off") << std::endl;
         std::cout << "client_max_body_size ->" << server_configs->max_body_size << std::endl;
         std::cout << "code to pages in server -> " << std::endl;
-        for (auto x: server_configs->code_to_page)
-            std::cout << x.first << " -> " << x.second << std::endl;
         std::cout << RED_BOLD << "**** END PRITING SERVER DATA *****\n" << WHITE_BOLD << std::endl;
 
     }
@@ -179,8 +184,6 @@ typedef struct server
         std::cout << "upload -> " << (conf->upload ? "on" : "off") << std::endl;
         std::cout << "directory_listing -> " << (conf->directory_listing ? "on" : "off") << std::endl;
         std::cout << "error to code pages -> " << std::endl;
-        for (auto x: conf->code_to_page)
-            std::cout << x.first << " -> " << x.second << std::endl;
         std::cout << std::endl ;
     }
 

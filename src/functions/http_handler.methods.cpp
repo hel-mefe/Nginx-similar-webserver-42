@@ -1,4 +1,4 @@
-# include "../inc/http_handler.class.hpp"
+# include "../includes/http_handler.class.hpp"
 
 void    HttpHandler::handle_http(t_client *client)
 {
@@ -54,7 +54,6 @@ bool    HttpHandler::set_redirection_path(t_client *client)
     pathr += path;
     if (path[sz(path) - 1] != '/' && is_directory_exist(client->cwd, pathr))
     {
-        std::cout << CYAN_BOLD << "THE DIRECTORY EXIST AND THE REDIRECTION IS WORKING " << std::endl;
         res->redirect_to = path + "/";
         return true ;
     }
@@ -69,7 +68,6 @@ bool    HttpHandler::set_redirection_path(t_client *client)
             sz(dir_configs->at(rpath)->redirection))
             {
                 res->redirect_to = dir_configs->at(rpath)->redirection;
-                std::cout << PURPLE_BOLD << "REQUESTED PATH = " << rpath << " - redirected to = " << res->redirect_to << std::endl;
                 return true ;
             }
         }
@@ -110,11 +108,7 @@ std::string HttpHandler::get_root_file_path(std::string &root, std::string &path
     int i = 0 ;
     std::string suffix;
     std::string res;
-    std::cout << "--------------------------- " << std::endl;
-    std::cout << "ROOT = " << root << std::endl;
-    std::cout << "PATH = " << path << std::endl;
-    std::cout << "DIR PATH = " << dirpath << std::endl;
-    std::cout << "--------------------------- " << std::endl;
+
     for (; i < sz(path) && i < sz(dirpath) && path[i] == dirpath[i]; i++)
         i++ ;
     if (i < sz(path))
@@ -317,7 +311,6 @@ void    HttpHandler::architect_response(t_client *client)
     t_response *res;
     std::map<std::string, std::string>  *request_map;
     std::string connection;
-    CLIENT_STATE    new_state;
 
     req = client->request;
     res = client->response;

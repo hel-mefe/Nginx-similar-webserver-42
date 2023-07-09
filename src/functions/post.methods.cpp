@@ -1,4 +1,4 @@
-#include "../inc/post.class.hpp"
+#include "../includes/post.class.hpp"
 #include <sys/time.h>
 #include <signal.h>
 
@@ -27,7 +27,6 @@ void    Post::fill_response(t_client *client, int code, std::string status_line,
 {
     t_request *req = client->request;
     t_response *res = client->response;
-    std::map<std::string, std::string>  *request_map = &req->request_map;
     std::string connection = req->get_param("connection"); // used for keep-alive
 
     std::cout << RED_BOLD << code << " -> " << status_line << WHITE << std::endl;
@@ -114,7 +113,6 @@ void    Post::fill_cgi_env(t_client* client)
 
 void    Post::serve_cgi(t_client* client, char** env, int args_size)
 {
-    int status;
     std::cout << CYAN_BOLD << "HANDLING CGI ..." << std::endl;
     std::cout << "CGI PATH ==> " << WHITE << client->response->cgi_path << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));

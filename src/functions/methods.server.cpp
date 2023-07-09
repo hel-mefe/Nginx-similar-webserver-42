@@ -1,4 +1,4 @@
-# include "../inc/class.server.hpp"
+# include "../includes/class.server.hpp"
 
 Server::Server() : server_configs(0), http_configs(0), dir_configs(0)
 {
@@ -15,6 +15,7 @@ Server::Server(const Server &s) : server_configs(0), http_configs(0), dir_config
 
 Server& Server::operator=(const Server &s)
 {
+    (void) s;
     return (*this);
 }
 

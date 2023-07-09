@@ -1,4 +1,4 @@
-# include "../inc/class.handlers.hpp"
+# include "../includes/class.handlers.hpp"
 
 /***
  * this file includes all the handling methods
@@ -14,7 +14,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     t_response *res;
     std::map<std::string, std::string>  *request_map;
     std::string connection;
-    CLIENT_STATE    new_state;
 
     req = client->request;
     res = client->response;
@@ -23,10 +22,8 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
-    connection = req->get_param("connection"); // used for keep-alive
-    if (sz(connection)) // type of connection
-        res->add("connection", "closed");
-    if (sz(res->redirect_to)) // redirection exist
+    res->add("connection", "closed");
+    if (sz(res->redirect_to)) // redirection exists
         res->add("location", res->redirect_to);
     if (sz(res->filepath) || res->is_directory_listing)
     {
@@ -35,7 +32,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         if (res->is_directory_listing)
             ctype = "text/html";
         res->add("content-type", ctype);
-        res->add("connection", "closed");
         if (!res->is_cgi) // dealing with file
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
         else
@@ -92,7 +88,7 @@ bool    Handlers::change_path(t_client *client)
     d_configs = res->dir_configs;
     s_configs = res->configs;
     path_after_change = "";
-    current_dir = "";
+    current_dir = client->cwd;
     if (d_configs)
     {
         path_after_change = get_path_after_change(client, d_configs->root);
@@ -105,9 +101,6 @@ bool    Handlers::change_path(t_client *client)
         res->rootfilepath = s_configs->root + "/" + req->path;
         res->filepath = current_dir + "/" + res->rootfilepath;
     }
-    std::cout << CYAN_BOLD << "Rootfilepath -> " << res->rootfilepath << std::endl;
-    std::cout << "Filepath -> " << res->filepath << std::endl;
-    std::cout << GREEN_BOLD << "End [Change path] ... " << std::endl;
     return (true) ;
 }
 
@@ -183,7 +176,6 @@ bool Handlers::handle_414(t_client *client)
 {
     t_request *req = client->request;
     t_response *res = client->response;
-    std::map<std::string, std::string>  *request_map = &req->request_map;
     std::map<int, std::string>          code_to_page;
     std::string error_page = "";
     std::string path = "";
@@ -506,29 +498,32 @@ bool Handlers::handle_200f(t_client *client)
     t_request           *req;
     t_location_configs  *d_configs;
     t_server_configs    *s_configs;
-    std::vector<std::string> indexes;
 
     res = client->response;
     req = client->request;
     d_configs = res->dir_configs;
     s_configs = res->configs;
-    indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
-    if (!access(res->filepath.c_str(), R_OK)) // 200 ok
+    if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
+        std::cout << "FILE IS 200 OK => " << res->filepath << std::endl;
         fill_response(client, 200, true);
         client->state = SERVING_GET;
     }
-    else if (!access(res->filepath.c_str(), F_OK)) // 403 forbidden
+    else if (!access(res->filepath.c_str(), F_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 403 forbidden
     {
         res->filepath = "";
         res->rootfilepath = "";
+        std::cout << "FILE IS 403 Forbidden => " << res->filepath << std::endl;
         fill_response(client, 403, true);
         client->state = SERVED;
     }
     else // 404 not found
+    {
+        std::cout << "FILE IS 404 NOT FOUND => " << res->filepath << std::endl;
         handle_404(client);
+    }
     return (true) ;
 }
 
@@ -556,13 +551,11 @@ bool    Handlers::handle_200(t_client *client)
     t_request           *req;
     t_location_configs  *d_configs;
     t_server_configs    *s_configs;
-    std::vector<std::string> indexes;
 
     res = client->response;
     req = client->request;
     d_configs = res->dir_configs;
     s_configs = res->configs;
-    indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
     change_path(client);
     if (req->is_file)
         handle_200f(client);

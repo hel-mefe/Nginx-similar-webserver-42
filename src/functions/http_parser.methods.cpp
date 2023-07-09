@@ -1,4 +1,4 @@
-# include "../inc/http_parser.class.hpp"
+# include "../includes/http_parser.class.hpp"
 
 /*** START PARSING PART ***/
 
@@ -40,13 +40,11 @@ bool    HttpParser::parse_first_line(t_request *req)
 {
     std::string line = req->lines[0];
     std::string method, path, http_version;
-    int i = 0, k = 0;
     std::vector<std::string> *splitted = split_first_line(line);
 
     req->method = get_upper_case(splitted->at(0));
     std::cout << RED_BOLD << req->method << std::endl;
     req->path = splitted->at(1);
-    std::cout << RED_BOLD << "PATH IN REQUEST -> " << req->path << std::endl;
     req->http_version = get_upper_case(splitted->at(2));
     req->is_file = is_file(req->path);
     if (req->is_file)
@@ -66,7 +64,6 @@ bool    HttpParser::parse_request(t_client *client)
     req = client->request;
     if (!parse_first_line(req))
         return (false) ;
-    std::cout << "PARSE FIRST LINE IS VALID" << std::endl;
     for (int i = 1; i < sz(req->lines); i++)
     {
         std::string line = req->lines[i], first, second;
@@ -80,17 +77,6 @@ bool    HttpParser::parse_request(t_client *client)
         second = trim_string(second);
         if (!sz(first) || !sz(second))
             return (false) ;
-        // int j = 0, a = 0;
-        // for (; j < sz(line) && isspace(line[j]); j++);
-        // a = j;
-        // for (; j < sz(line) && line[j] != ':'; j++);
-        // first = get_lower_case(line.substr(a, j - a));
-        // for (; j < sz(line) && isspace(line[j]); j++);
-        // a = j + (line[j]== ':') + 1;
-        // for (; j < sz(line) && line[j] != '\r'; j++);
-        // second = get_lower_case(line.substr(a, j - a));
-        // first = trim_string(first);
-        // second = trim_string(second);
         if (first == "cookie")
         {
             if (!req->cookies.empty())
@@ -100,7 +86,6 @@ bool    HttpParser::parse_request(t_client *client)
         else
             req->request_map.insert(std::make_pair(first, second));
     }
-    std::cout << "REQUEST IS VALID" << std::endl;
     return (true) ;
 }
 

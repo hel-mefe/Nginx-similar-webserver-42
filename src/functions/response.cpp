@@ -1,4 +1,4 @@
-# include "../inc/socket.hpp"
+# include "../includes/socket.hpp"
 
 void    architect_response(t_client *client)
 {

@@ -31,11 +31,11 @@ typedef struct response
     std::string                         extension;
     std::string                         redirect_to;
     std::string                         cgi_path;
-    std::list<std::pair<std::string, std::string>>      dir_link; // list => [(dir, link) pair]
+    std::list<std::pair<std::string, std::string> >      dir_link; // list => [(dir, link) pair]
     std::map<std::string, std::string>  response_map;
     std::map<std::string, std::string>  cgi_env;
 
-    response() : configs(nullptr), dir_configs(nullptr), is_cgi(false), fd(UNDEFINED){
+    response() :is_cgi(false), fd(UNDEFINED), configs(nullptr), dir_configs(nullptr){
         cgi_rn_found = false;
         is_first_time = true;
         cgi_pipe[0] = UNDEFINED;

@@ -1,4 +1,4 @@
-# include "../inc/parser.class.hpp"
+# include "../includes/parser.class.hpp"
 
 ConfigFileParser::ConfigFileParser()
 {
@@ -7,6 +7,7 @@ ConfigFileParser::ConfigFileParser()
 
 ConfigFileParser::ConfigFileParser(const ConfigFileParser& p)
 {
+    (void)p;
     return ;
 }
 
@@ -26,17 +27,13 @@ void    ConfigFileParser::extract_lines_from_file(std::fstream &f_stream, std::v
     }
 }
 
-void    ConfigFileParser::print_vector_lines(std::vector<std::string> &lines)
-{
-    for (int i = 0; i < (int)lines.size(); i++)
-        std::cout << lines[i] << std::endl ;
-}
 
 std::vector<std::string>    ConfigFileParser::get_word_vector(std::string &line)
 {
     std::vector<std::string> word;
     bool flag = false;
     int last = 0, i = 0;
+
     for (; i < (int)line.size(); i++)
     {
         if (isspace(line[i]) || line[i] == '}' || line[i] == '{')
@@ -63,17 +60,6 @@ std::vector<std::string>    ConfigFileParser::get_word_vector(std::string &line)
         word.push_back(w);
     }
     return (word);
-}
-
-void    ConfigFileParser::print_words(std::vector<std::vector<std::string> > words)
-{
-    for (int i = 0; i < (int)words.size(); i++)
-    {
-        std::cout << "[" ;
-        for (int j = 0; j < (int)words[i].size(); j++)
-            std::cout << words[i][j] << " " ;
-        std::cout << "]" << std::endl ;
-    }
 }
 
 void    ConfigFileParser::extract_words_from_lines(std::vector<std::vector<std::string> > &words)
@@ -122,31 +108,9 @@ void    ConfigFileParser::build_brackets_queue()
         for (int j = 0; j < sz(words[i]); j++)
         {
             if (is_bracket(words[i][j]))
-            {
                 brackets_q.push_back(std::make_pair(words[i][j], std::make_pair(i, j)));
-                // std::cout << words[i][j] << " " << i << " " << j << std::endl ;
-            }
         }
     }
-}
-
-std::string ConfigFileParser::get_str(std::vector<std::vector<std::string> > &vec, int i, int end_i, int j, int end_j)
-{
-    std::string res;
-    while (i <= end_i)
-    {
-        while (j < sz(words[i]))
-        {
-            if (i == end_i && j > end_j)
-                break ;
-            res += words[i][j];
-            j++;
-        }
-        j = 0;
-        i++;
-    }
-
-    return (res);
 }
 
 std::string    ConfigFileParser::get_identifier(std::pair<int, int> &start, std::pair<int, int> &end)
@@ -178,7 +142,7 @@ std::string    ConfigFileParser::get_identifier(std::pair<int, int> &start, std:
 void    ConfigFileParser::fill_words(std::vector<std::vector<std::string> > &n_words, \
 std::pair<int, int> &start, std::pair<int, int> &end)
 {
-    int i = start.first, end_i = end.first;
+    int i = start.first;
     int j = start.second + 1, end_j = end.second;
 
     while (i < end.first)
@@ -205,35 +169,20 @@ void    ConfigFileParser::push_node(std::pair<int, int> prev, std::pair<int, int
     node.id = get_identifier(prev, mid);
     if (!node.id.length())
     {
-        std::cout << "ERROR OF NODE IDENTIFIER" << std::endl;
+        std::cerr << "[Webserv]: parsing error." << std::endl;
         exit(2);
     }
     fill_words(node.words, mid, end);
     nodes.push_back(node);
 }
 
-void    ConfigFileParser::build_with_vector(std::vector<std::string> &vec, int i, int j)
+void    ConfigFileParser::build_with_vector()
 {
     std::pair<int, int> first_all = std::make_pair(0, 0);
+
     push_node(first_all, brackets_q[0].second, brackets_q[sz(brackets_q) - 1].second);
     for (int i = 1; i < sz(brackets_q) - 1; i += 2)
         push_node(brackets_q[i - 1].second, brackets_q[i].second, brackets_q[i + 1].second);
-}
-
-void    ConfigFileParser::print_nodes()
-{
-    for (int i = 0; i < sz(nodes); i++)
-    {
-        std::cout << "Identifier: " << nodes[i].id << std::endl;
-        std::cout << "NODE WORDLINE FOR NODE (  " << i << " ) => " << std::endl;
-        for (int j = 0; j < sz(nodes[i].words); j++)
-        {
-            for (int k = 0; k < sz(nodes[i].words[j]); k++)
-              std::cout << nodes[i].words[j][k] << " " ;
-            std::cout << std::endl;
-        }
-        std::cout << std::endl ;
-    }
 }
 
 void    ConfigFileParser::parse_http_configs(int &i, int &j)
@@ -334,9 +283,8 @@ void    ConfigFileParser::parse_server(int &i, int &j)
         nodes.push_back(node);
 }
 
-void    ConfigFileParser::parse_words(int a, int b)
+void    ConfigFileParser::parse_words()
 {
-    bool is_http = true, is_server = false, is_location = false;
     int i = 0, j = 0;
     if (!sz(words))
         return ;
@@ -365,39 +313,13 @@ void    ConfigFileParser::parse_words(int a, int b)
     }
 }
 
-void    ConfigFileParser::print_http_words()
-{
-    std::cout << "**** HTTP AS WORDS **** " << std::endl;
-    std::cout << "[";
-    for (int i = 0; i < sz(http_as_words); i++)
-    {
-        std::cout << "[";
-        for(int j = 0; j < sz(http_as_words[i]); j++)
-            std::cout << http_as_words[i][j] << ", ";
-        std::cout << "]" << std::endl;
-    }
-    std::cout << "------------------------------" << std::endl;
-}
-
-void    ConfigFileParser::print_nodes1()
-{
-    std::cout << "**** NODES DATA **** " << std::endl;
-    for (int i = 0; i < sz(nodes); i++)
-    {
-        std::cout << "Identifier: " << nodes[i].id << std::endl;
-        std::cout << "WORDS: " << std::endl;
-        print_words(nodes[i].words);
-        std::cout << "Location Blocks: " << std::endl;
-        print_words(nodes[i].location_blocks);
-    }
-    std::cout << "----------------------------------" << std::endl;
-}
-
-void    ConfigFileParser::print_all()
-{
-    print_http_words();
-    print_nodes1();
-}
+/*** Tokens filling 
+ * 
+ * the following functions are responsible for defining all the config file tokens
+ * http blocks have their independent tokens
+ * server blocks have their independent tokens
+ * location blocks have their independent tokens
+ ***/
 
 void    ConfigFileParser::fill_http_hashmap()
 {
@@ -457,14 +379,12 @@ void    ConfigFileParser::fill_tokens()
     fill_location_hashmap();
 }
 
-bool    ConfigFileParser::parse_http_line(int &i, int &j) // token already exists
-{
-    std::string token_word = http_as_words[i][j];
-    TOKEN token_type = http_tokens[token_word];
-
-    return (true);
-}
-
+/*** Config file validity checking functions ***
+ * 
+ * all of these functions are checking if the config file is valid or not
+ * before parsing the config file and extracting all the data there is one iteration O(N)
+ * that should be done to check all the lines if valid or not
+***/
 
 bool ConfigFileParser::is_http_line_valid(int row)
 {
@@ -725,7 +645,7 @@ bool ConfigFileParser::is_config_file_valid(std::string &config_file) // checks 
         c_stream.close();
         return (false) ;
     }
-    parse_words(brackets_q.front().second.first, brackets_q.front().second.second);
+    parse_words();
     is_everything_valid = (is_http_valid() && is_servers_valid());
     c_stream.close();
     return (is_everything_valid) ;
@@ -748,7 +668,7 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
 
 int     get_max_connections(std::string &s)
 {
-    int num = std::stoi(s);
+    int num = std::atoi(s.c_str());
 
     if (num <= 0 || num > DEFAULT_MAX_CONNECTIONS)
         throw ParsingExceptionMaxConnectionsInterval() ;
@@ -763,6 +683,11 @@ int     get_max_body_size(std::string &s)
         throw ParsingException();
     return (num);
 }
+
+/*** Filling functions 
+ * 
+ * all of this functions are responsible for filling the data 
+ ****/
 
 void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_configs *conf, int i)
 {
@@ -889,7 +814,7 @@ void    ConfigFileParser::normalize_directories_vector(std::vector<std::string> 
 }
 
 
-void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs, t_server_configs *s_conf, int i, int j, int ej)
+void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs, int i, int j, int ej)
 {
     while (j < ej && j < sz(nodes[i].location_blocks))
     {
@@ -944,7 +869,6 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
 
 void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::vector<std::string> > &location_blocks, t_server_configs *s_conf, int index)
 {
-    int next_block = 0;
     int i = 0;
     while (i < sz(location_blocks) && sz(location_blocks[i]) && location_blocks[i][0] != "location")
         i++;
@@ -965,7 +889,7 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
         conf->code_to_page = s_conf->code_to_page;
-        fill_location_attributes(*conf, s_conf, index, start, i);
+        fill_location_attributes(*conf, index, start, i);
         server->set_location_map(location, conf);
     }
 }
@@ -978,8 +902,8 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
     {
         t_server      *server = new t_server();
         t_server_configs *attr = new t_server_configs();
-        t_location_configs *l_configs = new t_location_configs();
         std::string     location_name;
+
         fill_server_attributes(*attr, conf, i);
         handle_locations(server, nodes[i].location_blocks, attr, i);
         server->set_server_configs(attr);
@@ -1022,7 +946,7 @@ bool ConfigFileParser::parse_config_file(std::string config_file, t_http_configs
 {
     if (!is_config_file_valid(config_file)) // O(N) to check if the file is valid or not
     {
-        std::cerr << RED_BOLD << "Config file is not valid" << std::endl;
+        std::cerr << CYAN_BOLD << "[Webserv42]: config file is not valid" << std::endl;
         return (false);
     }
     return (fill_http_data(http_data) && fill_servers_data(servers, http_data));

@@ -22,6 +22,7 @@
 # include "request.struct.hpp"
 # include "response.struct.hpp"
 # include "socket.struct.hpp"
+# include "class.handlers.hpp"
 # include "enums.hpp"
 #include <dirent.h>
 
