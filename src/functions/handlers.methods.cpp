@@ -10,15 +10,10 @@
 
 void    Handlers::fill_response(t_client *client, int code, bool write_it)
 {
-    t_request *req;
     t_response *res;
-    std::map<std::string, std::string>  *request_map;
     std::string connection;
 
-    req = client->request;
     res = client->response;
-    request_map = &req->request_map;
-    std::cout << RED_BOLD << code << " -> " << codes->at(code) << WHITE << std::endl;
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
@@ -34,8 +29,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         res->add("content-type", ctype);
         if (!res->is_cgi) // dealing with file
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
-        else
-            std::cout << GREEN_BOLD << "***** DEALING WITH CGI ****" << std::endl ;
     }
     if (write_it)
         res->write_response_in_socketfd(client->fd, !sz(res->filepath));
@@ -369,10 +362,8 @@ bool    Handlers::handle_405(t_client *client)
 
 bool    Handlers::handle_301(t_client *client)
 {
-    t_request *req;
     t_response *res;
 
-    req = client->request;
     res = client->response;
     if (!res->dir_configs)
         return false ;
@@ -399,14 +390,12 @@ bool    Handlers::handle_301(t_client *client)
 bool    Handlers::handle_404(t_client *client)
 {
     t_response          *res;
-    t_request           *req;
     t_location_configs  *d_configs;
     t_server_configs    *s_configs;
     std::string         root;
     std::vector<std::string> files_404;
 
     res = client->response;
-    req = client->request;
     d_configs = res->dir_configs;
     s_configs = res->configs;
     files_404 = (d_configs) ? d_configs->pages_404 : s_configs->pages_404;
@@ -446,13 +435,11 @@ bool    Handlers::handle_404(t_client *client)
 bool    Handlers::handle_200d(t_client *client)
 {
     t_response          *res;
-    t_request           *req;
     t_location_configs  *d_configs;
     t_server_configs    *s_configs;
     std::vector<std::string> indexes;
 
     res = client->response;
-    req = client->request;
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
@@ -495,19 +482,12 @@ bool    Handlers::handle_200d(t_client *client)
 bool Handlers::handle_200f(t_client *client)
 {
     t_response          *res;
-    t_request           *req;
-    t_location_configs  *d_configs;
-    t_server_configs    *s_configs;
 
     res = client->response;
-    req = client->request;
-    d_configs = res->dir_configs;
-    s_configs = res->configs;
     if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
-        std::cout << "FILE IS 200 OK => " << res->filepath << std::endl;
         fill_response(client, 200, true);
         client->state = SERVING_GET;
     }
@@ -515,15 +495,11 @@ bool Handlers::handle_200f(t_client *client)
     {
         res->filepath = "";
         res->rootfilepath = "";
-        std::cout << "FILE IS 403 Forbidden => " << res->filepath << std::endl;
         fill_response(client, 403, true);
         client->state = SERVED;
     }
     else // 404 not found
-    {
-        std::cout << "FILE IS 404 NOT FOUND => " << res->filepath << std::endl;
         handle_404(client);
-    }
     return (true) ;
 }
 
@@ -547,17 +523,8 @@ bool Handlers::handle_200f(t_client *client)
 
 bool    Handlers::handle_200(t_client *client)
 {
-    t_response          *res;
-    t_request           *req;
-    t_location_configs  *d_configs;
-    t_server_configs    *s_configs;
-
-    res = client->response;
-    req = client->request;
-    d_configs = res->dir_configs;
-    s_configs = res->configs;
     change_path(client);
-    if (req->is_file)
+    if (client->request->is_file)
         handle_200f(client);
     else
         handle_200d(client);

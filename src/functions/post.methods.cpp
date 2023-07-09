@@ -29,7 +29,6 @@ void    Post::fill_response(t_client *client, int code, std::string status_line,
     t_response *res = client->response;
     std::string connection = req->get_param("connection"); // used for keep-alive
 
-    std::cout << RED_BOLD << code << " -> " << status_line << WHITE << std::endl;
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = status_line ;
@@ -49,7 +48,6 @@ void Post::client_served(t_client* client)
         return;
     }
     fill_response(client, 201, "Created!", true);
-    std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
     client->state = SERVED;
 }
 
@@ -93,7 +91,6 @@ char** Post::convert_cgi_env(t_client* client)
     {
         std::string arg = it->first + it->second;
         args[i] = strdup(arg.c_str());
-        std::cout << CYAN_BOLD << args[i] << WHITE << std::endl;
         i++;
     }
     return args;
@@ -113,8 +110,6 @@ void    Post::fill_cgi_env(t_client* client)
 
 void    Post::serve_cgi(t_client* client, char** env, int args_size)
 {
-    std::cout << CYAN_BOLD << "HANDLING CGI ..." << std::endl;
-    std::cout << "CGI PATH ==> " << WHITE << client->response->cgi_path << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));
     args[0] = strdup(client->response->cgi_path.c_str());
     args[1] = strdup(client->response->filepath.c_str());
@@ -165,7 +160,6 @@ void Post::parse_cgi_output(t_client* client)
         write(client->fd, buff, rbytes);
     }
     client->state = SERVED;
-    std::cout << WHITE << "POST REQUEST IS SERVED" << std::endl;
 }
 
 void Post::serve_client(t_client *client)

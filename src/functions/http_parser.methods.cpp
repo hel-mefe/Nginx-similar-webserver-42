@@ -43,7 +43,6 @@ bool    HttpParser::parse_first_line(t_request *req)
     std::vector<std::string> *splitted = split_first_line(line);
 
     req->method = get_upper_case(splitted->at(0));
-    std::cout << RED_BOLD << req->method << std::endl;
     req->path = splitted->at(1);
     req->http_version = get_upper_case(splitted->at(2));
     req->is_file = is_file(req->path);

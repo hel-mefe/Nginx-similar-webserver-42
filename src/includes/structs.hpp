@@ -123,7 +123,6 @@ typedef struct server
     {
         if (server_configs)
             delete server_configs;
-        std::cout << "YES CALLED" << std::endl;
         server_configs = _server_configs;
     }
 

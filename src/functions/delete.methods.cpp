@@ -44,12 +44,10 @@ void    Delete::fill_response(t_client *client, int code, std::string status_lin
 {
     t_request *req;
     t_response *res;
-    std::map<std::string, std::string>  *request_map;
     std::string connection;
 
     req = client->request;
     res = client->response;
-    request_map = &req->request_map;
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = status_line ;

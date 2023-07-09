@@ -13,7 +13,6 @@ void    HttpHandler::handle_http(t_client *client)
             client->state = (client->state == WAITING) ? READING_HEADER : WAITING;
         if (client->state == READING_HEADER && http_parser->read_header(client))
         {
-            std::cout << RED_BOLD << "IS READING HEADER ..." << std::endl;
             if (!http_parser->parse_request(client)) // request is not well-formed
             {
                 std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
@@ -35,8 +34,6 @@ bool    HttpHandler::set_redirection_path(t_client *client)
 {
     t_request *req;
     t_response *res;
-    t_server    *server;
-    std::map<std::string, std::string>  *request_map;
     std::string path;
     HashMap<std::string, t_location_configs*>   *dir_configs;
     t_location_configs  *d_configs;
@@ -44,8 +41,6 @@ bool    HttpHandler::set_redirection_path(t_client *client)
 
     req = client->request;
     res = client->response;
-    request_map = &req->request_map;
-    server = client->server;
     path = req->path;
     dir_configs = client->server->dir_configs;
     s_configs = client->server->server_configs;
@@ -83,12 +78,10 @@ bool    HttpHandler::is_method_valid(std::string &method)
 t_location_configs  *HttpHandler::get_location_configs_from_path(t_client *client)
 {
     t_request *req;
-    t_response *res;
     HashMap<std::string, t_location_configs *> *dir_configs;
     std::string path;
 
     req = client->request;
-    res = client->response;
     dir_configs = client->server->dir_configs;
     path = req->path;
     for (int i = sz(path) - 1; i >= 0; i--)
@@ -308,20 +301,15 @@ void    HttpHandler::set_response_configs(t_client *client)
 void    HttpHandler::architect_response(t_client *client)
 {
     t_request *req;
-    t_response *res;
-    std::map<std::string, std::string>  *request_map;
     std::string connection;
 
     req = client->request;
-    res = client->response;
-    request_map = &req->request_map;
-
     req->is_file = (req->path[sz(req->path) - 1] != '/') ;
-    req->print_data();
     set_response_configs(client);
     if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
-        res->print_data();
+        return ;
+        // client->response->print_data();
     else
     {
         if (req->method == "GET")
@@ -331,5 +319,4 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
             architect_post_response(client);
     }
-
 }

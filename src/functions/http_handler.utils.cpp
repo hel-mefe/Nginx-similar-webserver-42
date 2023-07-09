@@ -14,13 +14,6 @@ std::string get_cleanified_path(std::string s)
     return (res);
 }
 
-
-void    alert(std::string s, const char *color)
-{
-    std::cout << color << s << WHITE << std::endl;
-}
-
-
 bool    is_file(std::string &path)
 {
     int i = sz(path) - 1;
@@ -146,10 +139,8 @@ bool    set_file_path(std::string basepath, std::string &path, std::vector<std::
             else
                 fullpath += "/" + rpath;
         }
-        std::cout << RED_BOLD << "FULL PATH -> " << fullpath << WHITE << std::endl;
         if (is_path_valid(fullpath))
         {
-            std::cout << GREEN_BOLD << "PATH WAS SET! -> " << fullpath << WHITE << std::endl; 
             path = rpath;
             return true ;
         }
@@ -187,9 +178,5 @@ bool    is_directory_exist(std::string basepath, std::string &path)
     fullpath = basepath;
     fullpath += path;
     d = opendir(fullpath.c_str());
-    if (d)
-        std::cout << GREEN_BOLD << "DIRECTORY EXISTS => " << fullpath << std::endl;
-    else
-        std::cout << RED_BOLD << "DIRECTORY DOES NOT EXIST => " << fullpath << std::endl;
     return (d != NULL);    
 }

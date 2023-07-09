@@ -62,28 +62,21 @@ typedef struct response
     void    write_response_in_socketfd(SOCKET fd, bool terminate)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
-        std::cout << GREEN_BOLD << " ********* HEADER SENT ********" << std::endl;
         write_string(fd, http_version, false);
         send(fd, " ", 1, 0);
         write_string(fd, status_code, false);
         send(fd, " ", 1, 0);
         write_string(fd, status_line, true);
-        std::cout << http_version << " " << status_code << " " << status_line << "\\r\\n" << std::endl;
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
             write_string(fd, first, false);
             send(fd, ":", 1, 0);
             write_string(fd, second, true);
-            std::cout << first << " : " << second << " \\r\\n" << std::endl;
             it++;
         }
         if (terminate)
-        {
             send(fd, "\r\n", 2, 0);
-            std::cout << "\\r\\n" << std::endl;
-        }
-        std::cout << WHITE_BOLD << "Response has been written in " << fd << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)

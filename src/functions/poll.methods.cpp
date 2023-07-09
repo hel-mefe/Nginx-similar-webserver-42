@@ -116,6 +116,7 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
         write_error("Internal server socket accept error");
     if (!manager->add_client(con, server))
         write_error("Internal server client error");
+    std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
     handle_client(manager, con);
 }
 
@@ -127,6 +128,7 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
 
 void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
+    std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
     manager->remove_client(fd);
 }
 

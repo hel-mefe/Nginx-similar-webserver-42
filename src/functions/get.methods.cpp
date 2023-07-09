@@ -12,10 +12,7 @@ void    Get::write_hex(SOCKET fd, int n)
     std::string s_hex = "0123456789abcdef";
 
     if (n < 16)
-    {
-        std::cout << WHITE_BOLD << s_hex[n];
         send(fd, &s_hex[n], 1, 0);
-    }
     else
     {
         write_hex(fd, n / 16); // get first char
@@ -61,14 +58,12 @@ void    Get::write_schunk(SOCKET fd, std::string &s, int len)
 void    Get::serve_cgi(t_client *client)
 {
     t_response *res;
-    t_request *req;
     unsigned char buff[MAX_BUFFER_SIZE];
     int bts;
     int read_fd;
     int chunked_start;
 
     res = client->response;
-    req = client->request;
     read_fd = res->cgi_pipe[0];
     bzero(buff, MAX_BUFFER_SIZE);
     chunked_start = 0;
@@ -138,7 +133,10 @@ void    Get::handle_cgi(t_client *client)
     if (res->cgi_pipe[0] == UNDEFINED)
     {
         if (!pipe(res->cgi_pipe))
-            std::cout << GREEN_BOLD << "PIPED!" << std::endl;
+        {
+            std::cerr << RED_BOLD << "[Webserv42]: Internal server pipe error" << std::endl;
+            exit(1);
+        }
     }
     if (fork() == 0)
     {
@@ -146,8 +144,7 @@ void    Get::handle_cgi(t_client *client)
         dup2(res->cgi_pipe[1], 1);
         close(res->cgi_pipe[0]);
         close(res->cgi_pipe[1]);
-        if (execve(cgi_path, args, env))
-            std::cout << "EXECVE FAILED! - " << strerror(errno) << std::endl;
+        execve(cgi_path, args, env);
     }
     free(args[0]);
     free(args[1]);
@@ -174,13 +171,10 @@ long    get_file_size(const char *filename)
 
 void    Get::handle_static_file(t_client *client)
 {
-    SOCKET                  sockfd;
     unsigned char           buff[MAX_BUFFER_SIZE];
     int                     bts;
-    t_request               *req;
     t_response              *res;
 
-    req = client->request;
     res = client->response;
     if (res->is_first_time)
     {
@@ -189,22 +183,12 @@ void    Get::handle_static_file(t_client *client)
         res->is_first_time = false;
         send(client->fd, fs.c_str(), sz(fs), 0);
     }
-    sockfd = client->fd;
     bzero(buff, MAX_BUFFER_SIZE);
     bts = read(res->fd, buff, MAX_BUFFER_SIZE);
-    if (send(client->fd, buff, bts, 0) == -1)
-    {
-        std::cout << "FD => " << client->fd << std::endl;
-        std::cout << "FILE FD => " << res->fd << std::endl;
-        std::cout << "Bytes read => " << bts << std::endl;
-        std::cout << "Buffer => " << buff << std::endl;
-        std::cout << CYAN_BOLD << "[NO SEND] ..." << std::endl;
-        std::cout << strerror(errno) << std::endl;
-    }
+    send(client->fd, buff, bts, 0);
     if (bts < MAX_BUFFER_SIZE)
     {
-        if (send(client->fd, "\r\n", 2, 0) == -1)
-            std::cout << "[NO SEND] ... 2" << std::endl;
+        send(client->fd, "\r\n", 2, 0);
         client->state = SERVED;
         client->request_time = time(NULL);
     }
@@ -218,20 +202,17 @@ void    Get::handle_static_file(t_client *client)
 
 void    Get::list_directories(t_client *client)
 {
-    t_request               *req;
     t_response              *res;
     DIR                     *dirstream;
     std::string             fullpath;
     struct dirent           *d;
 
-    req = client->request;
     res = client->response;
     fullpath = client->cwd;
     fullpath += res->rootfilepath;
     dirstream = opendir(fullpath.c_str());
     if (!dirstream)
     {
-        std::cout << RED_BOLD << "DIR STREAM IS NULL ==> " << fullpath << std::endl;
         client->state = SERVED;
         return ;
     }
@@ -244,8 +225,6 @@ void    Get::list_directories(t_client *client)
         std::string abspath = client->cwd;
         abspath = abspath + "/" + res->rootfilepath + "/" + dirname;
         res->dir_link.push_back(std::make_pair(dirname, abspath));
-        std::cout << dirname << std::endl;
-        std::cout << abspath << std::endl;
     }
     closedir(dirstream);
 }
@@ -258,13 +237,11 @@ void    Get::list_directories(t_client *client)
 void    Get::handle_directory_listing(t_client *client)
 {
     t_response  *res;
-    t_request   *req;
     std::string html;
     std::string content_length;
     DIR         *D;
 
     res = client->response;
-    req = client->request;
     list_directories(client);
     html = "<html><head><title>Index of</title></head><body><br /><h2>Index of</h2><hr /><ul>";
     for (std::list<std::pair<std::string, std::string> >::iterator it = res->dir_link.begin(); it != res->dir_link.end(); it++)

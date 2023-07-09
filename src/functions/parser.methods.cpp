@@ -429,10 +429,9 @@ bool ConfigFileParser::is_http_line_valid(int row)
 
 bool ConfigFileParser::is_http_valid()
 {
-    int i = 0, j = 0;
+    int i = 0;
     while (i < sz(http_as_words))
     {
-        j = 0;
         if (!is_http_line_valid(i))
             return (false) ;
         i++;
@@ -472,7 +471,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         if (token_type == CGI)
             std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
         else
-            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
+            std::cerr << RED_BOLD << "error_pages token syntax error" << std::endl;
         return (false);
     }
     if (token_type == DIRECTORY)
@@ -545,7 +544,7 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         if (token_type == CGI)
             std::cerr << RED_BOLD << "cgi token syntax error!" << std::endl;
         else
-            std::cout << RED_BOLD << "error_pages token syntax error" << std::endl;
+            std::cerr << RED_BOLD << "error_pages token syntax error" << std::endl;
         return (false) ;
     }
     if (token_type == DIRECTORY)
@@ -660,7 +659,7 @@ void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string
     fullpath += cgi_path;
     if (access(fullpath.c_str(), X_OK))
     {
-        std::cout << "INSERTING ERROR " << std::endl;
+        std::cerr << "[Webserv42]: Internal server token error " << std::endl;
         throw ParsingExceptionCgi();
     }
     extension_cgi[extension] = cgi_path;

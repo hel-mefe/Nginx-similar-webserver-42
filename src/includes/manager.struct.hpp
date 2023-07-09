@@ -71,7 +71,6 @@ typedef struct manager
         fds[slot].fd = fd;
         fds[slot].events = POLLIN | POLLOUT | POLLHUP;
         client->request_time = time(NULL);
-        std::cout << "Client has been added succesfully!" << std::endl;
         return true ;
     }
 
