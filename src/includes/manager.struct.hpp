@@ -73,17 +73,30 @@ typedef struct manager
         return (free_slot) ;
     }
 
+    void    printClientsMap()
+    {
+        for (std::map<SOCKET, t_client *>::iterator it = clients_map.begin(); it != clients_map.end(); it++)
+            std::cout << it->first << " - " << std::endl;
+    }
+
     bool    add_client(SOCKET fd, t_server *server)
     {
         if (IN_MAP(clients_map, fd))
+        {
+            std::cout << "ADD CLIENT PROBLEM" << std::endl;
+            printClientsMap();
             return false ;
-        int slot = get_free_slot();
+        }
+        std::cout << "ADD CLIENT" << std::endl;
+        printClientsMap();
+        int slot = get_slot();
         if (slot == -1)
             std::cerr << "[SLOTS PROBLEM]: no slot exist" << std::endl;
         t_client *client = new t_client(fd, slot, server);
         client->cwd = cwd;
         clients_map.insert(std::make_pair(fd, client));
         fds[slot].fd = fd;
+        client->slot = slot;
         fds[slot].events = POLLIN | POLLOUT | POLLHUP;
         client->request_time = time(NULL);
         return true ;
@@ -94,7 +107,17 @@ typedef struct manager
         int i = start + 1;
 
         for (; i < MAX_FDS && fds[i].fd != UNDEFINED; i++)
+        {
             fds[i - 1].fd = fds[i].fd;
+            fds[i - 1].revents = fds[i].revents;
+            fds[i - 1].events = fds[i].events;
+        }
+        if (i <= MAX_FDS)
+        {
+            fds[i - 1].fd = UNDEFINED;
+            fds[i - 1].events = 0;
+            fds[i - 1].revents = 0;
+        }
     }
 
     bool    remove_client(SOCKET fd)
@@ -104,12 +127,17 @@ typedef struct manager
         if (close(fd))
             std::cout << RED_BOLD << "[ FD WAS NOT CLOSED ]" << std::endl;
         t_client *data = clients_map[fd];
+        std::cout << "REMOVE CLIENT" << std::endl;
+        printClientsMap();
         int i = data->slot;
         fds[i].fd = -1;
         fds[i].events = 0;
         fds[i].revents = 0;
-        move_clients_left(i);
-        clients_map.erase(fd);
+        // move_clients_left(i);
+        int b = clients_map.erase(fd);
+        std::cout << b << " has been erased! => " << fd << std::endl;
+        std::cout << "AFTER REMOVE" << std::endl;
+        printClientsMap();
         add_slot(i);
         delete data;
         return true ;

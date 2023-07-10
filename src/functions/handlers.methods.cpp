@@ -156,6 +156,7 @@ bool    Handlers::handle_400(t_client *client)
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 400, true);
             client->state = SERVING_GET;
+            client->request->method = "GET";
         }
         else
         {
@@ -197,6 +198,7 @@ bool Handlers::handle_414(t_client *client)
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 414, true);
             client->state = SERVING_GET;
+            client->request->method = "GET";
         }
         else
         {
@@ -244,6 +246,7 @@ bool    Handlers::handle_501(t_client *client)
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 501, true);
                 client->state = SERVING_GET;
+                client->request->method = "GET";
             }
             else
             {
@@ -293,6 +296,7 @@ bool Handlers::handle_413(t_client *client)
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 413, true);
                 client->state = SERVING_GET;
+                client->request->method = "GET";
             }
             else
             {
@@ -415,6 +419,7 @@ bool    Handlers::handle_404(t_client *client)
         {
             fill_response(client, 404, true);
             client->state = SERVING_GET;
+            client->request->method = "GET";
         }
         else
         {
@@ -459,6 +464,7 @@ bool    Handlers::handle_200d(t_client *client)
         {
             fill_response(client, 200, true);
             client->state = SERVING_GET;
+            client->request->method = "GET";
         }
         else
         {
@@ -475,6 +481,7 @@ bool    Handlers::handle_200d(t_client *client)
             res->is_directory_listing = true ;
             fill_response(client, 200, true);
             client->state = SERVING_GET;
+            client->request->method = "GET";
         }
         else
             handle_404(client);
@@ -501,6 +508,7 @@ bool Handlers::handle_200f(t_client *client)
         if (!res->is_cgi)
             fill_response(client, 200, true);
         client->state = SERVING_GET;
+        client->request->method = "GET";
     }
     else if (!access(res->filepath.c_str(), F_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 403 forbidden
     {

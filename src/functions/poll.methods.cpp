@@ -111,10 +111,10 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
     fcntl(con, F_SETFL, O_NONBLOCK);
     if (con < 0)
         write_error("Internal server socket accept error");
-    if (!manager->add_client(con, server))
+    if (!this->manager->add_client(con, server))
         write_error("Internal server client error");
     std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
-    handle_client(manager, con);
+    // handle_client(manager, con);
 }
 
 
@@ -125,8 +125,10 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
 
 void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 {
+    (void)manager;
     std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
-    manager->remove_client(fd);
+    if (!this->manager->remove_client(fd))
+        std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
 /**
@@ -179,6 +181,7 @@ void Poll::multiplex()
     while (1)
     {
         num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
+        num_sockets = MAX_FDS;
         int revents = poll(manager->fds, num_sockets, -1);
         if (revents == -1)
             write_error("Internal server multiplexer error, poll returned -1 in revents");
@@ -189,24 +192,24 @@ void Poll::multiplex()
                 if (manager->is_listener(manager->fds[i].fd) &&
                     manager->fds[i].revents & POLLIN) // server
                 {
-                    handle_connection(manager, manager->fds[i].fd); // connection
+                    handle_connection(this->manager, manager->fds[i].fd); // connection
                     manager->client_num += 1;
                 }
                 else // client
                 {
                     t_client *client = manager->clients_map[manager->fds[i].fd];
-                    if ((manager->fds[i].revents & POLLIN) ||
+                    if (manager->fds[i].revents & POLLHUP) // disconnection
+                    {
+                        handle_disconnection(this->manager, manager->fds[i].fd);
+                        manager->client_num -= 1;
+                    }
+                    else if ((manager->fds[i].revents & POLLIN) ||
                         (manager->fds[i].revents & POLLOUT)) // handling client
                         {
                             if (((is_http_state(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
                                 ((client->request->method == "GET" || client->request->method == "DELETE") && manager->fds[i].revents & POLLOUT))
-                                handle_client(manager, manager->fds[i].fd);
+                                    handle_client(this->manager, manager->fds[i].fd);
                         }
-                    else if (manager->fds[i].revents & POLLHUP) // disconnection
-                    {
-                        handle_disconnection(manager, manager->fds[i].fd);
-                        manager->client_num -= 1;
-                    }
                 }
             }
         }

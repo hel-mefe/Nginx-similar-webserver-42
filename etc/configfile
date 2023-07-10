@@ -8,14 +8,14 @@ http
         root /www
         server_name name
         port 9080
+        fastCGI .php /goinfre/hel-mefe/webserverPollClean42/cgi-bin/php-cgi
+        fastCGI .pl /sr/bin/perl
+        fastCGI .py /usr/bin/python
         index index.html index.php home.html home.php
         not_found error_pages/404.html
         max_connections 20
         max_body_size 200000000
         register_logs logs
-        fastCGI .php /cgi-bin/php-cgi
-        fastCGI .pl /cgi-bin/perl-cgi
-        fastCGI .py /cgi-bin/python-cgi
         location /hello
         {
             root /brother/sister

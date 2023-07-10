@@ -29,7 +29,7 @@ void    Get::handle_static_file(t_client *client)
             std::cout << RED_BOLD << "SEND ERROR -> " << strerror(errno) << std::endl;
     }
     else if (bts <= 0)
-        client->state = WAITING;
+        client->state = SERVED;
 }
 
 
