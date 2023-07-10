@@ -72,11 +72,13 @@ bool    HttpParser::parse_request(t_client *client)
         size_t  spoint = line.find_first_of(":");
         first = line.substr(0, spoint);
         first = trim_string(first);
-        second = line.substr(spoint + 2);
+        second = line.substr(spoint + 1);
         second = trim_string(second);
+        second = get_lower_case(second);
+        first = get_lower_case(first);
         if (!sz(first) || !sz(second))
             return (false) ;
-        if (first == "Cookie")
+        if (first == "cookie")
         {
             if (!req->cookies.empty())
                 req->cookies.append("; ");

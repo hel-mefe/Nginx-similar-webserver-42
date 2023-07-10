@@ -3,7 +3,7 @@
 Server::Server() : server_configs(0), http_configs(0), dir_configs(0)
 {
     server_configs = new t_server_configs();
-    http_configs = new t_http_configs();
+    // http_configs = new t_http_configs();
     dir_configs = new HashMap<std::string, t_location_configs*>();
 }
 

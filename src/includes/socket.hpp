@@ -12,6 +12,7 @@
 # include <deque>
 # include <string>
 # include <sstream>
+# include <istream>
 # include <sys/socket.h>
 # include <sys/fcntl.h>
 # include <sys/netport.h>

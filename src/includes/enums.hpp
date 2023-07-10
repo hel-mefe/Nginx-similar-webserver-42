@@ -5,7 +5,7 @@ typedef struct server t_server;
 typedef struct LocationConfigs t_location_configs;
 
 #define MAX_FDS 256
-#define MAX_BUFFER_SIZE 20000
+#define MAX_BUFFER_SIZE 1000
 #define MAX_CLIENTS 256
 #define UNDEFINED_PORT 0
 #define MAX_REQUEST_TIMEOUT 30

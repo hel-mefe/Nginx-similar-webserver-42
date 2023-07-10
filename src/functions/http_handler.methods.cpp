@@ -180,7 +180,7 @@ void    HttpHandler::architect_response(t_client *client)
             client->state = SERVING_DELETE;
         else if (req->method == "POST")
         {
-            std::string header = req->request_map.at("Content-Type");
+            std::string header = req->request_map.at("content-type");
             handlers->change_path(client);
             if (!res->dir_configs->upload)
             {

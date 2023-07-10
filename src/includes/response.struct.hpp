@@ -5,7 +5,7 @@
 # include "enums.hpp"
 # include "globals.hpp"
 # include "structs.hpp"
-
+# include <sys/stat.h>
 
 typedef struct response
 {
@@ -19,6 +19,7 @@ typedef struct response
     int                                 fd;
     int                                 code;
     int                                 cgi_pid;
+    char                                *buffer;
     t_server_configs                    *configs;
     t_location_configs                  *dir_configs;
     std::string                         http_version;
@@ -42,6 +43,7 @@ typedef struct response
         cgi_pipe[0] = UNDEFINED;
         cgi_pipe[1] = UNDEFINED;
         del_files = 0;
+        buffer = new char[MAX_BUFFER_SIZE];
     }
     ~response()
     {
@@ -51,12 +53,23 @@ typedef struct response
             close(cgi_pipe[0]);
         if (cgi_pipe[1] != UNDEFINED)
             close(cgi_pipe[1]);
+        delete []buffer;
+    }
+
+    long    get_file_size(const char *filename)
+    {
+        struct stat file_status;
+
+        if (stat(filename, &file_status) < 0)
+            return -1;
+        return (file_status.st_size);
     }
 
     void    write_string(SOCKET fd, std::string s, bool rn)
     {
-        for (int i = 0; i < sz(s); i++)
-            send(fd, &s[i], 1, 0);
+        send(fd, s.c_str(), sz(s), 0);
+        // for (int i = 0; i < sz(s); i++)
+        //     send(fd, &s[i], 1, 0);
         if (rn)
             send(fd, "\r\n", 2, 0);
     }
@@ -64,21 +77,21 @@ typedef struct response
     void    write_response_in_socketfd(SOCKET fd, bool terminate)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
-        write_string(fd, http_version, false);
-        send(fd, " ", 1, 0);
-        write_string(fd, status_code, false);
-        send(fd, " ", 1, 0);
-        write_string(fd, status_line, true);
+        std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
-            write_string(fd, first, false);
-            send(fd, ":", 1, 0);
-            write_string(fd, second, true);
+            ress += first + " : " + second + "\r\n";
             it++;
         }
+        if (sz(this->filepath))
+            ress += "Content-Length: " + std::to_string(get_file_size(this->filepath.c_str())) + "\r\n\r\n";
         if (terminate)
-            send(fd, "\r\n", 2, 0);
+            ress = ress + "";
+        else
+            ress = ress + "";
+        send(fd, ress.c_str(), sz(ress), 0);
+        std::cout << YELLOW_BOLD << ress << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)

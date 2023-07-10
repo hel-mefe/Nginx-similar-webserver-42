@@ -15,27 +15,21 @@ long    get_file_size(const char *filename)
 
 void    Get::handle_static_file(t_client *client)
 {
-    unsigned char           buff[MAX_BUFFER_SIZE];
     int                     bts;
     t_response              *res;
+    std::string             ress;
+
 
     res = client->response;
-    if (res->is_first_time)
+    bzero(res->buffer, MAX_BUFFER_SIZE);
+    bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
+    if (bts > 0)
     {
-        long filesize = get_file_size(res->filepath.c_str());
-        std::string fs = "content-length: " + std::to_string(filesize) + "\r\n\r\n";
-        res->is_first_time = false;
-        send(client->fd, fs.c_str(), sz(fs), 0);
+        if (send(client->fd, res->buffer, bts, 0) == -1)
+            std::cout << RED_BOLD << "SEND ERROR -> " << strerror(errno) << std::endl;
     }
-    bzero(buff, MAX_BUFFER_SIZE);
-    bts = read(res->fd, buff, MAX_BUFFER_SIZE);
-    send(client->fd, buff, bts, 0);
-    if (bts < MAX_BUFFER_SIZE)
-    {
-        send(client->fd, "\r\n", 2, 0);
-        client->state = SERVED;
-        client->request_time = time(NULL);
-    }
+    else if (bts <= 0)
+        client->state = WAITING;
 }
 
 
@@ -124,7 +118,7 @@ void    Get::serve_client(t_client *client)
         client->request_time = time(NULL);
         req->first_time = false;
     }
-    else if (time(NULL) - client->request_time > 30)
+    else if (res->is_cgi && time(NULL) - client->request_time > 30)
     {
         fill_response(client, 408, "Request Timeout", true);
         if (res->cgi_running)

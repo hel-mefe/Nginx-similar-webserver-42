@@ -58,13 +58,28 @@ typedef struct manager
         return clients_map[fd];
     }
 
+    int     get_free_slot()
+    {
+        int free_slot = UNDEFINED;
+        
+        for (int i = 0; i < MAX_FDS; i++)
+        {
+            if (fds[i].fd == UNDEFINED)
+            {
+                free_slot = i ;
+                break ;
+            }
+        }
+        return (free_slot) ;
+    }
+
     bool    add_client(SOCKET fd, t_server *server)
     {
         if (IN_MAP(clients_map, fd))
             return false ;
-        int slot = get_slot();
+        int slot = get_free_slot();
         if (slot == -1)
-            std::cout << "[SLOTS PROBLEM]: no slot exist" << std::endl;
+            std::cerr << "[SLOTS PROBLEM]: no slot exist" << std::endl;
         t_client *client = new t_client(fd, slot, server);
         client->cwd = cwd;
         clients_map.insert(std::make_pair(fd, client));
@@ -72,6 +87,14 @@ typedef struct manager
         fds[slot].events = POLLIN | POLLOUT | POLLHUP;
         client->request_time = time(NULL);
         return true ;
+    }
+
+    void    move_clients_left(int start)
+    {
+        int i = start + 1;
+
+        for (; i < MAX_FDS && fds[i].fd != UNDEFINED; i++)
+            fds[i - 1].fd = fds[i].fd;
     }
 
     bool    remove_client(SOCKET fd)
@@ -82,10 +105,11 @@ typedef struct manager
             std::cout << RED_BOLD << "[ FD WAS NOT CLOSED ]" << std::endl;
         t_client *data = clients_map[fd];
         int i = data->slot;
-        clients_map.erase(fd);
         fds[i].fd = -1;
         fds[i].events = 0;
         fds[i].revents = 0;
+        move_clients_left(i);
+        clients_map.erase(fd);
         add_slot(i);
         delete data;
         return true ;

@@ -144,6 +144,8 @@ void parse_cgi_output(t_client* client)
         }
         send(client->fd, str.c_str(), str.size(), 0);
     }
+
+    // removed later on
     while(true)
     {
         rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);

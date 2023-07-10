@@ -72,9 +72,7 @@ void    Poll::set_manager()
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->cwd = getwd(NULL);
     _manager->fds = new struct pollfd[MAX_FDS]();
-    // manager->handlers.insert(std::make_pair("GET", new Get()));
-    // manager->handlers.insert(std::make_pair("POST", new Post()));
-    // manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+
     if (!sz(_manager->cwd))
         write_error("Internal server getcwd() error");
     int i = 0;
@@ -111,7 +109,6 @@ void Poll::handle_connection(t_manager *manager, SOCKET fd)
     socklen_t len = sizeof((_data));
     SOCKET con = accept(fd, (sockaddr *) &_data, &len);
     fcntl(con, F_SETFL, O_NONBLOCK);
-	setsockopt(con, SOL_SOCKET, SO_NOSIGPIPE, &_data, len);
     if (con < 0)
         write_error("Internal server socket accept error");
     if (!manager->add_client(con, server))
@@ -172,6 +169,7 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 
 void Poll::multiplex()
 {
+    int num_sockets;
     set_manager();
     http_handler = new HttpHandler();
 
@@ -180,10 +178,11 @@ void Poll::multiplex()
     signal(SIGPIPE, SIG_IGN);
     while (1)
     {
-        int revents = poll(manager->fds, MAX_FDS, -1);
+        num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
+        int revents = poll(manager->fds, num_sockets, -1);
         if (revents == -1)
             write_error("Internal server multiplexer error, poll returned -1 in revents");
-        for (int i = 0; i < MAX_FDS; i++)
+        for (int i = 0; i < num_sockets; i++)
         {
             if (manager->fds[i].fd != -1)
             {
@@ -195,9 +194,14 @@ void Poll::multiplex()
                 }
                 else // client
                 {
+                    t_client *client = manager->clients_map[manager->fds[i].fd];
                     if ((manager->fds[i].revents & POLLIN) ||
                         (manager->fds[i].revents & POLLOUT)) // handling client
-                        handle_client(manager, manager->fds[i].fd);
+                        {
+                            if (((is_http_state(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
+                                ((client->request->method == "GET" || client->request->method == "DELETE") && manager->fds[i].revents & POLLOUT))
+                                handle_client(manager, manager->fds[i].fd);
+                        }
                     else if (manager->fds[i].revents & POLLHUP) // disconnection
                     {
                         handle_disconnection(manager, manager->fds[i].fd);

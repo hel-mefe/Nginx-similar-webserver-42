@@ -34,9 +34,13 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     if (write_it)
     {
         if (client->request->method == "GET")
-        res->write_response_in_socketfd(client->fd, !sz(res->filepath));
+        {
+            if (sz(res->filepath))
+                std::cout << "file path is true: " << res->filepath << std::endl ;
+            res->write_response_in_socketfd(client->fd, !sz(res->filepath));
+        }
         else
-        res->write_response_in_socketfd(client->fd, true);
+            res->write_response_in_socketfd(client->fd, true);
     }
 }
 
@@ -141,8 +145,8 @@ bool    Handlers::handle_400(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    if ((req->method == "POST" && (!IN_MAP((*request_map), "Content-Type") || (!IN_MAP((*request_map), "Transfer-Encoding") && \
-    !IN_MAP((*request_map), "Content-Length")))) || !is_request_uri_valid(req->path))
+    if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
+    !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
     {
         error_page = code_to_page[400];
         path = res->root;
@@ -217,7 +221,7 @@ bool    Handlers::handle_501(t_client *client)
 {
     t_request *req = client->request;
     t_response *res = client->response;
-    std::map<std::string, std::string>::iterator it = req->request_map.find("Transfer-Encoding");
+    std::map<std::string, std::string>::iterator it = req->request_map.find("transfer-encoding");
     std::map<int, std::string> code_to_page;
     std::string error_page = "";
     std::string path = "";
@@ -276,9 +280,9 @@ bool Handlers::handle_413(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    if (IN_MAP((*request_map), "Content-Length"))
+    if (IN_MAP((*request_map), "content-length"))
     {
-        req->content_length = std::atoi(request_map->at("Content-Length").c_str());
+        req->content_length = std::atoi(request_map->at("content-length").c_str());
         if(sconf->max_body_size < req->content_length)
         {
             error_page = code_to_page[413];
@@ -422,6 +426,7 @@ bool    Handlers::handle_404(t_client *client)
     }
     else
     {
+        std::cout << "404 not found filepath => " << res->filepath << std::endl;
         res->rootfilepath = "";
         res->filepath = "";
         client->state = SERVED;
