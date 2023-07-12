@@ -1,6 +1,6 @@
 http
 {
-    allowed_methods GET POST DELETE
+    allowed_methods GET POST DELETE OPTIONS HEAD
     root /
     server
     {

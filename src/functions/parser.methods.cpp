@@ -331,6 +331,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("connection", CONNECTION));
     http_tokens.insert(std::make_pair("max_request_timeout", INT));
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
+    http_tokens.insert(std::make_pair("cookies", MULTIP));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
 
@@ -351,6 +352,7 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
     server_tokens.insert(std::make_pair("register_logs", STRING));
     server_tokens.insert(std::make_pair("max_request_timeout", INT));
+    server_tokens.insert(std::make_pair("cookies", ON_OFF));
 }
 
 void    ConfigFileParser::fill_location_hashmap()
@@ -935,6 +937,10 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "max_request_timeout")
             http_data->max_request_timeout = std::atoi(http_as_words[i][1].c_str());
+        else if (token_name == "multiplexer")
+            http_data->multiplexer = http_as_words[i][1];
+        else if (token_name == "cookies")
+            http_data->cookies = http_as_words[i][1];
     }
     return (true);
 }
