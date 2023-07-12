@@ -6,6 +6,7 @@ http
 
   server
   {
+    allowed_methods GET POST DELETE
     port 8080
     server_name server
     

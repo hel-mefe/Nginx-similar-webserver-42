@@ -52,7 +52,7 @@ bool    HttpParser::parse_first_line(t_request *req)
         req->filename = get_filename(req->path);
     }
     delete splitted;
-    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE") && (req->http_version == "HTTP/1.1"));
+    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS") && (req->http_version == "HTTP/1.1"));
 
 }
 
@@ -78,7 +78,7 @@ bool    HttpParser::parse_request(t_client *client)
         first = get_lower_case(first);
         if (!sz(first) || !sz(second))
             return (false) ;
-        if (first == "cookie")
+        if (first == "cookie" && client->server->server_configs->cookies)
         {
             if (!req->cookies.empty())
                 req->cookies.append("; ");
@@ -87,6 +87,8 @@ bool    HttpParser::parse_request(t_client *client)
         else
             req->request_map.insert(std::make_pair(first, second));
     }
+    if (req->method == "OPTIONS" && !IN_MAP(req->request_map, "origin"))
+        return (false) ;
     return (true) ;
 }
 

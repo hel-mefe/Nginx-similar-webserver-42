@@ -331,7 +331,7 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("connection", CONNECTION));
     http_tokens.insert(std::make_pair("max_request_timeout", INT));
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
-    http_tokens.insert(std::make_pair("cookies", MULTIP));
+    http_tokens.insert(std::make_pair("cookies", ON_OFF));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
 }
 
@@ -371,6 +371,7 @@ void    ConfigFileParser::fill_location_hashmap()
     location_tokens.insert(std::make_pair("directory_listing", ON_OFF));
     location_tokens.insert(std::make_pair("location", LOCATION));
     location_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
+    location_tokens.insert(std::make_pair("cookies", ON_OFF));
 
 }
 
@@ -695,6 +696,8 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
     attr.max_body_size = conf->max_body_size;
     attr.root = conf->root;
     attr.max_request_timeout = conf->max_request_timeout;
+    attr.cookies = conf->cookies;
+
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
         if (nodes[i].id != "server")
@@ -859,6 +862,8 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
             std::string page = nodes[i].location_blocks[j][2];
             l_configs.code_to_page[code] = page;
         }
+        else if (token_name == "cookies")
+            l_configs.cookies = (nodes[i].location_blocks[j][1] == "on");
         j++;
     }
     if (l_configs.code_to_page.find(404) != l_configs.code_to_page.end())
@@ -888,6 +893,7 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         conf->pages_404 = s_conf->pages_404;
         conf->pages_404_set = s_conf->pages_404_set;
         conf->code_to_page = s_conf->code_to_page;
+        conf->cookies = s_conf->cookies;
         fill_location_attributes(*conf, index, start, i);
         server->set_location_map(location, conf);
     }
@@ -940,7 +946,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
         else if (token_name == "multiplexer")
             http_data->multiplexer = http_as_words[i][1];
         else if (token_name == "cookies")
-            http_data->cookies = http_as_words[i][1];
+            http_data->cookies = (http_as_words[i][1] == "on");
     }
     return (true);
 }

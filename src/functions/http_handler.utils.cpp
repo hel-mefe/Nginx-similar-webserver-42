@@ -182,7 +182,7 @@ bool    is_file(std::string &path)
 std::string trim_string(std::string &s)
 {
     int a = 0, b = sz(s) - 1;
-    while (a < b && isspace(s[a]) && isspace(s[b]))
+    while (a < b && (isspace(s[a]) || isspace(s[b])))
         a += (isspace(s[a])), b -= (isspace(s[a]));
     std::string res = s.substr(a, b - a + 1);
     return res;

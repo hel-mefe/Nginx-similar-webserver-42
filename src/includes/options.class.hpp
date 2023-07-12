@@ -11,8 +11,8 @@ class Options : public MethodHandler
 {
     public:
         Options(){}
-        void    serve_client(t_client *client);
-        
+        void            serve_client(t_client *client);
+        std::string     get_allowed_methods(t_client *client);
         ~Options(){}
 } ;
 

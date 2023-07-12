@@ -32,8 +32,9 @@ typedef struct ServerAttributes
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
+    bool                                cookies;
 
-    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE), max_request_timeout(DEFAULT_MAX_REQUEST_TIMEOUT) {}
+    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE), max_request_timeout(DEFAULT_MAX_REQUEST_TIMEOUT), cookies(false){}
 }   t_server_configs;
 
 typedef struct LocationConfigs
@@ -55,6 +56,7 @@ typedef struct LocationConfigs
     bool                                connection;
     bool                                upload;
     bool                                directory_listing;
+    bool                                cookies;
 
     LocationConfigs()
     {
@@ -62,11 +64,13 @@ typedef struct LocationConfigs
         auto_indexing = false;
         upload = false;
         directory_listing = false;
+        cookies = false;
     }
 }   t_location_configs;
 
 typedef struct HttpConfigs
 {
+    std::string                         multiplexer;
     std::string                         root;
     std::vector<std::string>            indexes;
     std::vector<std::string>            allowed_methods;
@@ -79,6 +83,7 @@ typedef struct HttpConfigs
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
+    bool                                cookies;
     int                                 max_body_size;
     int                                 max_request_timeout;
 

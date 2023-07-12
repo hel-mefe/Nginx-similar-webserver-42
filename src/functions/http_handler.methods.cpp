@@ -169,7 +169,9 @@ void    HttpHandler::architect_response(t_client *client)
     //req->print_data();
     req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
-    if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
+    if (req->method == "OPTIONS")
+        client->state = SERVING_OPTIONS;
+    else if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         return ;
     else

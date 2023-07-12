@@ -10,7 +10,7 @@
 # include "post.class.hpp"
 # include "delete.class.hpp"
 # include "get.class.hpp"
-
+# include "options.class.hpp"
 
 class Poll : public MultiplexerInterface
 {

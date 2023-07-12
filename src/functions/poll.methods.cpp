@@ -70,6 +70,7 @@ void    Poll::set_manager()
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+    _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
     _manager->cwd = getwd(NULL);
     _manager->fds = new struct pollfd[MAX_FDS]();
 
@@ -131,30 +132,13 @@ void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
         std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
-/**
- * returns true if we are dealing with a state that requires reading the header
-*/
-bool is_http_state(CLIENT_STATE state)
-{
-    return (state == READING_HEADER || state == WAITING);
-}
-
-/**
- * returns true if the client is being in a method serving state
-*/
-
-bool is_method_handler_state(CLIENT_STATE state)
-{
-    return (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE);
-}
-
 void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
 
-    if (is_http_state(client->state))
+    if (IS_HTTP_STATE(client->state))
         http_handler->handle_http(client);
-    if (is_method_handler_state(client->state))
+    if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
 
     if (client->state == SERVED)
@@ -206,8 +190,8 @@ void Poll::multiplex()
                     else if ((manager->fds[i].revents & POLLIN) ||
                         (manager->fds[i].revents & POLLOUT)) // handling client
                         {
-                            if (((is_http_state(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
-                                ((client->request->method == "GET" || client->request->method == "DELETE") && manager->fds[i].revents & POLLOUT))
+                            if (((IS_HTTP_STATE(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
+                                ((client->request->method == "GET" || client->request->method == "DELETE" || client->request->method == "OPTIONS") && manager->fds[i].revents & POLLOUT))
                                     handle_client(this->manager, manager->fds[i].fd);
                         }
                 }
