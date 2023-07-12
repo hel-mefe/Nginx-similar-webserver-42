@@ -3,6 +3,8 @@
 
 # include "socket.hpp"
 
+typedef struct client t_client;
+
 std::string                 get_cleanified_path(std::string s);
 void                        alert(std::string s, const char *color);
 
@@ -20,5 +22,6 @@ std::string                 get_filename(std::string &s);
 std::vector<std::string>    *split_first_line(std::string &s);
 
 int     get_rn_endpos(unsigned char *buff, int buff_size); // -1 means not found
+void    add_to_logs(t_client *client);
 
 #endif

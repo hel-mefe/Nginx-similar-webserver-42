@@ -74,10 +74,11 @@ typedef struct response
             send(fd, "\r\n", 2, 0);
     }
 
-    void    write_response_in_socketfd(SOCKET fd, bool terminate)
+    void    write_response_in_socketfd(SOCKET fd)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
         std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
+
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
@@ -86,12 +87,7 @@ typedef struct response
         }
         if (sz(this->filepath))
             ress += "Content-Length: " + std::to_string(get_file_size(this->filepath.c_str())) + "\r\n\r\n";
-        if (terminate)
-            ress = ress + "";
-        else
-            ress = ress + "";
         send(fd, ress.c_str(), sz(ress), 0);
-        std::cout << YELLOW_BOLD << ress << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)
@@ -126,6 +122,7 @@ typedef struct response
         }
         std::cout << CYAN_BOLD << " **** END PRINTING RESPONSE DATA ****" << std::endl;
     }
+
 }   t_response ;
 
 #endif

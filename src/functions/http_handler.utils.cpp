@@ -31,7 +31,7 @@ void    fill_response(t_client *client, int code, std::string status_line, bool 
     if (sz(connection)) // type of connection
         res->add("connection", "closed");
     if (write_it)
-        res->write_response_in_socketfd(client->fd, true);
+        res->write_response_in_socketfd(client->fd);
 }
 
 char** convert_cgi_env(t_client* client)
@@ -336,4 +336,30 @@ bool    is_directory_exist(std::string basepath, std::string &path)
     fullpath += path;
     d = opendir(fullpath.c_str());
     return (d != NULL);    
+}
+
+/** logs function that adds all the logs to the etc/logs file **/
+void    add_to_logs(t_client* client)
+{
+    std::string str = client->cwd + "/etc/logs";
+    int fd = open(str.c_str(), O_CREAT | O_APPEND | O_WRONLY, 0777);
+    if (fd < 0)
+        return;
+    str.clear();
+    str += "[";
+    str += std::to_string(time(NULL));
+    str += "] ";
+    str += "SERVER:";
+    str += client->response->configs->server_name;
+    str += " HTTP/1.1 ";
+    str += client->request->method;
+    str += " ";
+    str += client->request->path;
+    str += " | ";
+    str += client->response->status_code;
+    str += " ";
+    str += client->response->status_line;
+    str += "\n";
+    write(fd, str.c_str(), str.size());
+    close(fd);
 }

@@ -33,14 +33,15 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     }
     if (write_it)
     {
+        add_to_logs(client);
         if (client->request->method == "GET")
         {
             if (sz(res->filepath))
                 std::cout << "file path is true: " << res->filepath << std::endl ;
-            res->write_response_in_socketfd(client->fd, !sz(res->filepath));
+            res->write_response_in_socketfd(client->fd);
         }
         else
-            res->write_response_in_socketfd(client->fd, true);
+            res->write_response_in_socketfd(client->fd);
     }
 }
 

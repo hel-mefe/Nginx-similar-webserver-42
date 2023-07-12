@@ -11,9 +11,9 @@ http
     
     error_page 404 error_pages/404.html
     error_page 403 error_pages/403.html
-    fastCGI .pl /usr/bin/perl
-    fastCGI .py /usr/bin/python
-    fastCGI .php /Users/hel-mefe/Desktop/webserverPollClean42/cgi-bin/php-cgi
+    # fastCGI .pl /usr/bin/perl
+    # fastCGI .py /usr/bin/python
+    # fastCGI .php /Users/hel-mefe/Desktop/webserverPollClean42/cgi-bin/php-cgi
 
     index index.html
 
