@@ -94,5 +94,5 @@ bool TokensChecker::is_code(std::string s)
 
 bool TokensChecker::is_multiplexer(std::string s)
 {
-    return (s == "poll" || s == "kqueue");
+    return (s == "poll" || s == "kqueue" || s == "select");
 }

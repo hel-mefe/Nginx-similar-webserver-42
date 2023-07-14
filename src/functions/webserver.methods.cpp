@@ -201,6 +201,8 @@ void    Webserver::set_multiplexer()
         this->multiplexer = new Kqueue() ;
     else if (s_mult == "poll")
         this->multiplexer = new Poll() ;
+    else if (s_mult == "select")
+        this->multiplexer = new Select();
 }
 
 void    Webserver::run() // sockets of all servers will run here

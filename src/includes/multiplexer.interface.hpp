@@ -4,7 +4,7 @@
 # include "structs.hpp"
 
 #define IS_HTTP_STATE(state) (state == READING_HEADER)
-#define IS_METHOD_STATE(state) (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE || SERVING_OPTIONS)
+#define IS_METHOD_STATE(state) (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE || state == SERVING_OPTIONS)
 
 class MultiplexerInterface
 {

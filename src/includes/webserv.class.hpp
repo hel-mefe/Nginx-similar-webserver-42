@@ -6,6 +6,7 @@
 # include "multiplexer.interface.hpp"
 # include "poll.class.hpp"
 # include "kqueue.class.hpp"
+# include "select.class.hpp"
 
 class Webserver
 {

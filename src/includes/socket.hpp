@@ -17,6 +17,7 @@
 # include <sys/netport.h>
 # include <arpa/inet.h>
 # include <poll.h> // for poll multiplexing method
+# include <sys/select.h> // for select multiplexing
 # include <sys/event.h> // for kqueue multiplexing method
 # include "http_handler.interface.hpp"
 # include "client.struct.hpp"
