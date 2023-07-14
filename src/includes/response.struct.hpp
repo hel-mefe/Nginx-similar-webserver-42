@@ -87,7 +87,10 @@ typedef struct response
         }
         if (sz(this->filepath))
             ress += "Content-Length: " + std::to_string(get_file_size(this->filepath.c_str())) + "\r\n\r\n";
+        else
+            ress += "\r\n";
         send(fd, ress.c_str(), sz(ress), 0);
+        std::cout << ress << std::endl;
     }
 
     bool    add(std::string s1, std::string s2)

@@ -8,6 +8,7 @@
 ╚███╔███╔╝███████╗██████╔╝███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║           ██║███████╗ \n\
  ╚══╝╚══╝ ╚══════╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝           ╚═╝╚══════╝ \n\n"
 
+
 int main(int ac, char **av)
 {
     if (ac != 2)
@@ -18,8 +19,8 @@ int main(int ac, char **av)
     }
     try
     {
-        MultiplexerInterface *multiplexer = new Poll();
-        Webserver *ws = new Webserver(av[1], multiplexer);
+        Webserver *ws = new Webserver(av[1]);
+
         char buff[1000];
         bzero(buff, 1000);
         std::cout << LOGO << std::endl;

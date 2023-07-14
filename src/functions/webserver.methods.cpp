@@ -20,6 +20,7 @@ Webserver::Webserver(std::string _config_file)
     mimes = new HashMap<std::string, std::string>();
     codes = new HashMap<int, std::string>();
     config_file = _config_file;
+    multiplexer = nullptr;
 }
 
 Webserver::Webserver(std::string _config_file, MultiplexerInterface *_multiplexer)
@@ -192,10 +193,21 @@ void    Webserver::init_codes()
     codes->insert(std::make_pair(511, "Network Authentication Required"));
 }
 
+void    Webserver::set_multiplexer()
+{
+    std::string s_mult = http_configs->multiplexer;
+
+    if (!sz(s_mult) || s_mult == "kqueue")
+        this->multiplexer = new Kqueue() ;
+    else if (s_mult == "poll")
+        this->multiplexer = new Poll() ;
+}
+
 void    Webserver::run() // sockets of all servers will run here
 {
     init_mimes();
     init_codes();
+    set_multiplexer();
     multiplexer->set_configs(http_configs);
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);

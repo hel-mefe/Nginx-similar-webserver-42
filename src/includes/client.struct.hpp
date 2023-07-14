@@ -37,6 +37,18 @@ typedef struct client
         response = new t_response();
     }
 
+    client(SOCKET _fd, t_server *_server)
+    {
+        fd = _fd;
+        request_time = time(NULL);
+        state = WAITING;
+        server = nullptr;
+        server = _server;
+        request = new t_request();
+        response = new t_response();
+    }
+
+
     client(SOCKET _fd, int _slot, t_server *_server)
     {
         fd = _fd;

@@ -22,18 +22,14 @@ std::string Options::get_allowed_methods(t_client *client)
         s = pos == std::string::npos ? smethods.substr(start_pos) : smethods.substr(start_pos, pos - start_pos);
         s = get_upper_case(s);
         s = trim_string(s);
-        std::cout << "METHOD ALLOWED => " << s << std::endl;
         asked_methods.push_back(s);        
     }
-    std::cout << "ALLOWED METHODS => " << std::endl;
     for (int i = 0; i < sz(allowed_methods); i++)
         std::cout << allowed_methods[i] << " " << std::endl;
     for (int i = 0; i < sz(asked_methods); i++)
     {
         if (std::find(allowed_methods.begin(), allowed_methods.end(), asked_methods[i]) != allowed_methods.end())
             ress = (sz(ress)) ? ress + ", " + asked_methods[i] : asked_methods[i] ;
-        else
-            std::cout << CYAN_BOLD << asked_methods[i] << " is not found in allowed_methods" << std::endl;
     }
     return (ress) ;
 }

@@ -3,16 +3,22 @@
 void    HttpHandler::handle_http(t_client *client)
 {
     int max_request_timeout = client->server->server_configs->max_request_timeout;
+    int time_passed = time(NULL) - client->request_time;
 
-    if (client->state == READING_HEADER || client->state == WAITING)
+    if (client->state == WAITING)
     {
-        int time_passed = time(NULL) - client->request_time;
-        if (time_passed > max_request_timeout && client->state == READING_HEADER)
+        if (time_passed > max_request_timeout)
             client->state = SERVED;
         else
             client->state = (client->state == WAITING) ? READING_HEADER : WAITING;
-        if (client->state == READING_HEADER && http_parser->read_header(client))
+    }
+    std::cout << "GOT INTO HANDLING HTTP ... " << std::endl;
+    if (client->state == READING_HEADER)
+    {
+        std::cout << "READING THE HEADER ..." << std::endl;
+        if (http_parser->read_header(client))
         {
+            std::cout << "HEAD IS BEING PARSING ..." << std::endl;
             if (!http_parser->parse_request(client)) // request is not well-formed
             {
                 std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
@@ -23,10 +29,7 @@ void    HttpHandler::handle_http(t_client *client)
                 architect_response(client);
         }
         else
-        {
-            if (time_passed > max_request_timeout && client->state == READING_HEADER)
-                client->state = SERVED;
-        }
+            client->state = WAITING;
     }
 }
 

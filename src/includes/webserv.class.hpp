@@ -5,6 +5,7 @@
 # include "parser.class.hpp"
 # include "multiplexer.interface.hpp"
 # include "poll.class.hpp"
+# include "kqueue.class.hpp"
 
 class Webserver
 {
@@ -29,7 +30,8 @@ class Webserver
 
         void    init_mimes();
         void    init_codes();
-
+        void    set_multiplexer();
+    
         // Debugging lines to check the data that was parsed
         void    print_global_http_data();
         void    print_servers_data();

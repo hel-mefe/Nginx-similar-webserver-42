@@ -3,7 +3,7 @@
 # include <iostream>
 # include "structs.hpp"
 
-#define IS_HTTP_STATE(state) (state == READING_HEADER || state == WAITING)
+#define IS_HTTP_STATE(state) (state == READING_HEADER)
 #define IS_METHOD_STATE(state) (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE || SERVING_OPTIONS)
 
 class MultiplexerInterface

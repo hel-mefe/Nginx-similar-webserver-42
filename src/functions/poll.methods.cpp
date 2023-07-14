@@ -136,7 +136,7 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
 
-    if (IS_HTTP_STATE(client->state))
+    if (IS_HTTP_STATE(client->state) || client->state == WAITING)
         http_handler->handle_http(client);
     if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
@@ -162,6 +162,7 @@ void Poll::multiplex()
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
     signal(SIGPIPE, SIG_IGN);
+    std::cout << "POLL IS RUNNING ..." << std::endl;
     while (1)
     {
         num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
@@ -191,7 +192,8 @@ void Poll::multiplex()
                         (manager->fds[i].revents & POLLOUT)) // handling client
                         {
                             if (((IS_HTTP_STATE(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
-                                ((client->request->method == "GET" || client->request->method == "DELETE" || client->request->method == "OPTIONS") && manager->fds[i].revents & POLLOUT))
+                                ((client->request->method == "GET" || client->request->method == "DELETE" || client->request->method == "OPTIONS" || client->state == WAITING) \
+                                && manager->fds[i].revents & POLLOUT))
                                     handle_client(this->manager, manager->fds[i].fd);
                         }
                 }
