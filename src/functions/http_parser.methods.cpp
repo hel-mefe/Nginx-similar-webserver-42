@@ -52,7 +52,7 @@ bool    HttpParser::parse_first_line(t_request *req)
         req->filename = get_filename(req->path);
     }
     delete splitted;
-    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS") && (req->http_version == "HTTP/1.1"));
+    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD") && (req->http_version == "HTTP/1.1"));
 
 }
 

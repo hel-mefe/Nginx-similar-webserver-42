@@ -57,7 +57,7 @@ void Post::serve_client(t_client *client)
         client->request_time = time(NULL);
         res->cgi_running = false;
         req->body_size = 0;
-        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
+        res->is_cgi = IS_CGI_SUPPORTED(req->method);
         if (res->is_cgi)
             res->cgi_path = res->configs->extension_cgi[req->extension];
         create_file(client);

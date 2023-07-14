@@ -61,7 +61,7 @@ bool TokensChecker::is_int(std::string s)
 
 bool TokensChecker::is_method(std::string s)
 {
-    return (s == "GET" || s == "POST" || s == "DELETE" || s == "OPTIONS");
+    return (s == "GET" || s == "POST" || s == "DELETE" || s == "OPTIONS" || s == "HEAD");
 }
 
 bool TokensChecker::is_on_off(std::string s)

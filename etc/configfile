@@ -16,6 +16,7 @@ http
         max_connections 20
         max_body_size 200000000
         register_logs logs
+ 
         location /hello
         {
             root /brother/sister
@@ -44,6 +45,5 @@ http
             index index.html
             upload on
         }
-
     }
 }

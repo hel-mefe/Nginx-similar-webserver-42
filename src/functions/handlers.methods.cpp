@@ -40,6 +40,11 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
                 std::cout << "file path is true: " << res->filepath << std::endl ;
             res->write_response_in_socketfd(client->fd);
         }
+        else if (client->request->method == "HEAD")
+        {
+            res->filepath = ""; // set to empty string therefore \r\n\r\n can be sent
+            res->write_response_in_socketfd(client->fd);
+        }
         else
             res->write_response_in_socketfd(client->fd);
     }
@@ -156,7 +161,7 @@ bool    Handlers::handle_400(t_client *client)
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 400, true);
-            client->state = SERVING_GET;
+            client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->request->method = "GET";
         }
         else
@@ -198,7 +203,7 @@ bool Handlers::handle_414(t_client *client)
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 414, true);
-            client->state = SERVING_GET;
+            client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->request->method = "GET";
         }
         else
@@ -246,7 +251,7 @@ bool    Handlers::handle_501(t_client *client)
                 res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 501, true);
-                client->state = SERVING_GET;
+                client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->request->method = "GET";
             }
             else
@@ -296,7 +301,7 @@ bool Handlers::handle_413(t_client *client)
                 res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
                 fill_response(client, 413, true);
-                client->state = SERVING_GET;
+                client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->request->method = "GET";
             }
             else
@@ -348,10 +353,8 @@ bool    Handlers::handle_405(t_client *client)
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
             fill_response(client, 405, true);
-            if (req->method == "GET")
-                client->state = SERVING_GET;
-            else
-                client->state = SERVED;
+            client->state = (req->method == "HEAD") ? SERVED : SERVING_GET;
+            req->method = "GET";
         }
         else
         {
@@ -382,12 +385,14 @@ bool    Handlers::handle_301(t_client *client)
     {
         res->redirect_to = res->dir_configs->redirection;
         fill_response(client, 301, true);
+        client->state = SERVED;
         return (true);
     }
     else if (IN_MAP(res->dir_configs->code_to_page, 301))
     {
         res->redirect_to = res->dir_configs->code_to_page[301];
         fill_response(client, 301, true);
+        client->state = SERVED;
         return (true);
     }
     return (false) ;
@@ -419,7 +424,7 @@ bool    Handlers::handle_404(t_client *client)
         if (!access(res->filepath.c_str(), R_OK))
         {
             fill_response(client, 404, true);
-            client->state = SERVING_GET;
+            client->state = client->request->method == "HEAD" ? SERVED : SERVING_GET;
             client->request->method = "GET";
         }
         else

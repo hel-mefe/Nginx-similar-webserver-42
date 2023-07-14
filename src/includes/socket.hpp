@@ -40,6 +40,9 @@
 # undef MAX_REQUEST_TIMEOUT
 #endif
 
+#define IS_METHOD_SUPPORTED(m) (m == "GET" || m == "POST" || m == "OPTIONS" || m == "DELETE" || m == "HEAD")
+#define IS_CGI_SUPPORTED(e) (e == ".php" || e == ".py" || e == ".pl")
+
 #define MAX_REQUEST_TIMEOUT 5
 
 void    read_header(t_client *client);

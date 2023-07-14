@@ -179,7 +179,7 @@ void    HttpHandler::architect_response(t_client *client)
         return ;
     else
     {
-        if (req->method == "GET")
+        if (req->method == "GET" || req->method == "HEAD")
             handlers->handle_200(client);
         else if (req->method == "DELETE")
             client->state = SERVING_DELETE;
