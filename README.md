@@ -10,10 +10,8 @@ We need to add:
 
 * Project struct:
 
-src : tools / multiplixers / methods / managers / parsers / handlers / header
+      src{ tools{.cpp}, multiplixers{.cpp}, methods{.cpp}, managers{.cpp}, parsers{.cpp}, handlers{.cpp}, header{.hpp} }
 
-bin : program / cgis
+      bin{ program && cgis }
 
-etc : config files
-
-httdocs or www : 
+      etc{ config files }
