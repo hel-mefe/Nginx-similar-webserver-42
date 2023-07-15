@@ -1,8 +1,14 @@
 We need to add:
 
-client attribute cwd filled with cwd + root;
+* PATCH method functions+parsing+header
 
-path_type function (is relative or absolute).
+* client attribute cwd filled with cwd + root;
 
-upload path && cgi on/off rule in configfile.
+* path_type function (is relative or absolute).
 
+* upload path && cgi on/off rule in configfile.
+
+* Project struct:
+src : tools / multiplixers / methods / managers / parsers / handlers / headers
+bin : program / cgis
+httdocs or www :
