@@ -9,7 +9,11 @@ We need to add:
 * upload path && cgi on/off rule in configfile.
 
 * Project struct:
-* 
-src : tools / multiplixers / methods / managers / parsers / handlers / header.
-bin : program / cgis.
-httdocs or www.
+
+src : tools / multiplixers / methods / managers / parsers / handlers / header
+
+bin : program / cgis
+
+etc : config files
+
+httdocs or www : 
