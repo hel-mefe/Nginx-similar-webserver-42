@@ -15,3 +15,12 @@ We need to add:
       bin{ program && cgis }
 
       etc{ config files }
+
+
+Errors to solve:
+
+* multiplixing Poll : sigfault.
+
+* multiplixer Kqueue : doesnt return to clients whos waiting (CGI and KEEP_ALIVE).
+
+* handlers : doesnt refill res->filepath with correct path.
