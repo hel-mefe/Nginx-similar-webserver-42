@@ -6,7 +6,7 @@ We need to add:
 
 * path_type function (is relative or absolute).
 
-* upload req_path, cgi_stat, log_path rules in configfile.
+* upload req_path, cgi_stat, log_path, CORS, Etag rules in configfile.
 
 * Project struct:
 
