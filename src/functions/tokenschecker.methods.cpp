@@ -94,5 +94,10 @@ bool TokensChecker::is_code(std::string s)
 
 bool TokensChecker::is_multiplexer(std::string s)
 {
-    return (s == "poll" || s == "kqueue");
+    if ((MAIN_MULTIPLEXER == KQUEUE && s == "epoll") || (MAIN_MULTIPLEXER == EPOLL && s == "kqueue"))
+    {
+        std::cerr << "[Webserv42]: Unsupported multiplexing method provided in the config file" << std::endl;
+        return (false) ;
+    }
+    return (s == "poll" || s == "kqueue" || s == "epoll" || s == "select");
 }

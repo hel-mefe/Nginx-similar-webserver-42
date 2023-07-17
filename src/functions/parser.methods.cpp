@@ -327,9 +327,9 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("allowed_methods", METHOD_VECTOR));
     http_tokens.insert(std::make_pair("root", DIRECTORY));
     http_tokens.insert(std::make_pair("max_connections", INT));
-    http_tokens.insert(std::make_pair("max_body_size", INT));
+    http_tokens.insert(std::make_pair("client_max_body_size", INT));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
-    http_tokens.insert(std::make_pair("max_request_timeout", INT));
+    http_tokens.insert(std::make_pair("client_max_request_timeout", INT));
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
     http_tokens.insert(std::make_pair("cookies", ON_OFF));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
@@ -344,14 +344,14 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("server_name", STRING));
     server_tokens.insert(std::make_pair("port", SHORT_INT));
     server_tokens.insert(std::make_pair("location", DIRECTORY));
-    server_tokens.insert(std::make_pair("index", STRING_VECTOR));
-    server_tokens.insert(std::make_pair("not_found", STRING_VECTOR));
+    server_tokens.insert(std::make_pair("try_index_files", STRING_VECTOR));
+    server_tokens.insert(std::make_pair("try_404_files", STRING_VECTOR));
     server_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
     server_tokens.insert(std::make_pair("max_body_size", INT));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
     server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
     server_tokens.insert(std::make_pair("register_logs", STRING));
-    server_tokens.insert(std::make_pair("max_request_timeout", INT));
+    server_tokens.insert(std::make_pair("client_max_request_timeout", INT));
     server_tokens.insert(std::make_pair("cookies", ON_OFF));
 }
 
@@ -361,11 +361,9 @@ void    ConfigFileParser::fill_location_hashmap()
     location_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
     location_tokens.insert(std::make_pair("auto_indexing", ON_OFF));
     location_tokens.insert(std::make_pair("connection", CONNECTION));
-    location_tokens.insert(std::make_pair("server_name", STRING));
-    location_tokens.insert(std::make_pair("port", SHORT_INT));
     location_tokens.insert(std::make_pair("location", DIRECTORY));
-    location_tokens.insert(std::make_pair("index", STRING_VECTOR));
-    location_tokens.insert(std::make_pair("not_found", STRING_VECTOR));
+    location_tokens.insert(std::make_pair("try_index_files", STRING_VECTOR));
+    location_tokens.insert(std::make_pair("try_404_files", STRING_VECTOR));
     location_tokens.insert(std::make_pair("redirect", STRING));
     location_tokens.insert(std::make_pair("upload", ON_OFF)); // off is the dafault value
     location_tokens.insert(std::make_pair("directory_listing", ON_OFF));
@@ -436,7 +434,10 @@ bool ConfigFileParser::is_http_valid()
     while (i < sz(http_as_words))
     {
         if (!is_http_line_valid(i))
+        {
+            std::cout << "HTTP LINE IS NOT VALID" << std::endl;
             return (false) ;
+        }
         i++;
     }
     return (true);
@@ -716,20 +717,25 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
                 throw PortAlreadyUsed();
             ports_set.insert(attr.port);
         }
-        else if (token_name == "index")
+        else if (token_name == "try_index_files")
         {
             attr.indexes = get_vector_of_data(nodes[i].words[j]);
             attr.indexes_set = vector_to_hashset(attr.indexes);
         }
         else if (token_name == "allowed_methods")
         {
-            attr.allowed_methods = get_vector_of_data(nodes[i].words[j]);
-            for (int k = 0; k < sz(attr.allowed_methods); k++) // checking if all methods are valid
+            if (nodes[i].words[j][1] != "*")
             {
-                if (!tc.is_method(attr.allowed_methods[k]))
-                    throw InvalidMethod();
+                attr.allowed_methods = get_vector_of_data(nodes[i].words[j]);
+                for (int k = 0; k < sz(attr.allowed_methods); k++) // checking if all methods are valid
+                {
+                    if (!tc.is_method(attr.allowed_methods[k]))
+                        throw InvalidMethod();
+                }
+                attr.allowed_methods_set  = vector_to_hashset(attr.allowed_methods);
             }
-            attr.allowed_methods_set  = vector_to_hashset(attr.allowed_methods);
+            else if (sz(nodes[i].words[j]) != 2)
+                throw InvalidMethod() ;
         }
         else if (token_name == "root")
         {
@@ -738,11 +744,11 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
         }
         else if (token_name == "max_connections")
             attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
-        else if (token_name == "max_body_size")
+        else if (token_name == "max_client_body_size")
             attr.max_body_size = get_max_body_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
         else if (token_name == "fastCGI")
             insert_cgi_to_hashmap(attr.extension_cgi, nodes[i].words[j]);
-        else if (token_name == "not_found")
+        else if (token_name == "try_404_files")
         {
             attr.pages_404 = get_vector_of_data(nodes[i].words[j]);
             attr.pages_404_set = vector_to_hashset(attr.pages_404);
@@ -759,7 +765,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             int code = std::atoi(nodes[i].words[j][1].c_str());
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
-        else if (token_name == "max_request_timeout")
+        else if (token_name == "max_client_request_timeout")
             attr.max_request_timeout = std::atoi(nodes[i].words[j][1].c_str());
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
@@ -825,20 +831,25 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
             l_configs.auto_indexing = get_auto_indexing(nodes[i].location_blocks[j]);
         else if (token_name == "connection")
             l_configs.connection = get_connection(nodes[i].location_blocks[j]);
-        else if (token_name == "index")
+        else if (token_name == "try_index_files")
         {
             l_configs.indexes = get_vector_of_data(nodes[i].location_blocks[j]);
             l_configs.indexes_set = vector_to_hashset(l_configs.indexes);
         }
         else if (token_name == "allowed_methods")
         {
-            l_configs.allowed_methods = get_vector_of_data(nodes[i].location_blocks[j]);
-            for (int j = 0; j < sz(l_configs.allowed_methods); j++) // checking if all methods are valid
+            if (nodes[i].location_blocks[j][1] != "*")
             {
-                if (!tc.is_method(l_configs.allowed_methods[j]))
-                    throw InvalidMethod();
+                l_configs.allowed_methods = get_vector_of_data(nodes[i].location_blocks[j]);
+                for (int j = 0; j < sz(l_configs.allowed_methods); j++) // checking if all methods are valid
+                {
+                    if (!tc.is_method(l_configs.allowed_methods[j]))
+                        throw InvalidMethod();
+                }
+                l_configs.allowed_methods_set = vector_to_hashset(l_configs.allowed_methods);
             }
-            l_configs.allowed_methods_set = vector_to_hashset(l_configs.allowed_methods);
+            else if (sz(nodes[i].location_blocks[j][1]) != 2)
+                throw InvalidMethod() ;
         }
         else if (token_name == "root")
         {
@@ -847,7 +858,7 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
         }
         else if (token_name == "redirect")
             l_configs.redirection = nodes[i].location_blocks[j][1];
-        else if (token_name == "not_found")
+        else if (token_name == "try_404_files")
         {
             l_configs.pages_404 = get_vector_of_data(nodes[i].location_blocks[j]);
             l_configs.pages_404_set = vector_to_hashset(l_configs.pages_404);
@@ -939,9 +950,9 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             }
             http_data->allowed_methods_set = vector_to_hashset(http_data->allowed_methods);
         }
-        else if (token_name == "max_body_size")
+        else if (token_name == "client_max_body_size")
             http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
-        else if (token_name == "max_request_timeout")
+        else if (token_name == "client_max_request_timeout")
             http_data->max_request_timeout = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "multiplexer")
             http_data->multiplexer = http_as_words[i][1];

@@ -32,7 +32,6 @@ void    Get::handle_static_file(t_client *client)
         client->state = SERVED;
 }
 
-
 /**
  * one work this function does is listing the directories in the response struct
  * the dir_link list is mainly kept for listing the directories

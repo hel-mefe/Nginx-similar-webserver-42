@@ -14,10 +14,9 @@
 # include <istream>
 # include <sys/socket.h>
 # include <sys/fcntl.h>
-# include <sys/netport.h>
+// # include <sys/netport.h>
 # include <arpa/inet.h>
 # include <poll.h> // for poll multiplexing method
-# include <sys/event.h> // for kqueue multiplexing method
 # include "http_handler.interface.hpp"
 # include "client.struct.hpp"
 # include "manager.struct.hpp"

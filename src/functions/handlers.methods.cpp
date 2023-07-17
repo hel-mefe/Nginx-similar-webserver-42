@@ -328,7 +328,6 @@ bool    Handlers::handle_405(t_client *client)
     t_response *res;
     t_location_configs  *l_configs;
     t_server_configs    *s_configs;
-    std::map<std::string, std::string>  *request_map;
     std::map<int, std::string>          code_to_page;
     std::string                         error_page = "";
     std::string                         path = "";
@@ -339,7 +338,6 @@ bool    Handlers::handle_405(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    request_map = &req->request_map;
     l_configs = res->dir_configs;
     s_configs = res->configs;
     std::vector<std::string>    allowed_methods = (l_configs) ? l_configs->allowed_methods : s_configs->allowed_methods;

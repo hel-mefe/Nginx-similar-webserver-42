@@ -5,7 +5,19 @@
 # include "parser.class.hpp"
 # include "multiplexer.interface.hpp"
 # include "poll.class.hpp"
-# include "kqueue.class.hpp"
+#ifdef __FREEBSD__
+ # include "kqueue.class.hpp"
+#endif
+
+#ifndef __FREBSD
+ #ifdef __APPLE__
+  # include "kqueue.class.hpp"
+ #endif
+#endif
+
+#ifdef __linux__
+ # include "epoll.class.hpp"
+#endif
 
 class Webserver
 {

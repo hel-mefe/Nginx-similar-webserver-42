@@ -138,8 +138,13 @@ void Poll::handle_client(t_manager *manager, SOCKET fd)
 
     if (IS_HTTP_STATE(client->state) || client->state == WAITING)
         http_handler->handle_http(client);
-    if (IS_METHOD_STATE(client->state))
-        manager->handlers[client->request->method]->serve_client(client);
+    else
+    {
+        if (IS_METHOD_STATE(client->state) && IN_MAP(client->request->request_map, client->request->method))
+            manager->handlers[client->request->method]->serve_client(client);
+        else
+            client->state = SERVED;
+    }
 
     if (client->state == SERVED)
         handle_disconnection(manager, fd);

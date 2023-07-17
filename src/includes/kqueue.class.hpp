@@ -32,7 +32,7 @@ class Kqueue : public MultiplexerInterface
             method_handlers->insert(std::make_pair("GET", new Get()));
             method_handlers->insert(std::make_pair("POST", new Post()));
             method_handlers->insert(std::make_pair("DELETE", new Delete()));
-            method_handlers->insert(std::make_pair("DELETE", new Options()));
+            method_handlers->insert(std::make_pair("OPTIONS", new Options()));
         }
         Kqueue(t_http_configs *_configs, std::vector<t_server *>* _servers)
         {

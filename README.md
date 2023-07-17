@@ -1,26 +1,6 @@
-We need to add:
-
-* PATCH method functions+parsing+header
-
-* client attribute cwd filled with cwd + root;
-
-* path_type function (is relative or absolute).
-
-* upload req_path, cgi_stat, log_path, CORS, Etag rules in configfile.
-
-* Project struct:
-
-      src{ tools{.cpp}, multiplixers{.cpp}, methods{.cpp}, managers{.cpp}, parsers{.cpp}, handlers{.cpp}, header{.hpp} }
-
-      bin{ program && cgis }
-
-      etc{ config files }
-
-
-Errors to solve:
-
-* multiplixing Poll : sigfault.
-
-* multiplixer Kqueue : doesnt return to clients whos waiting (CGI and KEEP_ALIVE).
-
-* handlers : doesnt refill res->filepath with correct path.
+Hey dont forget upload folder and check in post request if it exist in requested location.
+PUT method does not apply for 404 handler so dont forget it in refactoring.
+Add child map in manager struct and let it add ponter to the map for every client (add_client function).
+in handle_client add condition to check waitpid in return if > 0 && WIFEXITED(stat) is true : add it to child map.
+dont forget optimize request/response attributes.
+define root and location fullpath in set_response_config function

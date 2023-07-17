@@ -198,9 +198,11 @@ void    Webserver::set_multiplexer()
     std::string s_mult = http_configs->multiplexer;
 
     if (!sz(s_mult) || s_mult == "kqueue")
-        this->multiplexer = new Kqueue() ;
-    else if (s_mult == "poll")
-        this->multiplexer = new Poll() ;
+        this->multiplexer = new Kqueue();
+    if (!sz(s_mult) || s_mult == "poll")
+        this->multiplexer = new Poll();
+    // else if (s_mult == "epoll")
+    //     this->multiplexer = new Epoll();
 }
 
 void    Webserver::run() // sockets of all servers will run here

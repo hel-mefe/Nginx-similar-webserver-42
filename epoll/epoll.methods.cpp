@@ -1,4 +1,4 @@
-#include "../includes/kqueue.class.hpp"
+# include "../includes/epoll.class.hpp"
 
 /**
  * the default multiplexer which is poll
@@ -10,13 +10,13 @@
  * it initializes it with the usual values and returns it
 **/
 
-void    write_error(const std::string err_msg)
+void    Epoll::write_error(const std::string err_msg)
 {
     std::cout << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
     exit(1);
 }
 
-struct sockaddr_in *getsocketdata(PORT port)
+struct sockaddr_in *Epoll::getsocketdata(PORT port)
 {
     struct sockaddr_in *data;
 
@@ -33,7 +33,7 @@ struct sockaddr_in *getsocketdata(PORT port)
  * it takes a port and binds the socket to that port
 **/
 
-SOCKET getsocketfd(int port)
+SOCKET Epoll::getsocketfd(int port)
 {
     struct sockaddr_in *data;
     socklen_t data_len;
@@ -63,13 +63,14 @@ SOCKET getsocketfd(int port)
  * in summary, the manager is responsible for all of these stuff
 **/
 
-void    Kqueue::set_manager()
+void    Epoll::set_manager()
 {
-    t_kqueue_manager *_manager = new t_kqueue_manager();
+    t_epoll_manager *_manager = new t_epoll_manager();
 
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+    _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
     _manager->cwd = getwd(NULL);
 
     if (!sz(_manager->cwd))
@@ -78,19 +79,15 @@ void    Kqueue::set_manager()
     for (; i < sz((*servers)); i++)
     {
         int port = servers->at(i)->server_configs->port;
-        _manager->rEvents[i].ident = getsocketfd(port);
-        _manager->add_kqueue_event(_manager->rEvents[i].ident, EVFILT_READ);
-        if (!_manager->add_server(_manager->rEvents[i].ident, servers->at(i)))
+        bzero(&_manager->rEvents[i], sizeof(_manager->rEvents[i]));
+        _manager->rEvents[i].data.fd = getsocketfd(port);
+        _manager->set_epoll_event(_manager->rEvents[i].data.fd, EPOLLIN);
+        if (!_manager->add_server(_manager->rEvents[i].data.fd, servers->at(i)))
             write_error("Internal server error related to server management");
     }
-    for (; i < MAX_KQUEUE_FDS; i++)
+    for (; i < MAX_EPOLL_FDS; i++)
     {
-        _manager->rEvents[i].ident = UNDEFINED;
-        _manager->rEvents[i].filter = 0;
-        _manager->rEvents[i].flags = 0;
-        _manager->rEvents[i].fflags = 0;
-        _manager->rEvents[i].data = 0;
-        _manager->rEvents[i].udata = NULL;
+        bzero(&_manager->rEvents[i], sizeof(_manager->rEvents[i]));
         _manager->add_slot(i);
     }
     this->manager = _manager;
@@ -101,7 +98,7 @@ void    Kqueue::set_manager()
  * accepts the user, and tells the manager to track it
 */
 
-void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
+void Epoll::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 {
     t_server *server = manager->get_server(fd);
     struct sockaddr_in _data;
@@ -124,7 +121,7 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
  * used only for clarification seek
 */
 
-void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
+void Epoll::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
     (void)manager;
     std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
@@ -132,36 +129,41 @@ void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
         std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
-/**
- * returns true if we are dealing with a state that requires reading the header
-*/
-bool is_http_state(CLIENT_STATE state)
-{
-    return (state == READING_HEADER || state == WAITING);
-}
-
-/**
- * returns true if the client is being in a method serving state
-*/
 
 bool is_method_handler_state(CLIENT_STATE state)
 {
     return (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE);
 }
 
-void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
+void Epoll::handle_client(t_kqueue_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
+    CLIENT_STATE    prev_state = client->state;
 
-    if (is_http_state(client->state))
+    std::cout << "Handling client " << fd << std::endl;
+    if (IS_HTTP_STATE(client->state) || client->state == WAITING)
         http_handler->handle_http(client);
-    manager->disable_kqueue_event(fd, EVFILT_READ);
-    manager->add_kqueue_event(fd, EVFILT_WRITE);
-    if (is_method_handler_state(client->state))
+    else if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
 
+    if (prev_state != client->state)
+    {
+        if (IS_HTTP_STATE(client->state) || client->request->method == "POST")
+        {
+            manager->disable_kqueue_event(fd, EVFILT_WRITE);
+            manager->add_kqueue_event(fd, EVFILT_READ, client);
+        }
+        else
+        {
+            manager->disable_kqueue_event(fd, EVFILT_READ);
+            manager->add_kqueue_event(fd, EVFILT_WRITE, client);
+        }
+    }
     if (client->state == SERVED)
+    {
+        std::cout << CYAN_BOLD << "SERVED BLOCK" << std::endl;
         handle_disconnection(manager, fd);
+    }
 }
 
 /**
@@ -172,50 +174,48 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
  *   - handle_disconnection for removing the client from the map of clients
 */
 
-void Kqueue::multiplex()
+void Epoll::multiplex()
 {
-    int num_sockets;
-    SOCKET  fd;
     set_manager();
     http_handler = new HttpHandler();
-    struct kevent *changeList;
-
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
     signal(SIGPIPE, SIG_IGN);
+
+    SOCKET  fd;
+    struct epoll_event *events = manager->rEvents;
+    std::cout << "Epoll IS RUNNING ..." << std::endl;
     while (1)
     {
-        num_sockets = sz(manager->clients_map) + sz(manager->servers_map);
-        num_sockets = MAX_FDS;
-        // int revents = poll(manager->fds, num_sockets, -1);
-        int revents = kevent(manager->kq, NULL, 0, manager->rEvents, MAX_KQUEUE_FDS, NULL);
+        int revents = epoll(manager->epoll_fd, events, MAX_EPOLL_EVENTS, -1);
         if (revents == -1)
-            write_error("Internal server multiplexer error, poll returned -1 in revents");
-        for (int i = 0; i < num_sockets; i++)
+            write_error("Internal server multiplexer error, epoll returned -1 in revents");
+        for (int i = 0; i < revents; i++)
         {
-            fd = manager->rEvents[i].fd;
-            if (fd!= -1)
+            fd = events[i].data.fd;
+            if (fd != -1)
             {
                 if (manager->is_listener(fd) &&
-                    manager->fds[i].revents & POLLIN) // server
+                    events[i].events & EPOLLIN) // server
                 {
-                    handle_connection(this->manager, fd; // connection
+                    handle_connection(this->manager, fd); // connection
                     manager->client_num += 1;
                 }
                 else // client
                 {
-                    t_client *client = manager->clients_map[manager->fds[i].fd];
-                    if (manager->fds[i].revents & POLLHUP) // disconnection
+                    t_client *client = manager->clients_map[fd];
+                    if (events[i].events & EPOLLHUP) // disconnection
                     {
-                        handle_disconnection(this->manager, manager->fds[i].fd);
+                        handle_disconnection(this->manager, fd);
+                        std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl;
                         manager->client_num -= 1;
                     }
-                    else if ((manager->fds[i].revents & POLLIN) ||
-                        (manager->fds[i].revents & POLLOUT)) // handling client
+                    else if ((events[i].events & EPOLLIN) ||
+                        (events[i].events & EPOLLOUT)) // handling client
                         {
-                            if (((is_http_state(client->state) || client->request->method == "POST") && manager->fds[i].revents & POLLIN) || \
-                                ((client->request->method == "GET" || client->request->method == "DELETE") && manager->fds[i].revents & POLLOUT))
-                                    handle_client(this->manager, manager->fds[i].fd);
+                            if (((IS_HTTP_STATE(client->state) || client->request->method == "POST") && events[i].events & EPOLLIN) || \
+                                ((client->request->method == "GET" || client->request->method == "DELETE" || client->state == WAITING) && events[i].events & EPOLLOUT))
+                                    handle_client(this->manager, fd);
                         }
                 }
             }
