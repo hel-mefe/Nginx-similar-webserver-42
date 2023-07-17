@@ -29,6 +29,13 @@
 # include <netdb.h>
 # include <sys/event.h>
 
+/**** Default values for parsing data *****/
+# define DEFAULT_CLIENT_MAX_BODY_SIZE 1000000
+# define DEFAULT_CLIENT_MAX_REQUEST_TIMEOUT 1000000
+# define DEFAULT_CGI_MAX_REQUEST_TIMEOUT 1000000
+# define DEFAULT_KEEP_ALIVE_TIMEOUT 65
+
+
 # define MIME_TYPES_PATH "etc/mime.webserv"
 # define HTTP_PATH "etc/http.webserv"
 
@@ -99,7 +106,8 @@ enum TOKEN
     CGI,
     LOCATION,
     ERROR_PAGE,
-    MULTIP
+    MULTIP,
+    NOTHING
 } ;
 
 enum EVENT_TYPE
@@ -119,6 +127,10 @@ The following tokens are available for the http block: \n\
  - "GREEN_BOLD"client_max_body_size [number]:"WHITE_BOLD" identifies the max body size per request\n\
  - "GREEN_BOLD"client_max_request_timeout [number]:"WHITE_BOLD" identifies the max request time the webserver waits \n\
  for the request\n\
+  - "GREEN_BOLD"cgi_max_request_timeout [number]: "WHITE_BOLD" specifies number of seconds to wait for the cgi process before it gets killed, \n\
+the default value is 30 seconds\n\
+  - "GREEN_BOLD"keep_alive_max_timeout [number]: "WHITE_BOLD" specifies the number of seconds to wait in a keep alive connection when the client has written nothing, \n\
+the default value is 65 seconds\n\
  - "GREEN_BOLD"multiplexer [takes one of these 'kqueue' or 'epoll' or 'poll' or 'select']:"WHITE_BOLD" specifies the multiplexer used for simultaneous \n\
  connections, kqueue is the default one for FreeBSD and Apple distributions meanwhile Epoll is the default\n\
  one for Linux distributions\n\
@@ -144,6 +156,10 @@ The following tokens are available for each server block: \n\
  - "GREEN_BOLD"max_client_request_timeout:"WHITE_BOLD" maximum time the server should wait for the client to write something as request, \n\
  the default is 2 seconds in case not provided\n\
  - "GREEN_BOLD"max_client_body_size:"WHITE_BOLD" maximum body size the server should consider from the client as http request\n\
+  - "GREEN_BOLD"cgi_max_request_timeout [number]: "WHITE_BOLD" specifies number of seconds to wait for the cgi process before it gets killed, \n\
+the default value is 30 seconds\n\
+  - "GREEN_BOLD"keep_alive_max_timeout [number]: "WHITE_BOLD" specifies the number of seconds to wait in a keep alive connection and the client has written nothing, \n\
+the default value is 65 seconds\n\
  - "GREEN_BOLD"location [location]:"WHITE_BOLD" defines a location block inside the server block more details about it below\n\
 \n\
 The following tokens are available for each location block: \n\

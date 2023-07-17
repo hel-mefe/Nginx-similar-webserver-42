@@ -40,7 +40,9 @@
 #endif
 
 #define IS_METHOD_SUPPORTED(m) (m == "GET" || m == "POST" || m == "OPTIONS" || m == "DELETE" || m == "HEAD")
+#define IS_METHOD(m) ((IS_METHOD_SUPPORTED(m)))
 #define IS_CGI_SUPPORTED(e) (e == ".php" || e == ".py" || e == ".pl")
+#define IS_CGI_EXTENSION(e) (IS_CGI_SUPPORTED(e))
 
 #define MAX_REQUEST_TIMEOUT 5
 

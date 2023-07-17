@@ -7,6 +7,19 @@
 # define DEFAULT_MAX_BODY_SIZE 2048 // in bytes
 # define DEFAULT_MAX_REQUEST_TIMEOUT 3 // in seconds
 
+typedef struct cli
+{
+    bool        is_strict_mode_activated;
+    bool        is_logs_activated;
+    bool        is_help;
+    cli()
+    {
+        is_strict_mode_activated = false;
+        is_logs_activated = false;
+        is_help = false;
+    }
+}   t_cli ;
+
 typedef struct ServerAttributes
 {
     std::string                         server_name;
@@ -28,6 +41,8 @@ typedef struct ServerAttributes
     int                                 max_connections;
     int                                 max_body_size;
     int                                 max_request_timeout;
+    int                                 max_cgi_timeout;
+    int                                 keep_alive_timeout;
     int                                 logsfile_fd;
     bool                                directory_listing;
     bool                                auto_indexing;
@@ -86,7 +101,9 @@ typedef struct HttpConfigs
     bool                                cookies;
     int                                 max_body_size;
     int                                 max_request_timeout;
-
+    int                                 max_cgi_timeout;
+    int                                 keep_alive_timeout;
+    t_cli                               *cli;
     HttpConfigs()
     {
         directory_listing = true;
@@ -94,6 +111,7 @@ typedef struct HttpConfigs
         connection = false;
         max_body_size = DEFAULT_MAX_BODY_SIZE;
         max_request_timeout = DEFAULT_MAX_REQUEST_TIMEOUT;
+        cli = nullptr;
     }
 }   t_http_configs;
 

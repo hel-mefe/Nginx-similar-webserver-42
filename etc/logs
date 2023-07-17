@@ -138,3 +138,41 @@
 [1689504447] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
 [1689560558] SERVER:server_name HTTP/1.1 GET / | 404 Not Found
 [1689560561] SERVER:server_name HTTP/1.1 GET /fdsfds | 404 Not Found
+[1689591944] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591948] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591948] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591958] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591959] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591959] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591961] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591964] SERVER:server_name HTTP/1.1 GET /testing/ | 404 Not Found
+[1689591969] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591969] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689591983] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592021] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592021] SERVER:server_name HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1689592030] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592031] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592032] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592032] SERVER:server_name HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689592044] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592044] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592050] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592050] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592051] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592051] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592051] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592056] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592056] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592056] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592058] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592058] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592058] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592061] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592061] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689592062] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK

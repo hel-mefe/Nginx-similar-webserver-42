@@ -28,6 +28,7 @@ class Webserver
         MultiplexerInterface                *multiplexer;
         HashMap<int, std::string>           *codes;
         HashMap<std::string, std::string>   *mimes;
+        t_cli                               *cli;
         std::string                         config_file;
     public:
         Webserver();
@@ -43,9 +44,20 @@ class Webserver
         void    init_mimes();
         void    init_codes();
         void    set_multiplexer();
+        void    set_cli(t_cli *);
     
         // Debugging lines to check the data that was parsed
         void    print_global_http_data();
         void    print_servers_data();
         void    print_all_data();
+
+        //Warnings
+        std::vector<std::string>    generate_all_warnings();
+        void                        set_cgi_warning(t_server *server, std::vector<std::string> &wrs);
+        void                        set_redefined_location_warning(t_server *server, std::vector<std::string> &wrs);
+        void                        set_invalid_root_warning(t_server *server, std::vector<std::string> &wrs);
+        void                        set_redirection_loop_warning(t_server *server, std::vector<std::string> &wrs);
+        void                        create_redirection_graph(t_server *server, HashMap<std::string, std::string> &graph);
+        bool                        is_cycled(HashMap<std::string, std::string> &graph);
+        bool                        is_root_cycled(HashMap<std::string, std::string> &graph, std::string start);
 } ;

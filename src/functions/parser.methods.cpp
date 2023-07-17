@@ -333,6 +333,9 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
     http_tokens.insert(std::make_pair("cookies", ON_OFF));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
+    http_tokens.insert(std::make_pair("cgi_max_request_timeout", INT));
+    http_tokens.insert(std::make_pair("keep_alive_max_timeout", INT));
+    
 }
 
 void    ConfigFileParser::fill_server_hashmap()
@@ -350,8 +353,9 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("max_body_size", INT));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
     server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
-    server_tokens.insert(std::make_pair("register_logs", STRING));
     server_tokens.insert(std::make_pair("client_max_request_timeout", INT));
+    server_tokens.insert(std::make_pair("cgi_max_request_timeout", INT));
+    server_tokens.insert(std::make_pair("keep_alive_max_timeout", INT));
     server_tokens.insert(std::make_pair("cookies", ON_OFF));
 }
 
@@ -698,6 +702,8 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
     attr.root = conf->root;
     attr.max_request_timeout = conf->max_request_timeout;
     attr.cookies = conf->cookies;
+    attr.max_cgi_timeout = conf->max_cgi_timeout;
+    attr.keep_alive_timeout = conf->keep_alive_timeout;
 
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
@@ -744,7 +750,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
         }
         else if (token_name == "max_connections")
             attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
-        else if (token_name == "max_client_body_size")
+        else if (token_name == "client_max_body_size")
             attr.max_body_size = get_max_body_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
         else if (token_name == "fastCGI")
             insert_cgi_to_hashmap(attr.extension_cgi, nodes[i].words[j]);
@@ -753,20 +759,17 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             attr.pages_404 = get_vector_of_data(nodes[i].words[j]);
             attr.pages_404_set = vector_to_hashset(attr.pages_404);
         }
-        else if (token_name == "register_logs")
-        {
-            attr.logsfile = nodes[i].words[j][1];
-            if (attr.logsfile_fd != UNDEFINED)
-                close(attr.logsfile_fd);
-            attr.logsfile_fd = open(attr.logsfile.c_str(), O_CREAT | O_APPEND, O_RDWR);
-        }
         else if (token_name == "error_page")
         {
             int code = std::atoi(nodes[i].words[j][1].c_str());
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
-        else if (token_name == "max_client_request_timeout")
+        else if (token_name == "client_max_request_timeout")
             attr.max_request_timeout = std::atoi(nodes[i].words[j][1].c_str());
+        else if (token_name == "cgi_max_request_timeout")
+            attr.max_cgi_timeout = std::atoi(nodes[i].words[i][1].c_str());
+        else if (token_name == "keep_alive_max_timeout")
+            attr.keep_alive_timeout = std::atoi(nodes[i].words[i][1].c_str());
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
@@ -932,7 +935,14 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
 {
     HashSet<std::string> already_parsed;
 
-    http_data->max_body_size = 1000000; //1mb
+    /*** setting default values for the http block ***/
+    http_data->max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
+    http_data->max_request_timeout = DEFAULT_CLIENT_MAX_REQUEST_TIMEOUT;
+    http_data->max_cgi_timeout = DEFAULT_CGI_MAX_REQUEST_TIMEOUT;
+    http_data->multiplexer = MAIN_MULTIPLEXER == KQUEUE ? "kqueue" : "epoll";
+    http_data->cookies = "on";
+    http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
+
     for (int i = 0; i < sz(http_as_words); i++)
     {
         std::string token_name = http_as_words[i][0];
@@ -954,10 +964,14 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "client_max_request_timeout")
             http_data->max_request_timeout = std::atoi(http_as_words[i][1].c_str());
+        else if (token_name == "cgi_max_request_timeout")
+            http_data->max_cgi_timeout = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "multiplexer")
             http_data->multiplexer = http_as_words[i][1];
         else if (token_name == "cookies")
             http_data->cookies = (http_as_words[i][1] == "on");
+        else if (token_name == "keep_alive_max_timeout")
+            http_data->keep_alive_timeout = std::atoi(http_as_words[i][1].c_str());
     }
     return (true);
 }

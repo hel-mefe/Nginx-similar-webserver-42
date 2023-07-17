@@ -1,5 +1,6 @@
 # include "../includes/webserv.class.hpp"
 # include "../includes/globals.hpp"
+# include <dirent.h>
 
 /***
 * the main webserv class that encapsulates all the work 
@@ -10,6 +11,10 @@ Webserver::Webserver()
     parser = new ConfigFileParser();
     http_configs = new t_http_configs();
     servers = new std::vector<t_server *>();
+    multiplexer = nullptr;
+    codes = nullptr;
+    mimes = nullptr;
+    cli = nullptr;
 }
 
 Webserver::Webserver(std::string _config_file)
@@ -21,6 +26,7 @@ Webserver::Webserver(std::string _config_file)
     codes = new HashMap<int, std::string>();
     config_file = _config_file;
     multiplexer = nullptr;
+    cli = nullptr;
 }
 
 Webserver::Webserver(std::string _config_file, MultiplexerInterface *_multiplexer)
@@ -32,6 +38,7 @@ Webserver::Webserver(std::string _config_file, MultiplexerInterface *_multiplexe
     multiplexer = _multiplexer;    
     mimes = new HashMap<std::string, std::string>();
     codes = new HashMap<int, std::string>();
+    cli = nullptr;
 }
 
 Webserver::Webserver(const Webserver& w)
@@ -205,6 +212,151 @@ void    Webserver::set_multiplexer()
     //     this->multiplexer = new Epoll();
 }
 
+void    Webserver::set_cli(t_cli *_cli)
+{
+    this->cli = _cli;
+}
+
+void    Webserver::create_redirection_graph(t_server *server, HashMap<std::string, std::string> &graph)
+{
+    HashMap<std::string, t_location_configs *> *dir_configs;
+
+    dir_configs = server->dir_configs;
+    for (HashMap<std::string, t_location_configs *>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
+    {
+        std::string location = it->first;
+        t_location_configs *confs = it->second;
+        std::string redirection = confs->redirection;
+
+        if (sz(redirection)) // there is redirection
+            graph[location] = redirection;
+    }
+}
+
+bool    Webserver::is_root_cycled(HashMap<std::string, std::string> &graph, std::string start)
+{
+    HashSet<std::string>    keep;
+
+    while (IN_MAP(graph, start))
+    {
+        if (IN_MAP(keep, start))
+            return (true) ;
+        keep.insert(start);
+        start = graph[start];        
+    }
+    return (false) ;
+}
+
+bool    Webserver::is_cycled(HashMap<std::string, std::string> &graph)
+{
+    for (HashMap<std::string, std::string>::iterator it = graph.begin(); it != graph.end(); it++)
+    {
+        std::string start = it->first;
+
+        if (is_root_cycled(graph, start))
+            return (true) ;
+    }
+    return (false) ;
+}
+
+void    Webserver::set_redirection_loop_warning(t_server *server, std::vector<std::string> &wrs)
+{
+    HashMap<std::string, std::string>   graph;
+    std::string                         server_name;
+
+    server_name = server->server_configs->server_name;
+    create_redirection_graph(server, graph);
+    if (is_cycled(graph))
+    {
+        std::string warning = server_name + " has an infinite redirection loop" ;
+        wrs.push_back(warning);
+    }
+}
+
+void    Webserver::set_invalid_root_warning(t_server *server, std::vector<std::string> &wrs)
+{
+    std::string root;;
+    std::string name;
+    DIR         *d;
+
+    name = server->server_configs->server_name;
+    root = server->server_configs->root;
+    if (sz(root)) // if root is provided
+    {
+        d = opendir(root.c_str());
+        if (!d)
+        {
+            std::string s = name + " has an invalid root directory [ " + root + " ]";
+            wrs.push_back(s);
+        }
+    }
+}
+
+void    Webserver::set_redefined_location_warning(t_server *server, std::vector<std::string> &wrs)
+{
+    std::string             root;
+    std::string             name;
+    HashSet<std::string>                        keep;
+    HashMap<std::string, t_location_configs *>  *dir_configs;
+
+    dir_configs = server->dir_configs;
+    root = server->server_configs->root;
+    name = server->server_configs->server_name;
+    for (HashMap<std::string, t_location_configs *>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
+    {
+        std::string location = it->first;
+
+        if (IN_MAP(keep, location))
+        {
+            std::string s = name + " has a redefined location [ " + location + " ]";
+
+            wrs.push_back(s);
+        }
+        else
+            keep.insert(location);
+    }
+}
+
+void    Webserver::set_cgi_warning(t_server *server, std::vector<std::string> &wrs)
+{
+    std::string                         cgi_path;
+    std::string                         name;
+    HashMap<std::string, std::string>   ext_path;
+
+    name = server->server_configs->server_name;
+    ext_path = server->server_configs->extension_cgi;
+    for (HashMap<std::string, std::string>::iterator it = ext_path.begin(); it != ext_path.end(); it++)
+    {
+        std::string path = it->second;
+        std::string s;
+
+        if (!access(path.c_str(), R_OK))
+        {
+            if (access(path.c_str(), X_OK))
+                s = name + " has a cgi path that does not have the x permission [ " + path + " ]";
+        }
+        else
+            s = name + " has a cgi path that does not exist [ " + path + " ]";
+        if (sz(s))
+            wrs.push_back(s);
+    }
+}
+
+std::vector<std::string>    Webserver::generate_all_warnings()
+{
+    std::vector<std::string>    warnings;
+
+    // warnings will be generated for each server
+    for (int i = 0; i < sz((*servers)); i++)
+    {
+        set_redirection_loop_warning(servers->at(i), warnings);
+        set_invalid_root_warning(servers->at(i), warnings);
+        set_redefined_location_warning(servers->at(i), warnings);
+        set_cgi_warning(servers->at(i), warnings);
+    }
+    return (warnings);
+}
+
 void    Webserver::run() // sockets of all servers will run here
 {
     init_mimes();
@@ -214,5 +366,6 @@ void    Webserver::run() // sockets of all servers will run here
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);
     multiplexer->set_codes(codes);
+    http_configs->cli = cli;
     multiplexer->multiplex();
 }

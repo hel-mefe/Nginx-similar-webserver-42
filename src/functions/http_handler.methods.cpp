@@ -2,15 +2,17 @@
 
 void    HttpHandler::handle_http(t_client *client)
 {
-    int max_request_timeout = client->server->server_configs->max_request_timeout;
+    t_server_configs *s_configs = client->server->server_configs;
+    int max_request_timeout = (client->state == KEEP_ALIVE ? s_configs->keep_alive_timeout : s_configs->max_request_timeout);
     int time_passed = time(NULL) - client->request_time;
+    CLIENT_STATE      prev_state = client->state;
 
-    if (client->state == WAITING)
+    if (client->state == WAITING || client->state == KEEP_ALIVE)
     {
         if (time_passed > max_request_timeout)
             client->state = SERVED;
         else
-            client->state = (client->state == WAITING) ? READING_HEADER : WAITING;
+            client->state = READING_HEADER;
     }
     std::cout << "GOT INTO HANDLING HTTP ... " << std::endl;
     if (client->state == READING_HEADER)
@@ -29,7 +31,7 @@ void    HttpHandler::handle_http(t_client *client)
                 architect_response(client);
         }
         else
-            client->state = WAITING;
+            client->state = prev_state;
     }
 }
 

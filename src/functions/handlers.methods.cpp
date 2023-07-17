@@ -160,8 +160,13 @@ bool    Handlers::handle_400(t_client *client)
         {
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
+            res->extension = get_extension(res->filepath);
+            res->is_cgi = IS_CGI_EXTENSION(res->extension);
+            if (res->is_cgi)
+                res->cgi_path = res->configs->extension_cgi[res->extension];
             fill_response(client, 400, true);
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
+            client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
         }
         else
@@ -202,8 +207,13 @@ bool Handlers::handle_414(t_client *client)
         {
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
+            res->extension = get_extension(res->filepath);
+            res->is_cgi = IS_CGI_EXTENSION(res->extension);
+            if (res->is_cgi)
+                res->cgi_path = res->configs->extension_cgi[res->extension];
             fill_response(client, 414, true);
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
+            client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
         }
         else
@@ -250,8 +260,13 @@ bool    Handlers::handle_501(t_client *client)
             {
                 res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
+                res->extension = get_extension(res->filepath);
+                res->is_cgi = IS_CGI_EXTENSION(res->extension);
+                if (res->is_cgi)
+                    res->cgi_path = res->configs->extension_cgi[res->extension];
                 fill_response(client, 501, true);
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
+                client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
                 client->request->method = "GET";
             }
             else
@@ -300,8 +315,13 @@ bool Handlers::handle_413(t_client *client)
             {
                 res->filepath = client->cwd + "/" + path + "/" + error_page;
                 res->filepath = get_cleanified_path(res->filepath);
+                res->extension = get_extension(res->filepath);
+                res->is_cgi = IS_CGI_EXTENSION(res->extension);
+            if (res->is_cgi)
+                res->cgi_path = res->configs->extension_cgi[res->extension];
                 fill_response(client, 413, true);
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
+                client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
                 client->request->method = "GET";
             }
             else
@@ -350,8 +370,13 @@ bool    Handlers::handle_405(t_client *client)
         {
             res->filepath = client->cwd + "/" + path + "/" + error_page;
             res->filepath = get_cleanified_path(res->filepath);
+            res->extension = get_extension(res->filepath);
+            res->is_cgi = IS_CGI_EXTENSION(res->extension);
+            if (res->is_cgi)
+                res->cgi_path = res->configs->extension_cgi[res->extension];
             fill_response(client, 405, true);
             client->state = (req->method == "HEAD") ? SERVED : SERVING_GET;
+            client->state = (res->is_cgi && client->state == SERVING_GET) ? SERVING_CGI : SERVING_GET;
             req->method = "GET";
         }
         else
@@ -419,10 +444,14 @@ bool    Handlers::handle_404(t_client *client)
         res->filepath = client->cwd + "/" + root;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
+        res->is_cgi = IS_CGI_EXTENSION(res->extension); 
+        if (res->is_cgi)
+            res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!access(res->filepath.c_str(), R_OK))
         {
             fill_response(client, 404, true);
             client->state = client->request->method == "HEAD" ? SERVED : SERVING_GET;
+            client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
         }
         else
@@ -464,10 +493,13 @@ bool    Handlers::handle_200d(t_client *client)
         res->filepath = client->cwd + "/" + res->rootfilepath;
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
+        res->is_cgi = IS_CGI_EXTENSION(res->extension);
+        if (res->is_cgi)
+            res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!access(res->filepath.c_str(), R_OK))
         {
             fill_response(client, 200, true);
-            client->state = SERVING_GET;
+            client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
         }
         else
@@ -506,12 +538,12 @@ bool Handlers::handle_200f(t_client *client)
     {
         res->filepath = get_cleanified_path(res->filepath);
         res->extension = get_extension(res->filepath);
-        res->is_cgi = (req->extension == ".php" || req->extension == ".pl" || req->extension == ".py");
+        res->is_cgi = IS_CGI_EXTENSION(req->extension);
         if (res->is_cgi)
-        res->cgi_path = res->configs->extension_cgi[req->extension];
+            res->cgi_path = res->configs->extension_cgi[req->extension];
         if (!res->is_cgi)
             fill_response(client, 200, true);
-        client->state = SERVING_GET;
+        client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
         client->request->method = "GET";
     }
     else if (!access(res->filepath.c_str(), F_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 403 forbidden
