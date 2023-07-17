@@ -12,6 +12,8 @@ typedef struct cli
     bool        is_strict_mode_activated;
     bool        is_logs_activated;
     bool        is_help;
+    std::string multiplexer;
+
     cli()
     {
         is_strict_mode_activated = false;

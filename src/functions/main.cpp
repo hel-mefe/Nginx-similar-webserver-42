@@ -1,6 +1,8 @@
 # include "../includes/webserv.class.hpp"
 # include "../includes/globals.hpp"
 
+#define IS_MULTIPLEXER(m) (m == "kqueue" || m == "epoll" || m == "select" || m == "poll")
+
 #define LOGO GREEN_BOLD"\n\n██╗    ██╗███████╗██████╗ ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗       ██╗  ██╗██████╗ \n\
 ██║    ██║██╔════╝██╔══██╗██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗      ██║  ██║╚════██╗ \n\
 ██║ █╗ ██║█████╗  ██████╔╝███████╗█████╗  ██████╔╝██║   ██║█████╗  ██████╔╝█████╗███████║ █████╔╝ \n\
@@ -13,29 +15,55 @@ void    init_cli_tokens(HashMap<std::string, TOKEN> &cli_tokens)
     cli_tokens.insert(std::make_pair("--activate-logs", NOTHING));
     cli_tokens.insert(std::make_pair("--activate-strict-mode", NOTHING));
     cli_tokens.insert(std::make_pair("--help", NOTHING));
+    cli_tokens.insert(std::make_pair("--multiplexer", MULTIP));
+    cli_tokens.insert(std::make_pair("-m", MULTIP));
 }
 
 t_cli   *parse_and_get_cli(int ac, char **av)
 {
     t_cli                       *c;
     HashMap<std::string, TOKEN> cli_tokens;
+    TOKEN                       expecting;
 
     if (ac < 2)
         return (nullptr) ;
     init_cli_tokens(cli_tokens);
     c = new t_cli();
+    expecting = NOTHING;
     for (int i = 2; i < ac; i++)
     {
         std::string arg = av[i];
 
-        if (!IN_MAP(cli_tokens, arg))
+        arg = get_lower_case(arg);
+        if (expecting != NOTHING)
+        {
+            if (expecting == MULTIP && IS_MULTIPLEXER(arg))
+                c->multiplexer = arg;
+            else
+            {
+                delete c;
+                return (nullptr) ;
+            }
+            expecting = NOTHING;
+        }
+        else if (!IN_MAP(cli_tokens, arg))
         {
             delete c;
             return (nullptr) ;
         }
-        c->is_logs_activated = (arg == "--activate-logs") ;
-        c->is_strict_mode_activated = (arg == "--activate-strict-mode");
-        c->is_help = (arg == "--help");
+        if (arg == "--activate-logs")
+            c->is_logs_activated = true;
+        if (arg == "--activate-strict-mode")
+            c->is_strict_mode_activated = true;
+        if (arg == "--help")
+            c->is_help = true;
+        if (arg == "-m" || arg == "--multiplexer")
+            expecting = MULTIP ;
+    }
+    if (expecting != NOTHING)
+    {
+        delete c;
+        return nullptr ;
     }
     return (c);
 }
@@ -67,10 +95,11 @@ int main(int ac, char **av)
         try
         {
             Webserver *ws = new Webserver(av[1]);
+            ws->set_cli(c);
 
             std::cout << LOGO << std::endl;
             if (c->is_help)
-                std::cout << README << std::endl;
+                std::cout << INTRO << README << std::endl;
             else
             {
                 if (ws->parse_config_file())

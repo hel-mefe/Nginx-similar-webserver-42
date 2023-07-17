@@ -118,6 +118,15 @@ enum EVENT_TYPE
 
 # define isReadingState(state) ((state == READING_HEADER || state == READING_BODY || state == SERVING_POST_REQUEST))
 
+#define INTRO WHITE_BOLD"Webserver42 is an Nginx like Webserver that was made for educational purposes by 3 1337 students, it is \n\
+all about recoding Nginx from scratch with socket programming. of course, this webserver is meant for production use\n\
+but it is 90% behaves the same way Nginx serves requests under HTTP/1.1 protocol.\n\
+\n\
+The following options are available for program cli: \n\
+ - "GREEN_BOLD"-m [multiplexer]: "WHITE_BOLD"takes a multiplexer whether kqueue, epoll, poll or select and builds all the servers with it\n\
+ - "GREEN_BOLD"--multiplexer [multiplexer]: "WHITE_BOLD"similar as above\n\
+ - "GREEN_BOLD"--activate-strict-mode: "WHITE_BOLD"activates the strict mode, in this mode the program will not run unless there is no warnings\n\
+ - "GREEN_BOLD"--activate-logs: "WHITE_BOLD"register all the logs in a file, the file can be accessed in the current directory as webserver.logs\n\n"
 
 #define README "\
 The following tokens are available for the http block: \n\

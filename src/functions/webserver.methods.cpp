@@ -228,6 +228,8 @@ void    Webserver::create_redirection_graph(t_server *server, HashMap<std::strin
         t_location_configs *confs = it->second;
         std::string redirection = confs->redirection;
 
+        redirection = (redirection[sz(redirection) - 1] != '/') ? redirection + "/": redirection;
+
         if (sz(redirection)) // there is redirection
             graph[location] = redirection;
     }
@@ -237,10 +239,12 @@ bool    Webserver::is_root_cycled(HashMap<std::string, std::string> &graph, std:
 {
     HashSet<std::string>    keep;
 
-    while (IN_MAP(graph, start))
+    while (1)
     {
+        if (!IN_MAP(graph, start))
+            return false;
         if (IN_MAP(keep, start))
-            return (true) ;
+            return (true);
         keep.insert(start);
         start = graph[start];        
     }
@@ -252,7 +256,7 @@ bool    Webserver::is_cycled(HashMap<std::string, std::string> &graph)
     for (HashMap<std::string, std::string>::iterator it = graph.begin(); it != graph.end(); it++)
     {
         std::string start = it->first;
-
+        
         if (is_root_cycled(graph, start))
             return (true) ;
     }
@@ -359,6 +363,12 @@ std::vector<std::string>    Webserver::generate_all_warnings()
 
 void    Webserver::run() // sockets of all servers will run here
 {
+    http_configs->cli = cli;
+    if (sz(cli->multiplexer)) // multiplexer defined in cli
+    {
+        std::cout << "Multiplexer => " << cli->multiplexer << std::endl;
+        http_configs->multiplexer = cli->multiplexer;
+    }
     init_mimes();
     init_codes();
     set_multiplexer();
@@ -366,6 +376,5 @@ void    Webserver::run() // sockets of all servers will run here
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);
     multiplexer->set_codes(codes);
-    http_configs->cli = cli;
     multiplexer->multiplex();
 }

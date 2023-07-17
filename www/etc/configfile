@@ -1,0 +1,49 @@
+http
+{
+    allowed_methods GET POST DELETE OPTIONS HEAD
+    root /
+    server
+    {
+        allowed_methods GET POST DELETE
+        root /www
+        server_name name
+        port 9080
+        fastCGI .php /goinfre/hel-mefe/webserverPollClean42/cgi-bin/php-cgi
+        fastCGI .pl /sr/bin/perl
+        fastCGI .py /usr/bin/python
+        index index.html index.php home.html home.php
+        not_found error_pages/404.html
+        max_connections 20
+        max_body_size 200000000
+        register_logs logs
+ 
+        location /hello
+        {
+            root /brother/sister
+            allowed_methods POST
+            index merci.html
+            not_found 404.html
+            directory_listing on
+        }
+
+        location /hello/messi
+        {
+            allowed_methods GET DELETE
+            index merci.html
+            not_found 404.html
+            directory_listing on
+        }
+
+        location /cgi_test
+        {
+            index index.php
+            upload on
+        }
+
+        location /
+        {
+            index index.html
+            upload on
+        }
+    }
+}

@@ -10,8 +10,9 @@ http
   {
     allowed_methods GET POST DELETE
     port 8080
-    server_name server_name
+    server_name arsenal
 
+    root /foldermakaynch 
     cgi_max_request_timeout 10 
 
     error_page 404 error_pages/404.html
@@ -27,6 +28,7 @@ http
     location /listing
     {
       directory_listing on
+      redirect /testing/indexes
     }
 
     # comment 2
@@ -34,6 +36,7 @@ http
     location /testing/indexes
     {
       try_index_files index1.html index2.html index3.html
+      redirect /listing
     }
     # comment 3
   }

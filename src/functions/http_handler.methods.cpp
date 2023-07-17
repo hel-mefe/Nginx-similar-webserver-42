@@ -171,7 +171,6 @@ void    HttpHandler::architect_response(t_client *client)
     t_request *req = client->request;
     t_response *res = client->response;
 
-    //req->print_data();
     req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
     if (req->method == "OPTIONS")
