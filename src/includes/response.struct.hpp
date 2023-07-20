@@ -10,6 +10,7 @@
 typedef struct response
 {
     bool                                is_cgi;
+    bool                                is_chunked;
     bool                                cgi_rn_found;
     bool                                cgi_running;
     bool                                is_directory_listing; // in case we have to list the directories inside
@@ -85,9 +86,14 @@ typedef struct response
             ress += first + " : " + second + "\r\n";
             it++;
         }
-        if (sz(this->filepath))
-            ress += "Content-Length: " + std::to_string(get_file_size(this->filepath.c_str())) + "\r\n\r\n";
-        else
+        if (sz(this->filepath) && !this->is_directory_listing) // aslan filepath should be of sz == 0 in case directory_listing is on
+        {
+            // if (!is_chunked)
+            //     ress += "Content-Length: " + std::to_string(get_file_size(this->filepath.c_str())) + "\r\n\r\n";
+            // else
+                ress += "Transfer-Encoding: Chunked\r\n\r\n";
+        }
+        else if (!this->is_directory_listing)
             ress += "\r\n";
         send(fd, ress.c_str(), sz(ress), 0);
         std::cout << ress << std::endl;

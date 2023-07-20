@@ -10,6 +10,7 @@ Webserver::Webserver()
 {
     parser = new ConfigFileParser();
     http_configs = new t_http_configs();
+    http_configs->cwd = getwd(NULL);
     servers = new std::vector<t_server *>();
     multiplexer = nullptr;
     codes = nullptr;
@@ -21,6 +22,7 @@ Webserver::Webserver(std::string _config_file)
 {
     parser = new ConfigFileParser();
     http_configs = new t_http_configs();
+    http_configs->cwd = getwd(NULL);
     servers = new std::vector<t_server *>();
     mimes = new HashMap<std::string, std::string>();
     codes = new HashMap<int, std::string>();
@@ -33,6 +35,7 @@ Webserver::Webserver(std::string _config_file, MultiplexerInterface *_multiplexe
 {
     parser = new ConfigFileParser();
     http_configs = new t_http_configs();
+    http_configs->cwd = getwd(NULL);
     servers = new std::vector<t_server *>();
     config_file = _config_file;
     multiplexer = _multiplexer;    
@@ -77,6 +80,13 @@ void    Webserver::print_global_http_data()
     for (int i = 0; i < sz(http_configs->allowed_methods); i++)
         std::cout << http_configs->allowed_methods[i] << " ";
     std::cout << "]" << std::endl;
+    std::cout << "client_max_body_size: " << http_configs->max_body_size << std::endl;
+    std::cout << "client_max_request_timeout: " << http_configs->max_request_timeout << std::endl;
+    std::cout << "cgi_max_request_timeout: " << http_configs->max_cgi_timeout << std::endl;
+    std::cout << "keep_alive_max_timeout: " << http_configs->keep_alive_timeout << std::endl;
+    std::cout << "multiplexer: " << http_configs->multiplexer << std::endl;
+    std::cout << "cookies: " << ((http_configs->cookies) ? "on" : "off") << std::endl; 
+    std::cout << "cwd: " << http_configs->cwd << std::endl;
 }
 
 void    Webserver::print_servers_data()

@@ -144,29 +144,35 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
     t_client *client = manager->get_client(fd);
     CLIENT_STATE    prev_state = client->state;
 
-    std::cout << "Handling client " << fd << std::endl;
-    if (IS_HTTP_STATE(client->state) || client->state == WAITING)
+    // std::cout << "Handling client " << fd << std::endl;
+    if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
     else if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
 
-    if (prev_state != client->state)
+    if (client->state == SERVED)
     {
-        if (IS_HTTP_STATE(client->state) || client->request->method == "POST")
+        std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;
+        handle_disconnection(manager, fd);
+    }
+    else if (prev_state != client->state)
+    {
+        if (R_STATE(client->state))
         {
-            manager->disable_kqueue_event(fd, EVFILT_WRITE);
-            manager->add_kqueue_event(fd, EVFILT_READ, client);
+            if (W_STATE(prev_state))
+            {
+                manager->delete_kqueue_event(fd, EVFILT_WRITE);
+                manager->add_kqueue_event(fd, EVFILT_READ, client);
+            }
         }
         else
         {
-            manager->disable_kqueue_event(fd, EVFILT_READ);
-            manager->add_kqueue_event(fd, EVFILT_WRITE, client);
+            if (R_STATE(prev_state))
+            {
+                manager->delete_kqueue_event(fd, EVFILT_READ);
+                manager->add_kqueue_event(fd, EVFILT_WRITE, client);
+            }
         }
-    }
-    if (client->state == SERVED)
-    {
-        std::cout << CYAN_BOLD << "SERVED BLOCK" << std::endl;
-        handle_disconnection(manager, fd);
     }
 }
 
@@ -199,28 +205,22 @@ void Kqueue::multiplex()
             fd = events[i].ident;
             if (fd != -1)
             {
-                if (manager->is_listener(fd) &&
-                    events[i].filter == EVFILT_READ) // server
+                if (manager->is_listener(fd)) // server
                 {
                     handle_connection(this->manager, fd); // connection
                     manager->client_num += 1;
                 }
                 else // client
                 {
-                    t_client *client = manager->clients_map[fd];
+                    // t_client *client = manager->clients_map[fd];
                     if (events[i].flags & EV_EOF) // disconnection
                     {
                         handle_disconnection(this->manager, fd);
                         std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl;
                         manager->client_num -= 1;
                     }
-                    else if ((events[i].filter == EVFILT_READ) ||
-                        (events[i].filter == EVFILT_WRITE)) // handling client
-                        {
-                            if (((IS_HTTP_STATE(client->state) || client->request->method == "POST") && events[i].filter == EVFILT_READ) || \
-                                ((client->request->method == "GET" || client->request->method == "DELETE" || client->state == WAITING) && events[i].filter == EVFILT_WRITE))
-                                    handle_client(this->manager, fd);
-                        }
+                    else
+                        handle_client(this->manager, fd);
                 }
             }
         }

@@ -36,7 +36,8 @@ TokensChecker::~TokensChecker()
 
 bool TokensChecker::is_directory(std::string s)
 {
-    return (sz(s) && s[0] == '/');
+    return (!!sz(s));
+    // return (sz(s) && s[0] == '/');
 }
 
 bool TokensChecker::is_short_int(std::string s)
@@ -81,7 +82,9 @@ bool TokensChecker::is_extension(std::string s)
 
 bool TokensChecker::is_cgi(std::string extension, std::string path)
 {
-    return (is_extension(extension) && !access(path.c_str(), X_OK));
+    (void)path;
+    return (is_extension(extension)); 
+    // return (is_extension(extension) && !access(path.c_str(), X_OK));
 }
 
 bool TokensChecker::is_code(std::string s)

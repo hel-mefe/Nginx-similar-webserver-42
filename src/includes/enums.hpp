@@ -21,7 +21,7 @@ typedef struct LocationConfigs t_location_configs;
 
 #define IN_MAP(m,e) (m.find(e) != m.end())
 
-#define R_STATE(state) (state == READING_HEADER || state == SERVING_POST || state == SERVING_CGI)
+#define R_STATE(state) (state == READING_HEADER || state == SERVING_POST)
 #define W_STATE(state) (!(R_STATE(state)))
 
 enum SOCKET_TYPE

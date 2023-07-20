@@ -18,7 +18,8 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
     std::cout << CYAN_BOLD << code << " : " << res->status_line << WHITE << std::endl;
-    res->add("connection", "closed");
+    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+        res->add("connection", "keep-alive");
     if (sz(res->redirect_to)) // redirection exists
         res->add("location", res->redirect_to);
     if (sz(res->filepath) || res->is_directory_listing)
@@ -30,6 +31,10 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         res->add("content-type", ctype);
         if (!res->is_cgi) // dealing with file
             res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
+        if (IN_MAP(client->request->request_map, "transfer-encoding") && client->request->request_map["transfer-encoding"] == "chunked")
+            res->is_chunked = true;
+        else
+            res->is_chunked = false;
     }
     if (write_it)
     {
@@ -488,6 +493,8 @@ bool    Handlers::handle_200d(t_client *client)
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
+    if (d_configs)
+        std::cout << YELLOW_BOLD << "WORKING WITH DIRECTORY CONFIGS" << std::endl;
     if (set_file_path(client->cwd, res->rootfilepath, indexes))
     {
         res->filepath = client->cwd + "/" + res->rootfilepath;
@@ -512,8 +519,17 @@ bool    Handlers::handle_200d(t_client *client)
     }
     else
     {
-        if (d_configs && d_configs->directory_listing && is_directory_exist(client->cwd, res->rootfilepath))
+        std::cout << "CWD => " << client->cwd << std::endl;
+        std::cout << "ROOT => " << res->rootfilepath << std::endl;
+        if (d_configs->directory_listing)
+            std::cout << "DIRECTORY LISTING IS ON" << std::endl;
+        else
+            std::cout << "DIRECTORY LISTING IS OFF" << std::endl;
+        std::string fpath = client->cwd + res->rootfilepath;
+        DIR *d = opendir(fpath.c_str());
+        if (d_configs && d_configs->directory_listing && d)
         {
+            std::cout << "DIRECTORY LISTING" << std::endl;
             res->is_directory_listing = true ;
             fill_response(client, 200, true);
             client->state = SERVING_GET;
@@ -521,6 +537,8 @@ bool    Handlers::handle_200d(t_client *client)
         }
         else
             handle_404(client);
+        if (d)
+            closedir(d);
     }
     return (true) ;
 }

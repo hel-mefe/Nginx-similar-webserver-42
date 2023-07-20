@@ -7,6 +7,10 @@ void    HttpHandler::handle_http(t_client *client)
     int time_passed = time(NULL) - client->request_time;
     CLIENT_STATE      prev_state = client->state;
 
+    // if (prev_state == KEEP_ALIVE)
+    //     std::cout << "KEEP_ALIVE IS WORKING ..." << std::endl;
+    // else if (prev_state == WAITING)
+    //     std::cout << "WAITING IS WORKING ..." << std::endl;
     if (client->state == WAITING || client->state == KEEP_ALIVE)
     {
         if (time_passed > max_request_timeout)
@@ -14,13 +18,13 @@ void    HttpHandler::handle_http(t_client *client)
         else
             client->state = READING_HEADER;
     }
-    std::cout << "GOT INTO HANDLING HTTP ... " << std::endl;
+    // std::cout << "GOT INTO HANDLING HTTP ... " << std::endl;
     if (client->state == READING_HEADER)
     {
-        std::cout << "READING THE HEADER ..." << std::endl;
+        // std::cout << "READING THE HEADER ..." << std::endl;
         if (http_parser->read_header(client))
         {
-            std::cout << "HEAD IS BEING PARSING ..." << std::endl;
+            // std::cout << "HEAD IS BEING PARSING ..." << std::endl
             if (!http_parser->parse_request(client)) // request is not well-formed
             {
                 std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
@@ -28,10 +32,14 @@ void    HttpHandler::handle_http(t_client *client)
                 client->state = SERVED;
             }
             else
+            {
+                std::cout << "REQUEST PATH => " << client->request->path << std::endl;
+                client->request->print_data(); 
                 architect_response(client);
+            }
         }
         else
-            client->state = prev_state;
+            client->state = client->state != SERVED ? prev_state : SERVED; // in case http_parser read 0 characters then connection is closed
     }
 }
 
@@ -162,6 +170,8 @@ void    HttpHandler::set_response_configs(t_client *client)
     req = client->request;
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
+    std::cout << "REQUESTED PATH => " << req->path << std::endl;
+    std::cout << "DIRECTORY CONFIGS PATH => " << res->directory_configs_path << std::endl;
     res->configs = client->server->server_configs;
     res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
 }

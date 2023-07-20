@@ -3,7 +3,7 @@
 # include "header.hpp"
 # include "globals.hpp"
 
-# define DEFAULT_MAX_CONNECTIONS 1000
+# define DEFAULT_MAX_CONNECTIONS 1024
 # define DEFAULT_MAX_BODY_SIZE 2048 // in bytes
 # define DEFAULT_MAX_REQUEST_TIMEOUT 3 // in seconds
 
@@ -50,8 +50,9 @@ typedef struct ServerAttributes
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
     bool                                cookies;
+    bool                                is_root_defined;
 
-    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE), max_request_timeout(DEFAULT_MAX_REQUEST_TIMEOUT), cookies(false){}
+    ServerAttributes() : max_connections(DEFAULT_MAX_CONNECTIONS), max_body_size(DEFAULT_MAX_BODY_SIZE), max_request_timeout(DEFAULT_MAX_REQUEST_TIMEOUT), cookies(false), is_root_defined(false){}
 }   t_server_configs;
 
 typedef struct LocationConfigs
@@ -74,6 +75,7 @@ typedef struct LocationConfigs
     bool                                upload;
     bool                                directory_listing;
     bool                                cookies;
+    bool                                is_root_defined; 
 
     LocationConfigs()
     {
@@ -82,12 +84,14 @@ typedef struct LocationConfigs
         upload = false;
         directory_listing = false;
         cookies = false;
+        is_root_defined = false;
     }
 }   t_location_configs;
 
 typedef struct HttpConfigs
 {
     std::string                         multiplexer;
+    std::string                         cwd;
     std::string                         root;
     std::vector<std::string>            indexes;
     std::vector<std::string>            allowed_methods;
@@ -105,7 +109,9 @@ typedef struct HttpConfigs
     int                                 max_request_timeout;
     int                                 max_cgi_timeout;
     int                                 keep_alive_timeout;
+    int                                 max_connections;
     t_cli                               *cli;
+
     HttpConfigs()
     {
         directory_listing = true;
@@ -184,6 +190,11 @@ typedef struct server
         std::cout << "auto_indexing ->" << (server_configs->auto_indexing ? "on" : "off") << std::endl;
         std::cout << "client_max_body_size ->" << server_configs->max_body_size << std::endl;
         std::cout << "code to pages in server -> " << std::endl;
+        for (std::map<int, std::string>::iterator it = server_configs->code_to_page.begin(); it != server_configs->code_to_page.end(); it++)
+            std::cout << it->first << " -> " << it->second << std::endl;
+        std::cout << "cgi paths -> " << std::endl;
+        for (std::map<std::string, std::string>::iterator it = server_configs->extension_cgi.begin(); it != server_configs->extension_cgi.end(); it++)
+            std::cout << it->first << " -> " << it->second << std::endl;
         std::cout << RED_BOLD << "**** END PRITING SERVER DATA *****\n" << WHITE_BOLD << std::endl;
 
     }
@@ -208,6 +219,8 @@ typedef struct server
         std::cout << "upload -> " << (conf->upload ? "on" : "off") << std::endl;
         std::cout << "directory_listing -> " << (conf->directory_listing ? "on" : "off") << std::endl;
         std::cout << "error to code pages -> " << std::endl;
+        for (std::map<int, std::string>::iterator it = conf->code_to_page.begin(); it != conf->code_to_page.end(); it++)
+            std::cout << it->first << " -> " << it->second << std::endl;
         std::cout << std::endl ;
     }
 

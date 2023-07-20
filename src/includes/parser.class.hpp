@@ -68,7 +68,7 @@ class ConfigFileParser
         bool    fill_servers_data(std::vector<t_server *> *servers, t_http_configs *conf);
         bool    fill_http_data(t_http_configs *http_data);
         void    fill_server_attributes(t_server_configs &attr, t_http_configs *conf, int i);
-        void    fill_location_attributes(t_location_configs &l_configs, int i, int j, int ej);
+        void    fill_location_attributes(std::string &cwd, t_location_configs &l_configs, int i, int j, int ej);
         void    handle_locations(t_server *server, std::vector<std::vector<std::string> > &location_blocks, t_server_configs *s_conf, int index);
         // data parsing getters;
         bool                        get_auto_indexing(std::vector<std::string> &line);
@@ -76,12 +76,13 @@ class ConfigFileParser
         int                         get_port(std::vector<std::string> &line);
         std::vector<std::string>    get_vector_of_data(std::vector<std::string> &line); 
         HashSet<std::string>        vector_to_hashset(std::vector<std::string> &vec);
-        void                        insert_cgi_to_hashmap(HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line);
+        void                        insert_cgi_to_hashmap(std::string cwd, HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line);
 
         bool    parse_config_file(std::string config_file, t_http_configs *http_data, std::vector<t_server *> *servers);
 
         int count_words();
 
         void    normalize_directories_vector(std::vector<std::string> &vec);
+        std::string get_directory(std::string &cwd, std::string &s);
 
 } ;

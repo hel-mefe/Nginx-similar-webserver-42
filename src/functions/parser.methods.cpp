@@ -323,7 +323,7 @@ void    ConfigFileParser::parse_words()
 
 void    ConfigFileParser::fill_http_hashmap()
 {
-    http_tokens.insert(std::make_pair("auto_indexing", ON_OFF));
+    http_tokens.insert(std::make_pair("directory_listing", ON_OFF));
     http_tokens.insert(std::make_pair("allowed_methods", METHOD_VECTOR));
     http_tokens.insert(std::make_pair("root", DIRECTORY));
     http_tokens.insert(std::make_pair("max_connections", INT));
@@ -341,7 +341,7 @@ void    ConfigFileParser::fill_http_hashmap()
 void    ConfigFileParser::fill_server_hashmap()
 {
     server_tokens.insert(std::make_pair("root", DIRECTORY));
-    server_tokens.insert(std::make_pair("auto_indexing", ON_OFF));
+    server_tokens.insert(std::make_pair("directory_listing", ON_OFF));
     server_tokens.insert(std::make_pair("max_connections", INT));
     server_tokens.insert(std::make_pair("connection", CONNECTION));
     server_tokens.insert(std::make_pair("server_name", STRING));
@@ -363,7 +363,6 @@ void    ConfigFileParser::fill_location_hashmap()
 {
     location_tokens.insert(std::make_pair("root", DIRECTORY));
     location_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
-    location_tokens.insert(std::make_pair("auto_indexing", ON_OFF));
     location_tokens.insert(std::make_pair("connection", CONNECTION));
     location_tokens.insert(std::make_pair("location", DIRECTORY));
     location_tokens.insert(std::make_pair("try_index_files", STRING_VECTOR));
@@ -658,17 +657,17 @@ bool ConfigFileParser::is_config_file_valid(std::string &config_file) // checks 
     return (is_everything_valid) ;
 }
 
-void    ConfigFileParser::insert_cgi_to_hashmap(HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line)
+void    ConfigFileParser::insert_cgi_to_hashmap(std::string cwd, HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line)
 {
     std::string extension = line[1];
     std::string cgi_path = line[2];
 
-    if (access(cgi_path.c_str(), X_OK))
-    {
-        std::cerr << "[Webserv42]: Internal server token error " << std::endl;
-        throw ParsingExceptionCgi();
-    }
-    extension_cgi[extension] = cgi_path;
+    // if (access(cgi_path.c_str(), X_OK))
+    // {
+    //     std::cerr << "[Webserv42]: Internal server token error " << std::endl;
+    //     throw ParsingExceptionCgi();
+    // }
+    extension_cgi[extension] = get_directory(cwd, cgi_path);
 }
 
 int     get_max_connections(std::string &s)
@@ -704,13 +703,13 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
     attr.cookies = conf->cookies;
     attr.max_cgi_timeout = conf->max_cgi_timeout;
     attr.keep_alive_timeout = conf->keep_alive_timeout;
-
+    attr.max_connections = conf->max_connections;
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
         if (nodes[i].id != "server")
             throw InvalidHttpToken() ;
         std::string token_name = nodes[i].words[j][0];
-        if (token_name == "auto_indexing")
+        if (token_name == "directory_listing")
             attr.auto_indexing = get_auto_indexing(nodes[i].words[j]);
         else if (token_name == "connection")
             attr.connection = get_connection(nodes[i].words[j]);
@@ -745,15 +744,17 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
         }
         else if (token_name == "root")
         {
-            attr.root = conf->root + nodes[i].words[j][1];
-            attr.root = (attr.root[sz(attr.root) - 1] != '/') ? attr.root + "/" : attr.root;
+            attr.root = get_directory(conf->cwd, nodes[i].words[j][1]);
+            attr.is_root_defined = true;
+            // attr.root = conf->root + nodes[i].words[j][1];
+            // attr.root = (attr.root[sz(attr.root) - 1] != '/') ? attr.root + "/" : attr.root;
         }
         else if (token_name == "max_connections")
             attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
         else if (token_name == "client_max_body_size")
             attr.max_body_size = get_max_body_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
         else if (token_name == "fastCGI")
-            insert_cgi_to_hashmap(attr.extension_cgi, nodes[i].words[j]);
+            insert_cgi_to_hashmap(conf->cwd, attr.extension_cgi, nodes[i].words[j]);
         else if (token_name == "try_404_files")
         {
             attr.pages_404 = get_vector_of_data(nodes[i].words[j]);
@@ -770,6 +771,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             attr.max_cgi_timeout = std::atoi(nodes[i].words[i][1].c_str());
         else if (token_name == "keep_alive_max_timeout")
             attr.keep_alive_timeout = std::atoi(nodes[i].words[i][1].c_str());
+
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
@@ -825,13 +827,13 @@ void    ConfigFileParser::normalize_directories_vector(std::vector<std::string> 
 }
 
 
-void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs, int i, int j, int ej)
+void    ConfigFileParser::fill_location_attributes(std::string &cwd, t_location_configs &l_configs, int i, int j, int ej)
 {
     while (j < ej && j < sz(nodes[i].location_blocks))
     {
         std::string token_name = nodes[i].location_blocks[j][0];
-        if (token_name == "auto_indexing")
-            l_configs.auto_indexing = get_auto_indexing(nodes[i].location_blocks[j]);
+        if (token_name == "directory_listing")
+            l_configs.directory_listing = get_auto_indexing(nodes[i].location_blocks[j]);
         else if (token_name == "connection")
             l_configs.connection = get_connection(nodes[i].location_blocks[j]);
         else if (token_name == "try_index_files")
@@ -856,8 +858,10 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
         }
         else if (token_name == "root")
         {
-            l_configs.root = nodes[i].location_blocks[j][1]; // [!! -- Later on I may add root + nodes[i].location_blocks[j][1] -- ]
-            l_configs.root = (l_configs.root[sz(l_configs.root) - 1] != '/') ? l_configs.root + "/" : l_configs.root;
+            l_configs.root = get_directory(cwd, nodes[i].location_blocks[j][1]);
+            l_configs.is_root_defined = true;
+            // l_configs.root = nodes[i].location_blocks[j][1]; // [!! -- Later on I may add root + nodes[i].location_blocks[j][1] -- ]
+            // l_configs.root = (l_configs.root[sz(l_configs.root) - 1] != '/') ? l_configs.root + "/" : l_configs.root;
         }
         else if (token_name == "redirect")
             l_configs.redirection = nodes[i].location_blocks[j][1];
@@ -868,8 +872,6 @@ void    ConfigFileParser::fill_location_attributes(t_location_configs &l_configs
         }
         else if (token_name == "upload")
             l_configs.upload = get_auto_indexing(nodes[i].location_blocks[j]);
-        else if (token_name == "directory_listing")
-            l_configs.directory_listing = get_auto_indexing(nodes[i].location_blocks[j]);
         else if (token_name == "error_page")
         {
             int code = std::atoi(nodes[i].location_blocks[j][1].c_str());
@@ -896,10 +898,13 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         std::string location = location_blocks[i][1];
         if (location[sz(location) - 1] != '/')
             location += "/";
+        if (sz(location) && location[0] != '/') // location = location/
+            location = "/" + location;
         i++;
         int start = i;
         while (i < sz(location_blocks) && location_blocks[i][0] != "location")
             i++;
+        /*** setting defaults ***/
         conf->allowed_methods = s_conf->allowed_methods;
         conf->allowed_methods_set = s_conf->allowed_methods_set;
         conf->indexes = s_conf->indexes;
@@ -908,7 +913,8 @@ void    ConfigFileParser::handle_locations(t_server *server, std::vector<std::ve
         conf->pages_404_set = s_conf->pages_404_set;
         conf->code_to_page = s_conf->code_to_page;
         conf->cookies = s_conf->cookies;
-        fill_location_attributes(*conf, index, start, i);
+        conf->directory_listing = s_conf->directory_listing;
+        fill_location_attributes(server->http_configs->cwd, *conf, index, start, i);
         server->set_location_map(location, conf);
     }
 }
@@ -931,6 +937,17 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
     return (true);
 }
 
+std::string ConfigFileParser::get_directory(std::string &cwd, std::string &s)
+{
+    std::string res;
+
+    if (sz(s) && s[0] == '/')
+        res = s;
+    else
+        res = cwd + "/" + s;
+    return (res);
+}
+
 bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
 {
     HashSet<std::string> already_parsed;
@@ -942,14 +959,14 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->multiplexer = MAIN_MULTIPLEXER == KQUEUE ? "kqueue" : "epoll";
     http_data->cookies = "on";
     http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
-
+    http_data->max_connections = DEFAULT_MAX_CONNECTIONS;
     for (int i = 0; i < sz(http_as_words); i++)
     {
         std::string token_name = http_as_words[i][0];
-        if (token_name == "auto_indexing")
+        if (token_name == "directory_listing")
             http_data->auto_indexing = get_auto_indexing(http_as_words[i]);
         else if (token_name == "root")
-            http_data->root = http_as_words[i][1];
+            http_data->root = get_directory(http_data->cwd, http_as_words[i][1]);
         else if (token_name == "allowed_methods")
         {
             http_data->allowed_methods = get_vector_of_data(http_as_words[i]);
@@ -972,6 +989,8 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->cookies = (http_as_words[i][1] == "on");
         else if (token_name == "keep_alive_max_timeout")
             http_data->keep_alive_timeout = std::atoi(http_as_words[i][1].c_str());
+        else if (token_name == "max_connections")
+            http_data->max_connections = std::atoi(http_as_words[i][1].c_str());
     }
     return (true);
 }

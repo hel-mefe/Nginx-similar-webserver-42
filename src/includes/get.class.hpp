@@ -15,6 +15,9 @@ class Get : public MethodHandler
         void    handle_static_file(t_client *client);
         void    handle_directory_listing(t_client *client);
         void    list_directories(t_client *client);
+
+        void    serve_by_chunked(t_client *client);
+        void    serve_by_content_length(t_client *client);
         ~Get(){}
 } ;
 

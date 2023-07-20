@@ -38,7 +38,7 @@ typedef struct kqueueManager
     void add_kqueue_event(int fd, int filter, void *udata){
         struct kevent event;
 
-        EV_SET(&event, fd, filter, EV_ADD, 0, 0, udata);
+        EV_SET(&event, fd, filter | EV_EOF, EV_ADD, 0, 0, udata);
         kevent(kq, &event, 1, NULL, 0, NULL);
     }
 
@@ -109,7 +109,8 @@ typedef struct kqueueManager
         t_client *client = new t_client(fd, server);
         client->cwd = cwd;
         clients_map.insert(std::make_pair(fd, client));
-        add_kqueue_event(fd, EVFILT_WRITE, client); // EVFILT_WRITE cuz WAITING state is not HTTP_STATE and not METHOD_STATE
+        int filter = (W_STATE(client->state) ? EVFILT_WRITE : EVFILT_READ);
+        add_kqueue_event(fd, filter, client); // EVFILT_WRITE cuz WAITING state is not HTTP_STATE and not METHOD_STATE
         client->request_time = time(NULL);
         return true ;
     }

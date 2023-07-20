@@ -28,8 +28,8 @@ void    fill_response(t_client *client, int code, std::string status_line, bool 
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = status_line ;
-    if (sz(connection)) // type of connection
-        res->add("connection", "closed");
+    if (sz(connection) && connection == "keep-alive") // type of connection
+        res->add("connection", "keep-alive");
     if (write_it)
         res->write_response_in_socketfd(client->fd);
 }

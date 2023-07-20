@@ -176,3 +176,783 @@
 [1689592061] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
 [1689592061] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
 [1689592062] SERVER:server_name HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689799012] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 404 Not Found
+[1689799019] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1689815729] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815735] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815736] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815737] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815737] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815737] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815737] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689815739] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1689815745] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 404 Not Found
+[1689816908] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 404 Not Found
+[1689816972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816980] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816980] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816981] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816982] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816983] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816984] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816984] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689816988] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689816989] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689816994] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689816997] SERVER:arsenal HTTP/1.1 GET /testing/indexes/fdsfds | 404 Not Found
+[1689817000] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817002] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817002] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689817003] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689820624] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820795] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820795] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820798] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820798] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820799] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820800] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820869] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820869] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820878] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820878] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820889] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820889] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820900] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689820900] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821052] SERVER:arsenal HTTP/1.1 GET /gfdgfd/gdfgfd | 404 Not Found
+[1689821053] SERVER:arsenal HTTP/1.1 GET /gfdgfd/gdfgfd | 404 Not Found
+[1689821123] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821280] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821667] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821681] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821684] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821836] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821849] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821849] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821850] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821850] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821863] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821866] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821942] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689821942] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689821964] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689821970] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689821970] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689821972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689821972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822142] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822277] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822277] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822279] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822332] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822334] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822334] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822334] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822335] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822335] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822336] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822337] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689822338] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822339] SERVER:arsenal HTTP/1.1 GET /testing/videos/s.mp4 | 404 Not Found
+[1689822655] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822939] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689822941] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823030] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823102] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823199] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823200] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823201] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823202] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823203] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823205] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823208] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823211] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823218] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823297] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689823297] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689823302] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689823302] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823342] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823347] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689823347] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823353] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823355] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823561] SERVER:arsenal HTTP/1.1 GET /fdsfsd | 404 Not Found
+[1689823562] SERVER:arsenal HTTP/1.1 GET /fdsfsd | 404 Not Found
+[1689823563] SERVER:arsenal HTTP/1.1 GET /fdsfsd | 404 Not Found
+[1689823565] SERVER:arsenal HTTP/1.1 GET /fdsfsd | 404 Not Found
+[1689823570] SERVER:arsenal HTTP/1.1 GET /fdsfsd | 404 Not Found
+[1689823666] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823668] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823679] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689823731] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824152] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689824153] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689824172] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689824245] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689824249] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689824327] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824332] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824334] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824347] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824347] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824347] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824348] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824349] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824349] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824349] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824350] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824351] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824352] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824353] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824354] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824355] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824357] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824358] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824359] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824359] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824359] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689824380] SERVER:arsenal HTTP/1.1 GET /testing/videos/v.mp4 | 404 Not Found
+[1689824383] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824383] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824386] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824389] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824568] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824569] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824571] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824571] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824572] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824573] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824573] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824573] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824575] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824577] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824577] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824579] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824581] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824602] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689824604] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689824605] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689824606] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689824607] SERVER:arsenal HTTP/1.1 GET /fds | 404 Not Found
+[1689824759] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824763] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824927] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824931] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824932] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824934] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824936] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824937] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824938] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824939] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824939] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824939] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824939] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824939] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824943] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824944] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824945] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824946] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824947] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824947] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824948] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824948] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824948] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824948] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824949] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824949] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824950] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824950] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824950] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824951] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824956] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689824996] SERVER:arsenal HTTP/1.1 GET /sfdsfds | 404 Not Found
+[1689825000] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825002] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825003] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825004] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825005] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825010] SERVER:arsenal HTTP/1.1 GET /dsfds/ | 404 Not Found
+[1689825012] SERVER:arsenal HTTP/1.1 GET /dsfds/ | 404 Not Found
+[1689825022] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825022] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825026] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825027] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825028] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825033] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825033] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825034] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689825529] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825531] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825531] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825531] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825531] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825531] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825532] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825533] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825534] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825535] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825539] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825539] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825539] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825539] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825539] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825540] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825540] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825540] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825540] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825540] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825548] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825548] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825548] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825548] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825548] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825549] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825553] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825554] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825556] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825557] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825558] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825559] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825560] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825560] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825612] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825613] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689825616] SERVER:arsenal HTTP/1.1 GET /listing | 404 Not Found
+[1689825619] SERVER:arsenal HTTP/1.1 GET /listing/ | 404 Not Found
+[1689825675] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689825680] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689825777] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689825990] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689826129] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689826315] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689826437] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826447] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826448] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826448] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826449] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826449] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826449] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826449] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826449] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826450] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826450] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826450] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826450] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689826473] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689826474] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689826807] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689827010] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689827011] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689827011] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689827299] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689827301] SERVER:arsenal HTTP/1.1 GET /testing/gfdgfd | 404 Not Found
+[1689827303] SERVER:arsenal HTTP/1.1 GET /testing/gfdgfd/ | 404 Not Found
+[1689827309] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689827315] SERVER:arsenal HTTP/1.1 GET /testing/indexes/index4.html | 404 Not Found
+[1689827320] SERVER:arsenal HTTP/1.1 GET /testing/indexes/index4.htmlfdsfds | 404 Not Found
+[1689828433] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828512] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828514] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828516] SERVER:arsenal HTTP/1.1 GET /testing/videos/ | 200 OK
+[1689828518] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689828518] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689828526] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828527] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689828533] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828535] SERVER:arsenal HTTP/1.1 GET /testing/configs | 200 OK
+[1689828539] SERVER:arsenal HTTP/1.1 GET /testing/helloUploaded_file | 200 OK
+[1689828541] SERVER:arsenal HTTP/1.1 GET /testing/images/ | 200 OK
+[1689828542] SERVER:arsenal HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1689828545] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689828547] SERVER:arsenal HTTP/1.1 GET /testing/videos/ | 200 OK
+[1689828548] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689828548] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689828548] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 200 OK
+[1689828595] SERVER:arsenal HTTP/1.1 GET /testing/helloUploaded_file | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828599] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828600] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828601] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828602] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828603] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828604] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828605] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828606] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828607] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828608] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828609] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828618] SERVER:arsenal HTTP/1.1 GET /testing/videos/ | 200 OK
+[1689828620] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828620] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828622] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828622] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828622] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828622] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689828622] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689829612] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689829621] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689829623] SERVER:arsenal HTTP/1.1 GET /testing/videos/ | 200 OK
+[1689829624] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689829624] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689829824] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689829824] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689829896] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830369] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830451] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830793] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830793] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830972] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830990] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689830990] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831116] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831116] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831119] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831119] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831159] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831226] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831226] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831231] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831284] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831284] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689831290] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1689832705] SERVER:arsenal HTTP/1.1 GET / | 200 OK
