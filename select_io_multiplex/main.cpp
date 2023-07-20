@@ -93,10 +93,7 @@ int bindSocket(std::vector<address_t>& add, std::vector<int> socketFds, std::map
 void set_fds(fd_set *readfds, fd_set *writefds, std::vector<int> socketFds, std::map<int, client_t>& clients)
 {
     FD_ZERO(readfds);
-    std::memset(readfds, 0, sizeof(*readfds));
     FD_ZERO(writefds);
-    std::memset(writefds, 0, sizeof(*writefds));
-
     for (size_t i = 0; i < socketFds.size(); i++)
     {
         FD_SET(socketFds[i], readfds);
@@ -127,6 +124,7 @@ int ft_recv(std::map<int, client_t>& clients, int clientFd)
 {
     //client_t client = clients[clientFd];
     char buffer[BUFFER_SIZE];
+    //std::cout<<"Client "<<clientFd<<" is ready to read"<<std::endl;
     int readResult = recv(clientFd, buffer, BUFFER_SIZE, 0);
     if (readResult < 0)
     {
@@ -135,10 +133,10 @@ int ft_recv(std::map<int, client_t>& clients, int clientFd)
     }
     else if (readResult == 0)
     {
-        std::cout<<"Client disconnected\n";
+        //std::cout<<"Client disconnected\n";
         return 2;
     }
-    std::cout<<"Received message: "<<std::endl;//<<buffer<<std::endl;
+    std::cout<<"Received message: "<<buffer<<std::endl;//<<buffer<<std::endl;
     clients[clientFd].buffer = buffer;
     clients[clientFd].state = 2; // test to transform to write
     return 0;
@@ -146,6 +144,17 @@ int ft_recv(std::map<int, client_t>& clients, int clientFd)
 
 int ft_send(std::map<int, client_t>& clients, int clientFd)
 {
+    //std::cout<<"HEERE"<<std::endl;
+    // std::string message = clients[clientFd].buffer;
+    // int sendResult = send(clientFd, message.c_str(), message.length(), 0);
+    // if (sendResult < 0)
+    // {
+    //     //std::cerr<<"Error sending message\n";
+    //     return 1;
+    // }
+    // //std::cout<<"Message sent: "<<message<<std::endl;
+    // clients[clientFd].state = 3; // test to remove client
+    // return 0;
     std::string response = "HTTP/1.1 200 OK\r\n"
                            "Content-Type: text/plain\r\n"
                            "Content-Length: 12\r\n\r\n"
@@ -158,6 +167,7 @@ int ft_send(std::map<int, client_t>& clients, int clientFd)
     }
     //std::cout<<"Message sent: "<<response<<std::endl;
     clients[clientFd].state = 3; // test to remove client
+    //std::cout<<"Client state is "<<clients[clientFd].state<<std::endl;
     return 0;
 }
 
@@ -191,7 +201,8 @@ void removeClient(int clientFd, std::map<int, client_t>& clients)
     // add_slot(i);
     // delete data;
     // return true ;
-    std::cout<<"Client removed\n";
+    std::cout<<"Client "<<clientFd<<" disconnected from server "<<std::endl;
+    //std::cout<<"Client removed\n"<<std::endl;
     close(clientFd);
     clients.erase(clientFd);
 }
@@ -224,7 +235,7 @@ int main(void)
     maxFd = *std::max_element(socketFds.begin(), socketFds.end());
     while (true)
     {
-        set_fds(&readfds, &writefds, socketFds, clients); // no need to remove client here cuz its always restarting the sets
+        set_fds(&readfds, &writefds, socketFds, clients);
         int activity = select(maxFd + 1, &readfds, &writefds, NULL, NULL);
         if (activity < 0)
         {
@@ -233,11 +244,14 @@ int main(void)
         }
         for (int i = 0; i <= maxFd; i++)
         {
+            //std::cout <<"maxfd is : " << maxFd  << "     i is " << i << std::endl;
             if (FD_ISSET(i, &readfds) || FD_ISSET(i, &writefds))
             {
+                //std::cout << "Socket " << i << " is ready" << std::endl;
                 std::vector<int>::iterator its = std::find(socketFds.begin(), socketFds.end(), i);
                 if (its != socketFds.end()) // its a serverSocket
                 {
+                    //std::cout << i << " is a server socket" << std::endl;
                     // accept new client on this socket
                     int clientSocket = accept(i, NULL, NULL);
                     if (clientSocket < 0)
@@ -245,28 +259,41 @@ int main(void)
                         std::cerr<<"Failed to create a new client connection"<<std::endl;
                         continue ;
                     }
-                    std::cout<<"1 - New client connected on socket "<<clientSocket<<" with server with socket "<<i<<std::endl;
+                    std::cout<<"Client "<<clientSocket<<" connected on server "<<i<<std::endl;
+                    //std::cout<<"1 - New client connected on socket "<<clientSocket<<" with server with socket "<<i<<std::endl;
                     FD_SET(clientSocket, &readfds);
                     addClient(clientSocket, i, clients); // not adapted yet to the full code
-                    std::cout<<"2 - New client connected on socket "<<clientSocket<<" with server with socket "<<clients[clientSocket].serverSocket<<std::endl;
+                    //std::cout<<"2 - New client connected on socket "<<clientSocket<<" with server with socket "<<clients[clientSocket].serverSocket<<std::endl;
                     //clientFds.push_back(clientSocket);
                     if (clientSocket > maxFd)
+                    {
                         maxFd = std::max(maxFd, clientSocket);
-                        continue;
+                        break ;
+                    }
                 }
                 std::map<int, client_t>::iterator itc = clients.find(i);
                 if (itc != clients.end()) // is a client
                 {
+                    //std::cout<<"Client state "<<clients[i].state<<std::endl;
+                    //std::cout << i << " is a client socket" << std::endl;
                     //handle_client(t_manager *manager, SOCKET fd)
                     if (FD_ISSET(i, &readfds))
-                        ft_recv(clients, i);
+                    {
+                        //ft_recv(clients, i);
+                        char buffer[BUFFER_SIZE];
+                        recv(i, buffer, BUFFER_SIZE, 0); // errors handling
+                        std::cout << "Received message: \n" << buffer << std::endl;
+                        clients[i].state = 2;
+                    }
                     else if (FD_ISSET(i, &writefds))
+                    {
                         ft_send(clients, i);
-                    if (clients[i].state == 3)
-                        removeClient(i, clients);
-                }
-            }
+                    }
 
+                }
+                if (clients[i].state == 3)
+                    removeClient(i, clients);
+            }
         }
     }
     return (0);
