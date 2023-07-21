@@ -1,23 +1,40 @@
 PROGRAM = webserver
-SRC = src/functions/*.cpp
-OBJ = src/functions/*.o
+
 CC = c++
 FLAGS = -std=c++98 -Wall -Wextra -Werror
 C_FLAGS = $(CC) $(FLAGS)
 
+HDLS = src/handlers/
+MTDS = src/methods/
+MLXS = src/multiplixers/
+PRS = src/parsers/
+TLS = src/tools/
+
 all: $(PROGRAM)
 
-$(PROGRAM): $(OBJ)
-	$(C_FLAGS) $(OBJ) -o webserver
+$(PROGRAM): $(HDLS)*.o $(MTDS)*.o $(MLXS)*.o $(PRS)*.o $(TLS)*.o
+	$(C_FLAGS) $(HDLS)*.o $(MTDS)*.o $(MLXS)*.o $(PRS)*.o $(TLS)*.o -o webserver
 
-$(OBJ): $(SRC)
-	cd src/functions && $(C_FLAGS) -c *.cpp
+$(HDLS)*.o: $(HDLS)*.cpp
+	cd $(HDLS) && $(C_FLAGS) -c *.cpp
+
+$(MTDS)*.o: $(MTDS)*.cpp
+	cd $(MTDS) && $(C_FLAGS) -c *.cpp
+
+$(MLXS)*.o: $(MLXS)*.cpp
+	cd $(MLXS) && $(C_FLAGS) -c *.cpp
+
+$(PRS)*.o: $(PRS)*.cpp
+	cd $(PRS) && $(C_FLAGS) -c *.cpp
+
+$(TLS)*.o: $(TLS)*.cpp
+	cd $(TLS) && $(C_FLAGS) -c *.cpp
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(HDLS)*.o $(MTDS)*.o $(MLXS)*.o $(PRS)*.o $(TLS)*.o
 
 fclean: clean
-	rm -f $(OBJ) $(PROGRAM)
+	rm -f $(HDLS)*.o $(MTDS)*.o $(MLXS)*.o $(PRS)*.o $(TLS)*.o $(PROGRAM)
 
 re: fclean all
 

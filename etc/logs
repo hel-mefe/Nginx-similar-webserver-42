@@ -956,3 +956,15 @@
 [1689831284] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
 [1689831290] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
 [1689832705] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1689894438] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689894438] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1689894443] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689894462] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689898778] SERVER:arsenal HTTP/1.1 GET /testing/ | 404 Not Found
+[1689898778] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1689898857] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1689898857] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1689898859] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 404 Not Found
+[1689898859] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1689898889] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
+[1689903074] SERVER:arsenal HTTP/1.1 POST /uploads/ | 413 Payload Too Large

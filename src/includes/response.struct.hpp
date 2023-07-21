@@ -13,6 +13,7 @@ typedef struct response
     bool                                is_chunked;
     bool                                cgi_rn_found;
     bool                                cgi_running;
+    bool                                file_exist;
     bool                                is_directory_listing; // in case we have to list the directories inside
     bool                                is_first_time;
     int                                 del_files;
@@ -45,6 +46,7 @@ typedef struct response
         cgi_pipe[1] = UNDEFINED;
         del_files = 0;
         buffer = new char[MAX_BUFFER_SIZE];
+        file_exist = false;
     }
     ~response()
     {
