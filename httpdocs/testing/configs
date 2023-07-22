@@ -1,9 +1,9 @@
 http
 {
   allowed_methods GET POST DELETE OPTIONS HEAD
-  client_max_request_timeout 2
-  client_max_body_size 200000000
-  cgi_max_request_timeout 30 
+  client_max_request_timeout 20s
+  client_max_body_size 30mb
+  cgi_max_request_timeout 30s
   multiplexer kqueue
   root httpdocs
 
@@ -12,13 +12,13 @@ http
     allowed_methods GET POST DELETE
     port 9080
     server_name arsenal
-    cgi_max_request_timeout 10 
+    cgi_max_request_timeout 10s 
     root httpdocs/www
     error_page 404 error_pages/404.html
     error_page 403 error_pages/403.html
-    fastCGI .pl /usr/bin/perl
-    fastCGI .py /usr/bin/python
-    fastCGI .php bin/php-cgi
+    # fastCGI .pl /usr/bin/perl
+    # fastCGI .py /usr/bin/python
+    # fastCGI .php bin/php-cgi
 
     try_index_files index.html index1.html index2.html index3.html
 

@@ -312,7 +312,7 @@ bool Handlers::handle_413(t_client *client)
     if (IN_MAP((*request_map), "content-length"))
     {
         req->content_length = std::atoi(request_map->at("content-length").c_str());
-        if(sconf->max_body_size < req->content_length)
+        if((int)sconf->max_body_size < req->content_length)
         {
             error_page = code_to_page[413];
             path = res->root;

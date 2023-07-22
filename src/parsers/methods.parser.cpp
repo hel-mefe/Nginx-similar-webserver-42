@@ -327,17 +327,20 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("allowed_methods", METHOD_VECTOR));
     http_tokens.insert(std::make_pair("root", DIRECTORY));
     http_tokens.insert(std::make_pair("max_connections", INT));
-    http_tokens.insert(std::make_pair("client_max_body_size", INT));
+    http_tokens.insert(std::make_pair("client_max_body_size", SIZE));
     http_tokens.insert(std::make_pair("connection", CONNECTION));
-    http_tokens.insert(std::make_pair("client_max_request_timeout", INT));
+    http_tokens.insert(std::make_pair("client_max_request_timeout", DATE));
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
     http_tokens.insert(std::make_pair("cookies", ON_OFF));
     http_tokens.insert(std::make_pair("fastCGI", CGI));
-    http_tokens.insert(std::make_pair("cgi_max_request_timeout", INT));
-    http_tokens.insert(std::make_pair("keep_alive_max_timeout", INT));
+    http_tokens.insert(std::make_pair("cgi_max_request_timeout", DATE));
+    http_tokens.insert(std::make_pair("keep_alive_max_timeout", DATE));
     http_tokens.insert(std::make_pair("proxy_logs_register", ON_OFF));
     http_tokens.insert(std::make_pair("proxy_cache", ON_OFF));
     http_tokens.insert(std::make_pair("proxy_cache_register", ON_OFF));
+    http_tokens.insert(std::make_pair("proxy_cache_max_size", SIZE));
+    http_tokens.insert(std::make_pair("proxy_cache_max_time", DATE));
+
 }
 
 void    ConfigFileParser::fill_server_hashmap()
@@ -352,12 +355,12 @@ void    ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("try_index_files", STRING_VECTOR));
     server_tokens.insert(std::make_pair("try_404_files", STRING_VECTOR));
     server_tokens.insert(std::make_pair("allowed_methods", STRING_VECTOR));
-    server_tokens.insert(std::make_pair("max_body_size", INT));
+    server_tokens.insert(std::make_pair("max_body_size", SIZE));
     server_tokens.insert(std::make_pair("fastCGI", CGI));
     server_tokens.insert(std::make_pair("error_page", ERROR_PAGE));
-    server_tokens.insert(std::make_pair("client_max_request_timeout", INT));
-    server_tokens.insert(std::make_pair("cgi_max_request_timeout", INT));
-    server_tokens.insert(std::make_pair("keep_alive_max_timeout", INT));
+    server_tokens.insert(std::make_pair("client_max_request_timeout", DATE));
+    server_tokens.insert(std::make_pair("cgi_max_request_timeout", DATE));
+    server_tokens.insert(std::make_pair("keep_alive_max_timeout", DATE));
     server_tokens.insert(std::make_pair("cookies", ON_OFF));
 }
 
@@ -404,7 +407,7 @@ bool ConfigFileParser::is_http_line_valid(int row)
         return (false) ;
     token_type = http_tokens[token_name];
     if ((token_type == DIRECTORY || token_type == MULTIP || token_type == SHORT_INT || token_type == INT || token_type == ON_OFF ||\
-    token_type == METHOD || token_type == STRING) && (sz(http_as_words[row]) != 2))
+    token_type == METHOD || token_type == STRING || token_type == DATE || token_type == SIZE) && (sz(http_as_words[row]) != 2))
         return (false);
     else if ((token_type == METHOD_VECTOR || token_type == STRING_VECTOR) && (sz(http_as_words[row]) < 2))
         return (false);
@@ -430,6 +433,10 @@ bool ConfigFileParser::is_http_line_valid(int row)
         return (tc.is_cgi(http_as_words[row][1], http_as_words[row][2]));
     else if (token_type == MULTIP)
         return (tc.is_multiplexer(http_as_words[row][1]));
+    else if (token_type == DATE)
+        return (tc.is_date(http_as_words[row][1]));
+    else if (token_type == SIZE)
+        return (tc.is_size(http_as_words[row][1]));
     return (true);
 }
 
@@ -462,7 +469,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
     }
     token_type = server_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
-    || token_type == DIRECTORY || token_type == CONNECTION) && (sz(_words) != 2))
+    || token_type == DIRECTORY || token_type == CONNECTION || token_type == SIZE || token_type == DATE) && (sz(_words) != 2))
     {
         std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
@@ -518,6 +525,11 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return (tc.is_cgi(_words[1], _words[2]));
     else if (token_type == ERROR_PAGE)
         return (tc.is_code(_words[1])) ;
+    else if (token_type == DATE)
+        return (tc.is_date(_words[1]));
+    else if (token_type == SIZE)
+        return (tc.is_size(_words[1]));
+
     return (true);
 }
 
@@ -535,7 +547,7 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     }
     token_type = location_tokens[token_name];
     if ((token_type == STRING || token_type == METHOD || token_type == INT || token_type == SHORT_INT \
-    || token_type == DIRECTORY || token_type == ON_OFF || token_type == CONNECTION) && (sz(block) != 2))
+    || token_type == DIRECTORY || token_type == ON_OFF || token_type == CONNECTION || token_type == SIZE || token_type == DATE) && (sz(block) != 2))
     {
         std::cerr << RED_BOLD << "syntax error in the config file" << std::endl;
         return (false);
@@ -587,6 +599,10 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
         return (tc.is_cgi(block[1], block[2]));
     else if (token_type == ERROR_PAGE)
         return (tc.is_code(block[1]));
+    else if (token_type == DATE)
+        return (tc.is_date(block[1]));
+    else if (token_type == SIZE)
+        return (tc.is_size(block[1]));
     return (true);
 }
 
@@ -754,7 +770,7 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
         else if (token_name == "max_connections")
             attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
         else if (token_name == "client_max_body_size")
-            attr.max_body_size = get_max_body_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
+            attr.max_body_size = get_size(nodes[i].words[j][1]); // will crash in case passed MAX_INT
         else if (token_name == "fastCGI")
             insert_cgi_to_hashmap(conf->cwd, attr.extension_cgi, nodes[i].words[j]);
         else if (token_name == "try_404_files")
@@ -768,11 +784,11 @@ void    ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_
             attr.code_to_page[code] = nodes[i].words[j][2];
         }
         else if (token_name == "client_max_request_timeout")
-            attr.max_request_timeout = std::atoi(nodes[i].words[j][1].c_str());
+            attr.max_request_timeout = get_time(nodes[i].words[i][1]);
         else if (token_name == "cgi_max_request_timeout")
-            attr.max_cgi_timeout = std::atoi(nodes[i].words[i][1].c_str());
+            attr.max_cgi_timeout = get_time(nodes[i].words[i][1]);
         else if (token_name == "keep_alive_max_timeout")
-            attr.keep_alive_timeout = std::atoi(nodes[i].words[i][1].c_str());
+            attr.keep_alive_timeout = get_time(nodes[i].words[i][1]);
 
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
@@ -950,6 +966,38 @@ std::string ConfigFileParser::get_directory(std::string &cwd, std::string &s)
     return (res);
 }
 
+unsigned long long  ConfigFileParser::get_time(std::string &s)
+{
+    unsigned long long  res;
+    char                c;
+
+    res = (unsigned long long)std::atoll(s.c_str());
+    c = s[sz(s) - 1];
+    if (c == 'd')
+        res = DAYS_TO_SECS(res);
+    else if (c == 'm')
+        res = MINS_TO_SECS(res);
+    return (res) ;
+}
+
+unsigned long long  ConfigFileParser::get_size(std::string &s)
+{
+    std::string         ext;
+    unsigned long long  res;
+
+    ext = s.substr(sz(s) - 2);
+    for (int j = 0; j < sz(ext); j++)
+        ext[j] = tolower(ext[j]);
+    res = std::atoll(s.c_str());
+    if (ext == "kb")
+        res = FROM_KB_TO_B(res);
+    else if (ext == "mb")
+        res = FROM_MB_TO_B(res);
+    else if (ext == "gb")
+        res = FROM_GB_TO_B(res);
+    return (res) ;    
+}
+
 bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
 {
     HashSet<std::string> already_parsed;
@@ -965,6 +1013,8 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->proxy_cache = false;
     http_data->proxy_cache_register = false;
     http_data->proxy_logs_register = false;
+    http_data->proxy_cache_max_time = 3 * 24 * 60 * 60; // 3 days is the default
+    http_data->proxy_cache_max_size = 12 * pow(1024, 3); // 12mb is the default cache
 
     for (int i = 0; i < sz(http_as_words); i++)
     {
@@ -984,17 +1034,17 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->allowed_methods_set = vector_to_hashset(http_data->allowed_methods);
         }
         else if (token_name == "client_max_body_size")
-            http_data->max_body_size = std::atoi(http_as_words[i][1].c_str());
+            http_data->max_body_size = get_size(http_as_words[i][1]);
         else if (token_name == "client_max_request_timeout")
-            http_data->max_request_timeout = std::atoi(http_as_words[i][1].c_str());
+            http_data->max_request_timeout = get_time(http_as_words[i][1]);
         else if (token_name == "cgi_max_request_timeout")
-            http_data->max_cgi_timeout = std::atoi(http_as_words[i][1].c_str());
+            http_data->max_cgi_timeout = get_time(http_as_words[i][1]);
         else if (token_name == "multiplexer")
             http_data->multiplexer = http_as_words[i][1];
         else if (token_name == "cookies")
             http_data->cookies = (http_as_words[i][1] == "on");
         else if (token_name == "keep_alive_max_timeout")
-            http_data->keep_alive_timeout = std::atoi(http_as_words[i][1].c_str());
+            http_data->keep_alive_timeout = get_time(http_as_words[i][1]);
         else if (token_name == "max_connections")
             http_data->max_connections = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "proxy_cache")
@@ -1003,6 +1053,10 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->proxy_cache_register = (http_as_words[i][1] == "on");
         else if (token_name == "proxy_logs_register")
             http_data->proxy_logs_register = (http_as_words[i][1] == "on");
+        else if (token_name == "proxy_cache_max_time")
+            http_data->proxy_cache_max_time = get_time(http_as_words[i][1]);
+        else if (token_name == "proxy_cache_max_size")
+            http_data->proxy_cache_max_size = get_size(http_as_words[i][1]);
     }
     return (true);
 }

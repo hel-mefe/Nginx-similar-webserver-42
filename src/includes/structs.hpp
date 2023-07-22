@@ -61,11 +61,11 @@ typedef struct ServerAttributes
     HashSet<std::string>                indexes_set;
     HashSet<std::string>                pages_404_set;
     int                                 max_connections;
-    int                                 max_body_size;
-    int                                 max_request_timeout;
-    int                                 max_cgi_timeout;
-    int                                 keep_alive_timeout;
     int                                 logsfile_fd;
+    ull                                 max_body_size;
+    ull                                 max_request_timeout;
+    ull                                 keep_alive_timeout;
+    ull                                 max_cgi_timeout;
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
@@ -129,11 +129,13 @@ typedef struct HttpConfigs
     bool                                proxy_cache_register;
     bool                                proxy_logs_register;
     int                                 cacherc_fd;
-    int                                 max_body_size;
-    int                                 max_request_timeout;
-    int                                 max_cgi_timeout;
-    int                                 keep_alive_timeout;
     int                                 max_connections;
+    ull                                 max_request_timeout;
+    ull                                 max_cgi_timeout;
+    ull                                 keep_alive_timeout;
+    ull                                 max_body_size;
+    ull                                 proxy_cache_max_time;
+    ull                                 proxy_cache_max_size;
     t_cli                               *cli;
 
     HttpConfigs()

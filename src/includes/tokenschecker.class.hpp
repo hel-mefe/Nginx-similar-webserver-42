@@ -22,4 +22,6 @@ class TokensChecker
         bool is_cgi(std::string extension, std::string path);
         bool is_code(std::string s);
         bool is_multiplexer(std::string s);
+        bool is_date(std::string s);
+        bool is_size(std::string s);
 } ;

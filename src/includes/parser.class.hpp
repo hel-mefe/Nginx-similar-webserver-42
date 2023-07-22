@@ -5,6 +5,12 @@
 # include "structs.hpp"
 # include "tokenschecker.class.hpp"
 
+#define DAYS_TO_SECS(ndays) (ndays * 24 * 60 * 60)
+#define MINS_TO_SECS(nmins) (nmins * 60)
+#define FROM_KB_TO_B(v) (v * 1000)
+#define FROM_MB_TO_B(v) (v * 1000 * 1000)
+#define FROM_GB_TO_B(v) (v * 1000 * 1000 * 1000)
+
 typedef struct ast_node
 {
     std::string                              id;
@@ -74,6 +80,8 @@ class ConfigFileParser
         bool                        get_auto_indexing(std::vector<std::string> &line);
         bool                        get_connection(std::vector<std::string> &line);
         int                         get_port(std::vector<std::string> &line);
+        unsigned long long          get_size(std::string &s);
+        unsigned long long          get_time(std::string &s);
         std::vector<std::string>    get_vector_of_data(std::vector<std::string> &line); 
         HashSet<std::string>        vector_to_hashset(std::vector<std::string> &vec);
         void                        insert_cgi_to_hashmap(std::string cwd, HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line);

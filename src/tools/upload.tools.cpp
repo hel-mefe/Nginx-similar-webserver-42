@@ -110,7 +110,7 @@ void   parse_chunked_body(t_client* client)
             if (pos == std::string::npos)
                 break;
             req->convert_hex(req->body.substr(0, pos));
-            if (req->hex + req->body_size > client->response->configs->max_body_size)
+            if (req->hex + req->body_size > (int)client->response->configs->max_body_size)
             {
                 fill_response(client, 413, "Payload Too Large", true);
                 req->body.clear();

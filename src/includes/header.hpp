@@ -52,6 +52,8 @@
 # define SA_IN struct sockaddr_in
 # define SOCKET_NOT_DEFINED 0
 # define UNDEFINED -1
+# define ull unsigned long long
+
 
 # define ReadingEvent(change,fd,udata) EV_SET(change, fd, EVFILT_READ, EV_ADD, 0, 0, udata)
 # define WritingEvent(change,fd,udata) EV_SET(change, fd, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, udata)
@@ -107,6 +109,8 @@ enum TOKEN
     LOCATION,
     ERROR_PAGE,
     MULTIP,
+    SIZE,
+    DATE,
     NOTHING
 } ;
 
