@@ -19,6 +19,8 @@
  # include "epoll.class.hpp"
 #endif
 
+#define IS_CACHE_VALID(c) ((!access(c->rq_file.c_str(), R_OK) && !access(c->s_file.c_str(), R_OK) && c->t_created >= c->t_rq_last_modified && c->t_created >= c->t_s_last_modified))
+
 class Webserver
 {
     private:
@@ -28,6 +30,7 @@ class Webserver
         MultiplexerInterface                *multiplexer;
         HashMap<int, std::string>           *codes;
         HashMap<std::string, std::string>   *mimes;
+        HashMap<std::string, t_cache *>     *caches;
         t_cli                               *cli;
         std::string                         config_file;
     public:
@@ -60,4 +63,10 @@ class Webserver
         void                        create_redirection_graph(t_server *server, HashMap<std::string, std::string> &graph);
         bool                        is_cycled(HashMap<std::string, std::string> &graph);
         bool                        is_root_cycled(HashMap<std::string, std::string> &graph, std::string start);
+
+        //Cache
+        void                        parse_cache();
+        void                        parse_cache_line(std::string &line);
+        void                        set_cache_data(t_cache *c, std::string &line);
+
 } ;

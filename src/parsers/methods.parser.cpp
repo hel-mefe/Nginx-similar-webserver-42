@@ -335,7 +335,9 @@ void    ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("fastCGI", CGI));
     http_tokens.insert(std::make_pair("cgi_max_request_timeout", INT));
     http_tokens.insert(std::make_pair("keep_alive_max_timeout", INT));
-    
+    http_tokens.insert(std::make_pair("proxy_logs_register", ON_OFF));
+    http_tokens.insert(std::make_pair("proxy_cache", ON_OFF));
+    http_tokens.insert(std::make_pair("proxy_cache_register", ON_OFF));
 }
 
 void    ConfigFileParser::fill_server_hashmap()
@@ -960,6 +962,10 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->cookies = "on";
     http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
     http_data->max_connections = DEFAULT_MAX_CONNECTIONS;
+    http_data->proxy_cache = false;
+    http_data->proxy_cache_register = false;
+    http_data->proxy_logs_register = false;
+
     for (int i = 0; i < sz(http_as_words); i++)
     {
         std::string token_name = http_as_words[i][0];
@@ -991,6 +997,12 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             http_data->keep_alive_timeout = std::atoi(http_as_words[i][1].c_str());
         else if (token_name == "max_connections")
             http_data->max_connections = std::atoi(http_as_words[i][1].c_str());
+        else if (token_name == "proxy_cache")
+            http_data->proxy_cache = (http_as_words[i][1] == "on");
+        else if (token_name == "proxy_cache_register")
+            http_data->proxy_cache_register = (http_as_words[i][1] == "on");
+        else if (token_name == "proxy_logs_register")
+            http_data->proxy_logs_register = (http_as_words[i][1] == "on");
     }
     return (true);
 }

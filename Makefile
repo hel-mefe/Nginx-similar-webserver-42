@@ -1,7 +1,7 @@
 PROGRAM = webserver
 
 CC = c++
-FLAGS = -std=c++98 -Wall -Wextra -Werror
+FLAGS = -std=c++98 -fsanitize=address -Wall -Wextra -Werror
 C_FLAGS = $(CC) $(FLAGS)
 
 HDLS = src/handlers/

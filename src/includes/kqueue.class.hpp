@@ -24,7 +24,7 @@ class Kqueue : public MultiplexerInterface
         HashMap<std::string, std::string>       *mimes;
         HttpHandlerInterface                    *http_handler;
         HashMap<std::string, MethodHandler*>    *method_handlers;
-    
+        HashMap<std::string, t_cache *>          *caches;
     public:
         Kqueue() : configs(nullptr), servers(nullptr)
         {
@@ -56,6 +56,7 @@ class Kqueue : public MultiplexerInterface
         void    set_servers(std::vector<t_server *> *_servers){servers = _servers;}
         void    set_codes(HashMap<int, std::string> *_codes){codes = _codes;}
         void    set_mimes(HashMap<std::string, std::string> *_mimes){mimes = _mimes;} 
+        void    set_caches(HashMap<std::string, t_cache*> *_caches){caches = _caches;}
 
         void    set_manager();
 

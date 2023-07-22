@@ -521,10 +521,7 @@ bool    Handlers::handle_200d(t_client *client)
     {
         std::cout << "CWD => " << client->cwd << std::endl;
         std::cout << "ROOT => " << res->rootfilepath << std::endl;
-        if (d_configs->directory_listing)
-            std::cout << "DIRECTORY LISTING IS ON" << std::endl;
-        else
-            std::cout << "DIRECTORY LISTING IS OFF" << std::endl;
+
         std::string fpath = client->cwd + res->rootfilepath;
         DIR *d = opendir(fpath.c_str());
         if (d_configs && d_configs->directory_listing && d)

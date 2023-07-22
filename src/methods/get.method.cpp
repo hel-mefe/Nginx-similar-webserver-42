@@ -29,13 +29,11 @@ std::string get_hex_as_string(int bts, std::string res)
 void    Get::serve_by_chunked(t_client *client)
 {
     t_response  *res;
-    t_request   *req;
     std::string ress;
     std::string hex;
     int         bts;
 
     res = client->response;
-    req = client->request;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
     if (bts > 0)
@@ -56,11 +54,9 @@ void    Get::serve_by_content_length(t_client *client)
 {
     int                     bts;
     t_response              *res;
-    t_request               *req;
     std::string             ress;
 
     res = client->response;
-    req = client->request;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
     if (bts > 0)
@@ -77,11 +73,9 @@ void    Get::handle_static_file(t_client *client)
 {
     // int                     bts;
     t_response              *res;
-    t_request               *req;
     std::string             ress;
 
     res = client->response;
-    req = client->request;
     if (res->is_chunked)
         serve_by_chunked(client);
     else

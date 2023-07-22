@@ -14,5 +14,6 @@ class MultiplexerInterface
         virtual void    set_servers(std::vector<t_server *> *) = 0;
         virtual void    set_mimes(HashMap<std::string, std::string> *) = 0;
         virtual void    set_codes(HashMap<int, std::string> *) = 0;
+        virtual void    set_caches(HashMap<std::string, t_cache *> *) = 0;
         virtual         ~MultiplexerInterface(){};
 } ;

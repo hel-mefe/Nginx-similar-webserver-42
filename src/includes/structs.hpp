@@ -12,6 +12,9 @@ typedef struct cli
     bool        is_strict_mode_activated;
     bool        is_logs_activated;
     bool        is_help;
+    bool        is_cache_register_activated;
+    bool        is_cache_activated;
+    bool        is_debugging_mode;
     std::string multiplexer;
 
     cli()
@@ -19,8 +22,25 @@ typedef struct cli
         is_strict_mode_activated = false;
         is_logs_activated = false;
         is_help = false;
+        is_cache_register_activated = false;
+        is_cache_activated = false;
     }
 }   t_cli ;
+
+typedef struct cache
+{
+    std::string                         rq_file; // absolute path of requested file
+    std::string                         s_file; // absolute path of served file
+    std::string                         cookies; // cookies as key value pairs
+    std::string                         queries; // queries as key value pairs
+    std::string                         date_created; // date created as string
+    long                                t_created; // unix timestamp created
+    long                                t_rq_last_modified; // unix timestamp request file modified 
+    long                                t_s_last_modified; // unix timestamp served file modified 
+    std::map<std::string, std::string>  cookies_map; // cookies map
+    std::map<std::string, std::string>  queries_map; // queries map
+    bool                                is_valid; // is the cache corrupted or not (corrupted means a file has been edited or so)
+}   t_cache;
 
 typedef struct ServerAttributes
 {
@@ -105,6 +125,10 @@ typedef struct HttpConfigs
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
     bool                                cookies;
+    bool                                proxy_cache;
+    bool                                proxy_cache_register;
+    bool                                proxy_logs_register;
+    int                                 cacherc_fd;
     int                                 max_body_size;
     int                                 max_request_timeout;
     int                                 max_cgi_timeout;
@@ -120,6 +144,7 @@ typedef struct HttpConfigs
         max_body_size = DEFAULT_MAX_BODY_SIZE;
         max_request_timeout = DEFAULT_MAX_REQUEST_TIMEOUT;
         cli = nullptr;
+        cacherc_fd = UNDEFINED;
     }
 }   t_http_configs;
 

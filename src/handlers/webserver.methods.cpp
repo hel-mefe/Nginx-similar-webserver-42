@@ -1,6 +1,7 @@
 # include "../includes/webserv.class.hpp"
 # include "../includes/globals.hpp"
 # include <dirent.h>
+# include <istream>
 
 /***
 * the main webserv class that encapsulates all the work 
@@ -15,6 +16,7 @@ Webserver::Webserver()
     multiplexer = nullptr;
     codes = nullptr;
     mimes = nullptr;
+    caches = nullptr;
     cli = nullptr;
 }
 
@@ -28,6 +30,7 @@ Webserver::Webserver(std::string _config_file)
     codes = new HashMap<int, std::string>();
     config_file = _config_file;
     multiplexer = nullptr;
+    caches = nullptr;
     cli = nullptr;
 }
 
@@ -42,6 +45,7 @@ Webserver::Webserver(std::string _config_file, MultiplexerInterface *_multiplexe
     mimes = new HashMap<std::string, std::string>();
     codes = new HashMap<int, std::string>();
     cli = nullptr;
+    caches = nullptr;
 }
 
 Webserver::Webserver(const Webserver& w)
@@ -356,6 +360,38 @@ void    Webserver::set_cgi_warning(t_server *server, std::vector<std::string> &w
     }
 }
 
+// bool    Webserver::is_cache_valid()
+// {
+//     int fd = open("caches/cacherc", O_RDWR | O_CREAT | O_APPEND, 0777);
+//     char    buff[MAX_BUFFER_SIZE];
+
+//     if (fd == -1)
+//     {
+//         std::cerr << "[Webserver42]: internal server file descriptor error, open failed!" << std::endl;
+//         exit(1);
+//     }
+//     bzero(buff, MAX_BUFFER_SIZE);
+//     int bts = -1;
+//     while (bts)
+//     {
+//         int bts = read(fd, buff, MAX_BUFFER_SIZE);
+        
+//     }
+// }
+
+// void    Webserver::set_cache_warning(t_server *server, std::vector<std::string> &warnings)
+// {
+//     if (server->http_configs->cacherc_fd == UNDEFINED)
+//         return ;
+//     std::string s;
+
+//     if (is_cache_valid())
+//     {
+//         s = "the cacherc is not valid " ;
+//         warnings.push_back(s);
+//     }
+// }
+
 std::vector<std::string>    Webserver::generate_all_warnings()
 {
     std::vector<std::string>    warnings;
@@ -367,17 +403,176 @@ std::vector<std::string>    Webserver::generate_all_warnings()
         set_invalid_root_warning(servers->at(i), warnings);
         set_redefined_location_warning(servers->at(i), warnings);
         set_cgi_warning(servers->at(i), warnings);
+        // set_cache_warning(servers->at(i), warnings);
     }
     return (warnings);
+}
+
+/***
+ * 
+ * each line of the cache is as follows:
+ *  file_requested_absolute_path | file_to_serve_absolute_path | queries (key=value,ke2=value2 ... keyn=valuen) | cookies (key=val, key2=val2, key3=val3 ... etc) | date_created_unix_timetamp
+*/
+
+std::string get_cache_requested_file(std::string &line)
+{
+    size_t      pipe_pos;
+    std::string requested_file;
+
+    pipe_pos = line.find_first_of("|");
+    requested_file = line.substr(0, pipe_pos);
+    requested_file = trim_string(requested_file);
+    return (requested_file);
+}
+
+std::string get_cache_served_file(std::string &line)
+{
+    size_t      pipe_pos1;
+    size_t      pipe_pos2;
+    std::string served_file;
+
+    pipe_pos1 = line.find("|");
+    pipe_pos2 = line.find("|", pipe_pos1 + 1);
+    served_file = line.substr(pipe_pos1 + 1, pipe_pos2 - (pipe_pos1 + 1));
+    served_file = trim_string(served_file);
+    return (served_file);
+}
+
+std::string get_cache_queries(std::string &line)
+{
+    size_t      pipe_pos1;
+    size_t      pipe_pos2;
+    std::string queries;
+
+    pipe_pos1 = line.find("|");
+    pipe_pos1 = line.find("|", pipe_pos1 + 1);
+    pipe_pos2 = line.find("|", pipe_pos1 + 1);
+    queries = line.substr(pipe_pos1 + 1, pipe_pos2 - (pipe_pos1 + 1));
+    queries = trim_string(queries);
+    return (queries);
+
+}
+
+std::string get_cache_cookies(std::string &line)
+{
+    size_t      pipe_pos1;
+    size_t      pipe_pos2;
+    std::string cookies;
+
+    pipe_pos1 = line.find("|");
+    pipe_pos1 = line.find("|", pipe_pos1 + 1);
+    pipe_pos1 = line.find("|", pipe_pos1 + 1);
+    pipe_pos2 = line.find("|", pipe_pos1 + 1);
+    cookies = line.substr(pipe_pos1 + 1, pipe_pos2 - (pipe_pos1 + 1));
+    cookies = trim_string(cookies);
+    return (cookies);
+
+}
+
+std::string get_cache_date(std::string &line)
+{
+    size_t      pipe_pos1;
+    size_t      pipe_pos2;
+    std::string date_created;
+
+    pipe_pos1 = line.find("|");
+    pipe_pos1 = line.find("|", pipe_pos1 + 1);
+    pipe_pos1 = line.find("|", pipe_pos1 + 1);
+    pipe_pos2 = line.find("|", pipe_pos1 + 1);
+    date_created = line.substr(pipe_pos2 + 1);
+    date_created = trim_string(date_created);
+   return (date_created);
+}
+
+void    Webserver::set_cache_data(t_cache *c, std::string &line)
+{
+    c->rq_file = get_cache_requested_file(line);
+    c->s_file = get_cache_served_file(line);
+    c->queries = get_cache_queries(line);
+    c->cookies = get_cache_cookies(line);
+    c->date_created = get_cache_date(line);
+    c->t_created = std::atol(c->date_created.c_str());
+    c->t_rq_last_modified = get_file_last_modified(c->rq_file.c_str());
+    c->t_s_last_modified = get_file_last_modified(c->s_file.c_str());
+    c->queries_map = get_cookies_queries_map(c->queries, true);
+    c->cookies_map = get_cookies_queries_map(c->cookies, false);
+    c->is_valid = IS_CACHE_VALID(c);
+
+    std::cout << "REQUESTED_FILE = " << c->rq_file << std::endl;
+    std::cout << "SERVED FILE = " << c->s_file << std::endl;
+    std::cout << "QUERIES = " << c->queries << std::endl;
+    std::cout << "COOKIES = " << c->cookies << std::endl;
+    std::cout << "DATE_CREATED = " << c->date_created << std::endl;
+    std::cout << "REQUEST_LAST_MODIFIED = " << c->t_rq_last_modified << std::endl;
+    std::cout << "SERVED_LAST_MODIFIED = " << c->t_s_last_modified << std::endl;
+    std::cout << "*** PRINTING QUERIES ***" << std::endl;
+    for (std::map<std::string, std::string>::iterator it = c->queries_map.begin(); it != c->queries_map.end(); it++)
+        std::cout << it->first << " -> " << it->second << std::endl;
+    std::cout << "*** PRINTING COOKIES ***" << std::endl;
+    for (std::map<std::string, std::string>::iterator it = c->cookies_map.begin(); it != c->cookies_map.end(); it++)
+        std::cout << it->first << " -> " << it->second << std::endl;
+    std::cout << "IS_VALID = " << (c->is_valid ? "YES" : "NO") << std::endl;
+}
+
+void    Webserver::parse_cache_line(std::string &line)
+{
+    t_cache *c;
+
+    c = new t_cache();
+    set_cache_data(c, line);
+    if (c->is_valid)
+        (*caches)[c->rq_file] = c;
+    // if (!access(requested_file.c_str(), R_OK) && !access(served_file.c_str(), R_OK))
+    // {
+    //     long long dc_time = std::atoll(date_created.c_str());
+    //     long long last_modified = get_file_last_modified(requested_file.c_str());
+    //     std::cout << dc_time << " - " << last_modified << (dc_time > last_modified ? " YES" : " NO") << std::endl;
+    //     if (last_modified > dc_time) // then the file is valid
+    //     {
+    //         std::cout << CYAN_BOLD << requested_file << " -> " << served_file << " is valid!" << std::endl;
+    //         (*caches)[requested_file] = served_file;
+    //     }
+    // }
+
+
+}
+
+void    Webserver::parse_cache()
+{
+    std::string line;
+    std::ifstream st("caches/cacherc");
+
+    while (st.good())
+    {
+        getline(st, line);
+        if (sz(line))
+            parse_cache_line(line) ;
+    }
+    st.close();
 }
 
 void    Webserver::run() // sockets of all servers will run here
 {
     http_configs->cli = cli;
+
+    std::cout << "NUMBER OF SERVERS => " << sz((*servers)) << std::endl;
+    for (int i = 0; i < sz((*servers)); i++)
+        servers->at(i)->http_configs = http_configs;
+    /*** CLI always has the priority over config file ***/
     if (sz(cli->multiplexer)) // multiplexer defined in cli
-    {
-        std::cout << "Multiplexer => " << cli->multiplexer << std::endl;
         http_configs->multiplexer = cli->multiplexer;
+    if (cli->is_logs_activated)
+        http_configs->proxy_logs_register = cli->is_logs_activated;
+    if (cli->is_cache_register_activated)
+        http_configs->proxy_cache_register = true ;
+    if (cli->is_cache_activated)
+        http_configs->proxy_cache = true;
+
+    if (http_configs->proxy_cache || http_configs->proxy_cache_register)
+    {
+        this->caches = new std::map<std::string, t_cache*>();
+        parse_cache();
+        std::cout << GREEN_BOLD << "The cache is parsed" << std::endl;
     }
     init_mimes();
     init_codes();
@@ -386,5 +581,7 @@ void    Webserver::run() // sockets of all servers will run here
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);
     multiplexer->set_codes(codes);
+    if (http_configs->proxy_cache || http_configs->proxy_cache_register)
+        multiplexer->set_caches(caches);
     multiplexer->multiplex();
 }

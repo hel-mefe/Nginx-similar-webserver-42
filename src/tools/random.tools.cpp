@@ -183,7 +183,7 @@ std::string trim_string(std::string &s)
 {
     int a = 0, b = sz(s) - 1;
     while (a < b && (isspace(s[a]) || isspace(s[b])))
-        a += (isspace(s[a])), b -= (isspace(s[a]));
+        a += (isspace(s[a])), b -= (isspace(s[b]));
     std::string res = s.substr(a, b - a + 1);
     return res;
 }
@@ -362,4 +362,42 @@ void    add_to_logs(t_client* client)
     str += "\n";
     write(fd, str.c_str(), str.size());
     close(fd);
+}
+
+long long get_file_last_modified(const char *filename)
+{
+    struct stat info;
+
+    if (!stat(filename, &info))
+        return (info.st_mtime) ;
+    return (-1) ;
+}
+
+std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query)
+{
+    size_t      s_point;
+    size_t      e_point;
+    size_t      equal_char_pos;
+    std::string part;
+    std::string key;
+    std::string value;
+    std::map<std::string, std::string>  res_map;
+
+    s_point = -1;
+    e_point = UNDEFINED;
+    while (e_point != line.size())
+    {
+        e_point = line.find(",", s_point + 1);
+        e_point = (e_point == std::string::npos ? line.size() : e_point);
+        part = line.substr(s_point + 1, e_point - (s_point + 1));
+        equal_char_pos = part.find("=");
+        key = part.substr(0, equal_char_pos);
+        value = part.substr(equal_char_pos + 1);
+        key = trim_string(key);
+        value = trim_string(value);
+        if (is_query || key != "ssid")
+            res_map.insert(std::make_pair(key, value));
+        s_point = e_point;
+    }
+    return (res_map);
 }

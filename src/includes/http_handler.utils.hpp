@@ -24,4 +24,7 @@ std::vector<std::string>    *split_first_line(std::string &s);
 int     get_rn_endpos(unsigned char *buff, int buff_size); // -1 means not found
 void    add_to_logs(t_client *client);
 
+long long                           get_file_last_modified(const char *filename);
+std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query);
+
 #endif

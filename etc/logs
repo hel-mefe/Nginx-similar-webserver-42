@@ -968,3 +968,37 @@
 [1689898859] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
 [1689898889] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
 [1689903074] SERVER:arsenal HTTP/1.1 POST /uploads/ | 413 Payload Too Large
+[1690055928] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055932] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055933] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055934] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055935] SERVER:arsenal HTTP/1.1 GET / | 404 Not Found
+[1690055937] SERVER:arsenal HTTP/1.1 GET /nice | 404 Not Found
+[1690055945] SERVER:arsenal HTTP/1.1 GET /testing | 404 Not Found
+[1690055946] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1690055947] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690055948] SERVER:arsenal HTTP/1.1 GET /testing/videos/ | 200 OK
+[1690055949] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1690055949] SERVER:arsenal HTTP/1.1 GET /testing/videos/pexels.mp4 | 200 OK
+[1690055953] SERVER:arsenal HTTP/1.1 GET /testing/ | 200 OK
+[1690055954] SERVER:arsenal HTTP/1.1 GET /testing/images/ | 200 OK
+[1690055955] SERVER:arsenal HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1690055970] SERVER:arsenal HTTP/1.1 GET /testing/images/luffy.jpeg | 200 OK
+[1690055974] SERVER:arsenal HTTP/1.1 GET /testing | 404 Not Found

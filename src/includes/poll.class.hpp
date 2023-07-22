@@ -22,9 +22,10 @@ class Poll : public MultiplexerInterface
         HashMap<std::string, std::string>       *mimes;
         HttpHandlerInterface                    *http_handler;
         HashMap<std::string, MethodHandler*>    *method_handlers;
-    
+        HashMap<std::string, t_cache*>          *caches;
+
     public:
-        Poll() : configs(nullptr), servers(nullptr)
+        Poll() : configs(nullptr), servers(nullptr), caches(nullptr)
         {
             method_handlers = new HashMap<std::string, MethodHandler*>();
             method_handlers->insert(std::make_pair("GET", new Get()));
@@ -36,6 +37,7 @@ class Poll : public MultiplexerInterface
             manager = nullptr;
             configs = _configs;
             servers = _servers;
+            caches = nullptr;
         }
         Poll(t_http_configs *_configs, std::vector<t_server *>* _servers, HashMap<int, std::string> *_codes, HashMap<std::string, std::string> *_mimes)
         {
@@ -44,6 +46,7 @@ class Poll : public MultiplexerInterface
             servers = _servers;
             codes = _codes;
             mimes = _mimes;
+            caches = nullptr;
         }
         ~Poll(){}
 
@@ -53,6 +56,7 @@ class Poll : public MultiplexerInterface
         void    set_servers(std::vector<t_server *> *_servers){servers = _servers;}
         void    set_codes(HashMap<int, std::string> *_codes){codes = _codes;}
         void    set_mimes(HashMap<std::string, std::string> *_mimes){mimes = _mimes;} 
+        void    set_caches(HashMap<std::string, t_cache*> *_caches){caches = _caches;} 
 
         void    set_manager();
 
