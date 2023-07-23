@@ -115,7 +115,7 @@ bool TokensChecker::is_date(std::string s)
     ext = s.substr(i);
     for (int j = 0; j < sz(ext); j++)
         ext[j] = tolower(ext[j]);
-    return (ext == "d" || ext == "m" || ext == "s");
+    return (ext == "d" || ext == "m" || ext == "s" || ext == "h");
 }
 bool TokensChecker::is_size(std::string s)
 {
@@ -127,5 +127,5 @@ bool TokensChecker::is_size(std::string s)
     ext = s.substr(i);
     for (int j = 0; j < sz(ext); j++)
         ext[j] = tolower(ext[j]);
-    return ((ext == "kb" || ext == "mb" || ext == "gb"));
+    return ((ext == "kb" || ext == "mb" || ext == "gb" || ext == "by"));
 }

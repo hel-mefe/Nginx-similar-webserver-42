@@ -373,6 +373,52 @@ long long get_file_last_modified(const char *filename)
     return (-1) ;
 }
 
+long long get_file_size(const char *filename)
+{
+    struct stat info;
+
+    if (!stat(filename, &info))
+        return (info.st_size) ;
+    return (-1) ;
+
+}
+
+long long get_cache_folder_size(const char *foldername)
+{
+    DIR         *dir;
+    std::string d_name;
+    std::string filepath;
+    std::string s_foldername;
+    long long   res = 0;
+    struct dirent *entry;
+
+    dir = opendir(foldername);
+    if (!dir)
+        return (0) ;
+    s_foldername = foldername;
+    while (1)
+    {
+        entry = readdir(dir);
+        if (!entry)
+            break ;
+        d_name = entry->d_name; 
+        if (d_name != "." && d_name != ".." && entry->d_type == DT_REG) // not special directory and a file
+        {
+            if (d_name.substr(0, 6) == "cache_") // cache_file always starts with "cache_"
+            {
+                filepath = s_foldername;
+                if (sz(filepath) && filepath[sz(filepath) - 1] != '/')
+                    filepath += "/" ;
+                filepath += d_name; 
+                res += get_file_size(filepath.c_str());
+            }
+        }
+
+    }
+    closedir(dir);
+    return (res) ;
+}
+
 std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query)
 {
     size_t      s_point;
@@ -401,3 +447,4 @@ std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, b
     }
     return (res_map);
 }
+

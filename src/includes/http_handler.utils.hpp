@@ -27,4 +27,6 @@ void    add_to_logs(t_client *client);
 long long                           get_file_last_modified(const char *filename);
 std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query);
 
+long long get_cache_folder_size(const char *foldername);
+
 #endif

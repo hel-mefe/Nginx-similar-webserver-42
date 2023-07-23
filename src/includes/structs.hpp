@@ -15,6 +15,7 @@ typedef struct cli
     bool        is_cache_register_activated;
     bool        is_cache_activated;
     bool        is_debugging_mode;
+    ll          max_body_size;
     std::string multiplexer;
 
     cli()
@@ -62,10 +63,10 @@ typedef struct ServerAttributes
     HashSet<std::string>                pages_404_set;
     int                                 max_connections;
     int                                 logsfile_fd;
-    ull                                 max_body_size;
-    ull                                 max_request_timeout;
-    ull                                 keep_alive_timeout;
-    ull                                 max_cgi_timeout;
+    ll                                  max_body_size;
+    ll                                  max_request_timeout;
+    ll                                  keep_alive_timeout;
+    ll                                  max_cgi_timeout;
     bool                                directory_listing;
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
@@ -130,12 +131,12 @@ typedef struct HttpConfigs
     bool                                proxy_logs_register;
     int                                 cacherc_fd;
     int                                 max_connections;
-    ull                                 max_request_timeout;
-    ull                                 max_cgi_timeout;
-    ull                                 keep_alive_timeout;
-    ull                                 max_body_size;
-    ull                                 proxy_cache_max_time;
-    ull                                 proxy_cache_max_size;
+    ll                                  max_request_timeout;
+    ll                                  max_cgi_timeout;
+    ll                                  keep_alive_timeout;
+    ll                                  max_body_size;
+    ll                                  proxy_cache_max_time;
+    ll                                  proxy_cache_max_size;
     t_cli                               *cli;
 
     HttpConfigs()
@@ -147,6 +148,9 @@ typedef struct HttpConfigs
         max_request_timeout = DEFAULT_MAX_REQUEST_TIMEOUT;
         cli = nullptr;
         cacherc_fd = UNDEFINED;
+        proxy_cache_max_time = UNDEFINED;
+        proxy_cache_max_size = UNDEFINED;
+
     }
 }   t_http_configs;
 

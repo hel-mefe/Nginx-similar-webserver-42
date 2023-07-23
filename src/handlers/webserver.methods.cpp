@@ -483,6 +483,10 @@ std::string get_cache_date(std::string &line)
     date_created = trim_string(date_created);
    return (date_created);
 }
+/***
+ * Cache will be in this format:
+ *    file_requested_abs_path | file_serve_abs_path | qkey1=val1, qkey2=val2 | ckey1=cval1, ckey2=cval2 | unix_timestamp_creation_date
+*/
 
 void    Webserver::set_cache_data(t_cache *c, std::string &line)
 {
@@ -514,7 +518,7 @@ void    Webserver::set_cache_data(t_cache *c, std::string &line)
     std::cout << "IS_VALID = " << (c->is_valid ? "YES" : "NO") << std::endl;
 }
 
-void    Webserver::parse_cache_line(std::string &line)
+bool    Webserver::parse_cache_line(std::string &line)
 {
     t_cache *c;
 
@@ -522,6 +526,12 @@ void    Webserver::parse_cache_line(std::string &line)
     set_cache_data(c, line);
     if (c->is_valid)
         (*caches)[c->rq_file] = c;
+    else
+    {
+        delete c;
+        return (false);
+    }
+    return (true) ;
     // if (!access(requested_file.c_str(), R_OK) && !access(served_file.c_str(), R_OK))
     // {
     //     long long dc_time = std::atoll(date_created.c_str());
@@ -537,27 +547,155 @@ void    Webserver::parse_cache_line(std::string &line)
 
 }
 
-void    Webserver::parse_cache()
+void    Webserver::parse_cache(std::vector<std::string> &warnings)
 {
     std::string line;
-    std::ifstream st("caches/cacherc");
+    std::ifstream st;
+    int           fd;
+    std::string    warn_s;
+    bool          is_warning_set = false;
 
+    if (access("caches/cacherc", R_OK))
+    {
+        fd = open("caches/cacherc", O_CREAT, 0777);
+        if (fd != -1)
+            close(fd);
+    }
+    st.open("caches/cacherc");
     while (st.good())
     {
         getline(st, line);
         if (sz(line))
-            parse_cache_line(line) ;
+        {
+            if (!parse_cache_line(line) && !is_warning_set)
+            {
+                warn_s = "Some cached data is corrupted inside the [caches/cachrc] file, consider resetting the cache to avoid this warning";
+                warnings.push_back(warn_s);
+                is_warning_set = true;
+            }
+        }
     }
     st.close();
+}
+
+void    Webserver::reset_cache()
+{
+    std::string folder;
+    std::string entry_name;
+    DIR         *dir;
+    struct dirent *entry;
+
+    folder = "/caches";
+    dir = opendir(folder.c_str());
+    if (!dir)
+        return ;
+    while (1)
+    {
+        entry = readdir(dir);
+        if (!entry)
+            break ;
+        ne
+    }    
+    closedir(dir);
+}
+
+/**
+ * cachetime file will be templated as follows:
+ *    time_created:     [number]
+ *    valid_until:      [number]
+ *    size:             [number]
+ * 
+ * 
+*/
+
+bool    Webserver::set_cache_time_data(t_http_configs *http_configs, std::vector<std::string> &warnings)
+{
+    std::ifstream st;
+    int           fd;
+    std::string   line;
+    std::string   part1;
+    std::string   part2;
+    ll            number;
+    size_t        spoint;
+    bool          tc_found = false, vu_found = false, sz_found = false, tv_found = false;
+    ll            time_created = UNDEFINED, valid_until = UNDEFINED, cache_size = UNDEFINED, time_valid = UNDEFINED;
+
+    if (access("caches/cachetm", R_OK))
+    {
+        fd = open("caches/cachetm", O_CREAT, 0777);
+        if (fd != -1)
+            close(fd);
+    }
+    st.open("caches/cachetm");
+    while (st.good())
+    {
+        std::getline(st, line);
+        spoint = line.find(":");
+        spoint = (spoint == std::string::npos) ? 0 : spoint;
+        line = trim_string(line);
+        if (sz(line) && line[0] != '#') // # is kept for comments
+        {
+            part1 = line.substr(0, spoint);
+            part2 = line.substr(spoint + 1);
+            part1 = trim_string(part1);
+            part2 = trim_string(part2);
+            number = std::atoll(part2.c_str());
+            if (part1 == "time_created")
+                tc_found = true, time_created = number;
+            else if (part1 == "time_expired")
+                vu_found = true, valid_until = number;
+            else if (part1 == "time_valid")
+                tv_found = true, time_valid = number;
+            else if (part1 == "size")
+                sz_found = true, cache_size = number;
+            else if (sz(part1) || sz(part2))
+            {
+                std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
+                std::cout << s << std::endl;
+                warnings.push_back(s);
+                SET_CACHE_OFF(http_configs);
+                return (false);
+            }
+        }
+    }
+    /** all the parameters should be exist in the file **/
+    if (tc_found != vu_found || vu_found != sz_found || sz_found != tc_found)
+    {
+        std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
+        std::cout << s << std::endl;
+        warnings.push_back(s);
+        return (false);
+    }
+    std::cout << GREEN_BOLD << "time_created -> " << time_created << std::endl;
+    std::cout << "time_expired -> " << valid_until << std::endl;
+    std::cout << "time_valid -> " << valid_until << std::endl;
+    std::cout << "cache_size -> " << cache_size << std::endl;
+    /** start parsing the data **/
+
+    /** in case the we'll work with the proxy_cache **/
+    if (http_configs->proxy_cache || http_configs->proxy_cache_register)
+    {
+        if (IS_CACHE_EXPIRED(valid_until))
+            reset_cache() ;
+        else if (IS_CACHE_PASSED_SIZE(cache_size))
+        {
+            std::string s = "Cache has been exceeded the provided size, please consider resetting it [./webserv --reset-cache]";
+            warnings.push_back(s);
+            http_configs->proxy_cache_register = false;
+        }
+    }
+    return (true);
 }
 
 void    Webserver::run() // sockets of all servers will run here
 {
     http_configs->cli = cli;
+    std::vector<std::string>    warnings;
 
     std::cout << "NUMBER OF SERVERS => " << sz((*servers)) << std::endl;
     for (int i = 0; i < sz((*servers)); i++)
         servers->at(i)->http_configs = http_configs;
+
     /*** CLI always has the priority over config file ***/
     if (sz(cli->multiplexer)) // multiplexer defined in cli
         http_configs->multiplexer = cli->multiplexer;
@@ -568,15 +706,22 @@ void    Webserver::run() // sockets of all servers will run here
     if (cli->is_cache_activated)
         http_configs->proxy_cache = true;
 
+    /*** setting all the cache data ***/
+    warnings = generate_all_warnings();
+    set_cache_time_data(http_configs, warnings);
+    exit(1);
     if (http_configs->proxy_cache || http_configs->proxy_cache_register)
     {
         this->caches = new std::map<std::string, t_cache*>();
-        parse_cache();
+        parse_cache(warnings);
         std::cout << GREEN_BOLD << "The cache is parsed" << std::endl;
     }
+
     init_mimes();
     init_codes();
     set_multiplexer();
+
+    /*** setting the necessary data for the multiplexer ***/
     multiplexer->set_configs(http_configs);
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);

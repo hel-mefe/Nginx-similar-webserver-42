@@ -1,11 +1,16 @@
 http
 {
   allowed_methods GET POST DELETE OPTIONS HEAD
-  client_max_request_timeout 20s
+  client_max_request_timeout 20d
   client_max_body_size 30mb
   cgi_max_request_timeout 30s
   multiplexer kqueue
   root httpdocs
+  proxy_cache on
+  proxy_cache_register on
+  proxy_cache_max_time 5s
+  proxy_cache_max_size 10mb
+  proxy_logs_register on
 
   server
   {

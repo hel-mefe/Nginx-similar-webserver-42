@@ -19,7 +19,10 @@
  # include "epoll.class.hpp"
 #endif
 
-#define IS_CACHE_VALID(c) ((!access(c->rq_file.c_str(), R_OK) && !access(c->s_file.c_str(), R_OK) && c->t_created >= c->t_rq_last_modified && c->t_created >= c->t_s_last_modified))
+# define IS_CACHE_VALID(c) ((!access(c->rq_file.c_str(), R_OK) && !access(c->s_file.c_str(), R_OK) && c->t_created >= c->t_rq_last_modified && c->t_created >= c->t_s_last_modified))
+# define IS_CACHE_EXPIRED(t_expired) ((time(NULL) > t_expired))
+# define SET_CACHE_OFF(http_configs) (http_configs->proxy_cache = false, http_configs->proxy_cache_register = false, http_configs->proxy_cache_max_size = UNDEFINED, http_configs->proxy_cache_max_time = UNDEFINED)
+# define IS_CACHE_PASSED_SIZE(cache_size) ((cache_size >= get_cache_folder_size("caches/")))
 
 class Webserver
 {
@@ -65,8 +68,9 @@ class Webserver
         bool                        is_root_cycled(HashMap<std::string, std::string> &graph, std::string start);
 
         //Cache
-        void                        parse_cache();
-        void                        parse_cache_line(std::string &line);
+        void                        parse_cache(std::vector<std::string> &);
+        bool                        parse_cache_line(std::string &line);
+        bool                        set_cache_time_data(t_http_configs *http_configs, std::vector<std::string> &warnings);
         void                        set_cache_data(t_cache *c, std::string &line);
 
 } ;

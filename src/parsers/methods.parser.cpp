@@ -972,11 +972,13 @@ unsigned long long  ConfigFileParser::get_time(std::string &s)
     char                c;
 
     res = (unsigned long long)std::atoll(s.c_str());
-    c = s[sz(s) - 1];
+    c = tolower(s[sz(s) - 1]);
     if (c == 'd')
         res = DAYS_TO_SECS(res);
     else if (c == 'm')
         res = MINS_TO_SECS(res);
+    else if (c == 'h')
+        res = res * pow(60, 2);
     return (res) ;
 }
 

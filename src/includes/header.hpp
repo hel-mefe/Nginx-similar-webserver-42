@@ -53,6 +53,7 @@
 # define SOCKET_NOT_DEFINED 0
 # define UNDEFINED -1
 # define ull unsigned long long
+# define ll long long
 
 
 # define ReadingEvent(change,fd,udata) EV_SET(change, fd, EVFILT_READ, EV_ADD, 0, 0, udata)
