@@ -193,6 +193,15 @@ void Kqueue::multiplex()
     http_handler->set_codes(codes);
     signal(SIGPIPE, SIG_IGN);
 
+    std::map<std::string, t_cache *> *c = manager->servers_map.begin()->second->http_configs->caches;
+    std::cout << "***** CACHE IN KQUEUE MANAGER *****" << std::endl;
+    for (std::map<std::string, t_cache *>::iterator it = c->begin(); it != c->end(); it++)
+    {
+        t_cache *cc = it->second;
+        std::string f = it->first;
+
+        std::cout << f << " -> " << cc->rq_file << std::endl;
+    }
     SOCKET  fd;
     struct kevent *events = manager->rEvents;
     std::cout << "KQUEUE IS RUNNING ..." << std::endl;

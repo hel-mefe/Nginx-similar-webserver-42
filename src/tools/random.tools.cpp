@@ -389,7 +389,7 @@ long long get_cache_folder_size(const char *foldername)
     std::string d_name;
     std::string filepath;
     std::string s_foldername;
-    long long   res = 0;
+    long   res = 0;
     struct dirent *entry;
 
     dir = opendir(foldername);

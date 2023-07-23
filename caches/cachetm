@@ -6,7 +6,7 @@ time_created: 1000
 time_expired: 2000
 
 # time_valid is the variable kept for checking the validity period of the cache
-time_valid = 200
+time_valid: 200
 
 #size in bytes
 size: 100

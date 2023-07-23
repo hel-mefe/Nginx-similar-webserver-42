@@ -41,6 +41,7 @@ typedef struct cache
     std::map<std::string, std::string>  cookies_map; // cookies map
     std::map<std::string, std::string>  queries_map; // queries map
     bool                                is_valid; // is the cache corrupted or not (corrupted means a file has been edited or so)
+
 }   t_cache;
 
 typedef struct ServerAttributes
@@ -138,6 +139,7 @@ typedef struct HttpConfigs
     ll                                  proxy_cache_max_time;
     ll                                  proxy_cache_max_size;
     t_cli                               *cli;
+    std::map<std::string, t_cache *>    *caches;
 
     HttpConfigs()
     {
@@ -150,6 +152,7 @@ typedef struct HttpConfigs
         cacherc_fd = UNDEFINED;
         proxy_cache_max_time = UNDEFINED;
         proxy_cache_max_size = UNDEFINED;
+        caches = nullptr;
 
     }
 }   t_http_configs;

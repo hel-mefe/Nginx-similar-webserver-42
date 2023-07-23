@@ -72,5 +72,5 @@ class Webserver
         bool                        parse_cache_line(std::string &line);
         bool                        set_cache_time_data(t_http_configs *http_configs, std::vector<std::string> &warnings);
         void                        set_cache_data(t_cache *c, std::string &line);
-
+        void                        reset_cache();
 } ;

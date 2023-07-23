@@ -580,13 +580,14 @@ void    Webserver::parse_cache(std::vector<std::string> &warnings)
 
 void    Webserver::reset_cache()
 {
-    std::string folder;
-    std::string entry_name;
-    DIR         *dir;
-    struct dirent *entry;
+    std::string     path;
+    std::string     prefix;
+    std::string     entry_name;
+    DIR             *dir;
+    struct dirent   *entry;
 
-    folder = "/caches";
-    dir = opendir(folder.c_str());
+    path = "/caches";
+    dir = opendir(path.c_str());
     if (!dir)
         return ;
     while (1)
@@ -594,7 +595,13 @@ void    Webserver::reset_cache()
         entry = readdir(dir);
         if (!entry)
             break ;
-        ne
+        entry_name = entry->d_name;
+        prefix = entry_name.substr(0, 6);
+        if ((entry_name == "." || entry_name == "..") && entry->d_type == DT_REG && prefix == "cache_")
+        {
+            path += "/" + entry_name;
+            unlink(path.c_str());
+        }
     }    
     closedir(dir);
 }
@@ -659,7 +666,7 @@ bool    Webserver::set_cache_time_data(t_http_configs *http_configs, std::vector
         }
     }
     /** all the parameters should be exist in the file **/
-    if (tc_found != vu_found || vu_found != sz_found || sz_found != tc_found)
+    if ((tc_found || vu_found || tv_found || sz_found) && (!tc_found || !vu_found || !tv_found || !sz_found))
     {
         std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
         std::cout << s << std::endl;
@@ -709,7 +716,7 @@ void    Webserver::run() // sockets of all servers will run here
     /*** setting all the cache data ***/
     warnings = generate_all_warnings();
     set_cache_time_data(http_configs, warnings);
-    exit(1);
+    // exit(1);
     if (http_configs->proxy_cache || http_configs->proxy_cache_register)
     {
         this->caches = new std::map<std::string, t_cache*>();
@@ -727,6 +734,6 @@ void    Webserver::run() // sockets of all servers will run here
     multiplexer->set_mimes(mimes);
     multiplexer->set_codes(codes);
     if (http_configs->proxy_cache || http_configs->proxy_cache_register)
-        multiplexer->set_caches(caches);
+        http_configs->caches = caches;
     multiplexer->multiplex();
 }

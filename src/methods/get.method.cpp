@@ -4,14 +4,14 @@
 # include <sys/stat.h>
 #include <signal.h>
 
-long    get_file_size(const char *filename)
-{
-    struct stat file_status;
+// long    get_file_size(const char *filename)
+// {
+//     struct stat file_status;
 
-    if (stat(filename, &file_status) < 0)
-        return -1;
-    return (file_status.st_size);
-}
+//     if (stat(filename, &file_status) < 0)
+//         return -1;
+//     return (file_status.st_size);
+// }
 
 std::string get_hex_as_string(int bts, std::string res)
 {

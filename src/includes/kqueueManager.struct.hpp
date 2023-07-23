@@ -15,6 +15,7 @@ typedef struct kqueueManager
     std::map<std::string, MethodHandler *>  handlers;
     std::map<SOCKET, t_client *>            clients_map; // maps every SOCKET to its t_socket data
     std::map<SOCKET, t_server *>            servers_map; // maps every SOCKET to its t_server data
+    std::map<std::string, t_cache *>        *caches; // map of the caches
     std::deque<int>                         free_slots;
     std::string                             cwd;
     int                                     client_num;
@@ -23,6 +24,7 @@ typedef struct kqueueManager
     {
         rEvents = new struct kevent[MAX_KQUEUE_FDS];
         kq = kqueue();
+        caches = nullptr;
     }
 
     bool is_listener(SOCKET fd)
