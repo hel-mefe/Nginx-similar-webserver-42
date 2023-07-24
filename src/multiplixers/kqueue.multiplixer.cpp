@@ -70,7 +70,7 @@ void    Kqueue::set_manager()
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
-    _manager->handlers.insert(std::make_pair("PUT", new Delete()));
+    _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
     _manager->cwd = getwd(NULL);
 
@@ -144,13 +144,16 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
     CLIENT_STATE    prev_state = client->state;
-
-    // std::cout << "Handling client " << fd << std::endl;
+    int status;
+    int rt = waitpid(-1, &status, WNOHANG);
+    if (rt > 0 && WIFEXITED(status))
+        manager->ex_childs.insert(std::pair<int,int>(rt, WEXITSTATUS(status)));
+    if (client->state == SERVING_CGI)
+        handle_cgi(client);
     if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
     else if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
-
     if (client->state == SERVED)
     {
         std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;

@@ -11,8 +11,10 @@
 # include "delete.class.hpp"
 # include "get.class.hpp"
 # include "options.class.hpp"
+# include "put.class.hpp"
 # include "kqueueManager.struct.hpp"
 
+void    handle_cgi(t_client *client);
 
 class Kqueue : public MultiplexerInterface
 {

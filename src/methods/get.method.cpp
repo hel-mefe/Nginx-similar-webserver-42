@@ -179,51 +179,10 @@ void    Get::handle_directory_listing(t_client *client)
 */
 void    Get::serve_client(t_client *client)
 {
-    t_request* req = client->request;
     t_response* res = client->response;
 
-    if (req->first_time)
-    {
-        client->request_time = time(NULL);
-        req->first_time = false;
-    }
-    else if (res->is_cgi && time(NULL) - client->request_time > 30)
-    {
-        fill_response(client, 408, "Request Timeout", true);
-        if (res->cgi_running)
-            kill(res->cgi_pid, SIGKILL);
-        client->state = SERVED;
-        return;
-    }
     if (res->is_directory_listing) // dealing with directory listing
         handle_directory_listing(client);
     else
-    {
-        if (res->is_cgi)
-        {
-            if (!res->cgi_running)
-            {
-                fill_cgi_env(client);
-                serve_cgi(client, convert_cgi_env(client), res->cgi_env.size());
-            }
-            if (res->cgi_running)
-            {
-                int status;
-                int rt = waitpid(-1, &status, WNOHANG);
-                if (rt == res->cgi_pid)
-                {
-                    if (WIFEXITED(status) && WEXITSTATUS(status) == 42)
-                    {
-                        client->state = SERVED;
-                        std::cerr << RED_BOLD << "SERVER/CGI FAILED!" << WHITE << std::endl;
-                        fill_response(client, 501, "Internal Server Error", true);
-                        return;
-                    }
-                    parse_cgi_output(client);
-                }
-            }
-        }
-        else
-            handle_static_file(client);
-    }
+        handle_static_file(client);
 }

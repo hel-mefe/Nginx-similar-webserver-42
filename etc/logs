@@ -968,3 +968,58 @@
 [1689898859] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
 [1689898889] SERVER:arsenal HTTP/1.1 GET /testing/indexes/ | 200 OK
 [1689903074] SERVER:arsenal HTTP/1.1 POST /uploads/ | 413 Payload Too Large
+[1690098909] SERVER:arsenal HTTP/1.1 GET /uploads/ | 405 Method Not Allowed
+[1690104718] SERVER:arsenal HTTP/1.1 GET /uploads/uploaded_file.jpeg | 405 Method Not Allowed
+[1690104744] SERVER:arsenal HTTP/1.1 GET /uploads/uploaded_file.jpeg | 200 OK
+[1690122857] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690193561] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690193563] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690196440] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690196530] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690196879] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690196937] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690197154] SERVER:arsenal HTTP/1.1 GET /test_cgi/cookie.php | 404 Not Found
+[1690198375] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690198386] SERVER:arsenal HTTP/1.1 POST /cgi_test/cookie.php | 405 Method Not Allowed
+[1690201630] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690201638] SERVER:arsenal HTTP/1.1 POST /cgi_test/cookie.php | 405 Method Not Allowed
+[1690201657] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690201664] SERVER:arsenal HTTP/1.1 POST /cgi_test/cookie.php | 403 Forbidden
+[1690201683] SERVER:arsenal HTTP/1.1 GET /cgi_test/ | 200 OK
+[1690201683] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690201688] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690201933] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690202461] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690202649] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690202656] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690202821] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203059] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203291] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203424] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203569] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203788] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690203794] SERVER:arsenal HTTP/1.1 GET /cgi_test/uploads/64be76923884b7.65367741.jpeg | 200 OK
+[1690203794] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204002] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204010] SERVER:arsenal HTTP/1.1 GET /cgi_test/uploads/64be776a03a5b7.60633890.jpeg | 200 OK
+[1690204010] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204012] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204016] SERVER:arsenal HTTP/1.1 GET /cgi_test/ | 200 OK
+[1690204016] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204066] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204068] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204069] SERVER:arsenal HTTP/1.1 GET /cgi_test/upload.html | 200 OK
+[1690204069] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204070] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204072] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204081] SERVER:arsenal HTTP/1.1 GET /cgi_test/script.php?hello=sfgdfg | 400 Bad Request
+[1690204083] SERVER:arsenal HTTP/1.1 GET /cgi_test/ | 200 OK
+[1690204083] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204397] SERVER:arsenal HTTP/1.1 GET /cgi_test/ | 200 OK
+[1690204397] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204404] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204433] SERVER:arsenal HTTP/1.1 GET /cgi_test/query.php?firstname=youssef&lastname=mourchid | 400 Bad Request
+[1690204797] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204807] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204813] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690204820] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found

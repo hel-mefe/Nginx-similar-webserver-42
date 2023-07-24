@@ -12,6 +12,7 @@ typedef struct manager
     std::map<SOCKET, t_server *>            servers_map; // maps every SOCKET to its t_server data
     std::deque<int>                         free_slots;
     std::string                             cwd;
+    std::map<int,int>                       ex_childs;
     int                                     client_num;
 
     bool is_listener(SOCKET fd)
@@ -94,6 +95,7 @@ typedef struct manager
             std::cerr << "[SLOTS PROBLEM]: no slot exist" << std::endl;
         t_client *client = new t_client(fd, slot, server);
         client->cwd = cwd;
+        client->ex_childs = &ex_childs;
         clients_map.insert(std::make_pair(fd, client));
         fds[slot].fd = fd;
         client->slot = slot;

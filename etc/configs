@@ -1,6 +1,6 @@
 http
 {
-  allowed_methods GET POST DELETE OPTIONS HEAD
+  allowed_methods GET POST DELETE OPTIONS HEAD PUT
   client_max_request_timeout 2
   client_max_body_size 200000000
   cgi_max_request_timeout 30 
@@ -27,7 +27,15 @@ http
     location /uploads
     {
       root httpdocs/uploads
-      allowed_methods POST PUT
+      allowed_methods POST PUT GET
+      upload on
+    }
+
+    location /
+    {
+      root httpdocs/www
+      allowed_methods GET POST
+      directory_listing on 
       upload on
     }
 

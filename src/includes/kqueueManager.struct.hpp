@@ -15,6 +15,7 @@ typedef struct kqueueManager
     std::map<std::string, MethodHandler *>  handlers;
     std::map<SOCKET, t_client *>            clients_map; // maps every SOCKET to its t_socket data
     std::map<SOCKET, t_server *>            servers_map; // maps every SOCKET to its t_server data
+    std::map<int,int>                       ex_childs;
     std::deque<int>                         free_slots;
     std::string                             cwd;
     int                                     client_num;
@@ -108,6 +109,7 @@ typedef struct kqueueManager
             return false ;
         t_client *client = new t_client(fd, server);
         client->cwd = cwd;
+        client->ex_childs = &ex_childs;
         clients_map.insert(std::make_pair(fd, client));
         int filter = (W_STATE(client->state) ? EVFILT_WRITE : EVFILT_READ);
         add_kqueue_event(fd, filter, client); // EVFILT_WRITE cuz WAITING state is not HTTP_STATE and not METHOD_STATE

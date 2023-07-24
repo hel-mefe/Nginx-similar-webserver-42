@@ -10,6 +10,7 @@ void Put::serve_client(t_client* client)
     
     if (req->first_time)
     {
+        req->body_size = 0;
         if (!req->is_file)
         {
             fill_response(client, 403, "Forbidden", true);

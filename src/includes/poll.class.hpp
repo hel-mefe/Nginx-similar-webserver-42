@@ -11,6 +11,9 @@
 # include "delete.class.hpp"
 # include "get.class.hpp"
 # include "options.class.hpp"
+# include "put.class.hpp"
+
+void    handle_cgi(t_client *client);
 
 class Poll : public MultiplexerInterface
 {

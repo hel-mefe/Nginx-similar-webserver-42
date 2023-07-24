@@ -9,17 +9,18 @@
 
 bool create_file(t_client* client)
 {
-    std::string root;
     std::string file_path;
-    if (client->response->is_cgi)
-        root = "/tmp/cgi_in";
-    else if (client->state == SERVING_POST)
+    if (client->request->method == "POST")
     {
-        root = client->cwd +  client->response->rootfilepath;
-        root.append("Uploaded_file");
+        if (client->response->is_cgi)
+            file_path = "/tmp/cgi_in";
+        else
+        {
+            file_path = client->cwd +  client->response->root;
+            file_path.append("/uploaded_file");
+        }
         for (int i = 0; i < INT_MAX; i++)
         {
-            std::string file_path = root;
             if (i)
                 file_path.append(intToString(i));
             if (!client->response->is_cgi)
@@ -35,11 +36,12 @@ bool create_file(t_client* client)
             client->response->file_exist = true;
     }
     if (!client->response->file_exist)
-        client->request->file = open(file_path.c_str(), O_CREAT | O_APPEND | O_RDWR, 0777);
+        client->request->file = open(file_path.c_str(), O_CREAT | O_RDWR, 0777);
     else
         client->request->file = open(file_path.c_str(), O_TRUNC | O_RDWR, 0777);
     if (client->request->file < 0)
     {
+        client->state = SERVED;
         std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
         fill_response(client, 501, "Internal Server Error", true);
         return false;
@@ -70,11 +72,19 @@ void upload_finish(t_client* client)
 {
     client->request->body.clear();
     close(client->request->file);
-    if (!client->response->file_exist)
-        fill_response(client, 201, "Created", true);
+    if (!client->response->is_cgi)
+    {
+        if (!client->response->file_exist)
+            fill_response(client, 201, "Created", true);
+        else
+            fill_response(client, 204, "No content", true);
+        client->state = SERVED;
+    }
     else
-        fill_response(client, 204, "No content", true);
-    client->state = SERVED;
+    {
+        client->response->cgi_running = true;
+        client->request->first_time = true;
+    }
 }
 
 void   parse_non_chunked_body(t_client* client)

@@ -1,5 +1,8 @@
 # include "../includes/http_handler.class.hpp"
 
+
+
+
 void    HttpHandler::handle_http(t_client *client)
 {
     t_server_configs *s_configs = client->server->server_configs;
@@ -190,6 +193,7 @@ void    HttpHandler::architect_response(t_client *client)
         return ;
     else
     {
+        handlers->change_path(client);
         if (req->method == "GET" || req->method == "HEAD")
             handlers->handle_200(client);
         else if (req->method == "DELETE")
@@ -197,12 +201,18 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
         {
             std::string header = req->request_map.at("content-type");
-            handlers->change_path(client);
             if (!res->dir_configs->upload)
             {
-                std::cerr << RED_BOLD << "error: upload is not allowed!" << WHITE << std::endl;
+                std::cerr << RED_BOLD << "[error]: upload is not allowed!" << WHITE << std::endl;
                 handlers->fill_response(client, 403, true);
                 client->state = SERVED;
+                return;
+            }
+            res->is_cgi = IS_CGI_EXTENSION(req->extension);
+            if(res->is_cgi)
+            {
+                res->cgi_path = res->configs->extension_cgi[req->extension];
+                client->state = SERVING_CGI;
                 return;
             }
             client->state = SERVING_POST;
@@ -210,11 +220,13 @@ void    HttpHandler::architect_response(t_client *client)
             {
                 if (it->second == header)
                 {
-                    res->extension = it->first;
+                    req->extension = it->first;
                     return;
                 }
             }
-            res->extension = ".txt";
+            req->extension = ".txt";
         }
+        else if (req->method == "PUT")
+            client->state = SERVING_PUT;
     }
 }

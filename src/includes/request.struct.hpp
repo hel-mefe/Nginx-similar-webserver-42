@@ -27,6 +27,7 @@ typedef struct request
     std::vector<std::string>            lines;
     std::string                         body;
     std::string                         cookies;
+    std::string                         queries;
 
     request()
     {

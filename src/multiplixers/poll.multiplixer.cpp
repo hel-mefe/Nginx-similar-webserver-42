@@ -69,7 +69,7 @@ void    Poll::set_manager()
 
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
-    _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
+    _manager->handlers.insert(std::make_pair("DELETE", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
     _manager->handlers.insert(std::make_pair("PUT", new Options()));
     _manager->cwd = getwd(NULL);
@@ -136,7 +136,12 @@ void Poll::handle_disconnection(t_manager *manager, SOCKET fd)
 void Poll::handle_client(t_manager *manager, SOCKET fd)
 {
     t_client *client = manager->get_client(fd);
-
+    int status;
+    int rt = waitpid(-1, &status, WNOHANG);
+    if (rt > 0 && WIFEXITED(status))
+        manager->ex_childs.insert(std::pair<int,int>(rt, WEXITSTATUS(status)));
+    if (client->state == SERVING_CGI)
+        handle_cgi(client);
     if (IS_HTTP_STATE(client->state) || client->state == WAITING)
         http_handler->handle_http(client);
     else

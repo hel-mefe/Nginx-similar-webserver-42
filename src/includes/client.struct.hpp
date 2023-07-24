@@ -15,6 +15,7 @@ typedef struct client
     t_response      *response;
     t_server        *server;
     std::string     cwd;
+    std::map<int,int>* ex_childs;
 
     client(SOCKET _fd)
     {

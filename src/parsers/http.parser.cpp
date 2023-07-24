@@ -48,6 +48,12 @@ bool    HttpParser::parse_first_line(t_request *req)
 
     req->method = get_upper_case(splitted->at(0));
     req->path = splitted->at(1);
+    size_t pos = req->path.find("?");
+    if (pos != std::string::npos)
+    {
+        req->queries = req->path.substr(pos + 1);
+        req->path.erase(pos);
+    }
     req->http_version = get_upper_case(splitted->at(2));
     req->is_file = is_file(req->path);
     if (req->is_file)

@@ -596,7 +596,6 @@ bool Handlers::handle_200f(t_client *client)
 
 bool    Handlers::handle_200(t_client *client)
 {
-    change_path(client);
     if (client->request->is_file)
         handle_200f(client);
     else
