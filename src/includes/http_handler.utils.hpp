@@ -30,4 +30,6 @@ std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, b
 long long                           get_file_size(const char *filename);
 long long get_cache_folder_size(const char *foldername);
 
+std::string                         get_cache_name(std::string requested_uri);
+
 #endif

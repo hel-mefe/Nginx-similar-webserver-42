@@ -544,6 +544,34 @@ bool    Handlers::handle_200d(t_client *client)
  * this function only called if everything is alright which means 200 code
  * and we are dealing with a file (f at the end stands for file)
 */
+
+bool Hanlders::check_is_cache_exists_for_cgi(t_client *client)
+{
+    t_response                              *res;
+    t_request                               *req;
+    std::string                             requested_uri;
+    std::string                             cache_name;
+    std::string                             cache_path;
+    std::map<std::string, t_cache *>        *caches;
+
+    res = client->response;
+    req = client->request;
+    caches = client->server->http_configs->caches;
+    requested_uri = res->rootfilepath;
+    if (!caches) // caches doesn't exist
+        return false ;
+    if (IN_MAP((*caches), res->filepath)) // is cache exist
+    {
+        cache_path = caches->at(res->filepath);
+        res->filepath = cache_path;
+        std::cout << GREEN_BOLD << "THE CACHE WAS FOUND FOR " << res->filepath << " -> " << cache_path << std::endl;
+        return (true) ;
+    }
+    // cache_name = get_cache_name(requested_uri);
+    // cache_path = std::string("caches/") + cache_name;
+    return (false);
+}
+
 bool Handlers::handle_200f(t_client *client)
 {
     t_response *res = client->response;
@@ -555,8 +583,16 @@ bool Handlers::handle_200f(t_client *client)
         res->extension = get_extension(res->filepath);
         res->is_cgi = IS_CGI_EXTENSION(req->extension);
         if (res->is_cgi)
+        {
+            if (check_is_cache_exists_for_cgi(client)) // sets the cache
+            {
+                res->filepath = cache_path;
+                fill_response(client, 200, true);
+            }
             res->cgi_path = res->configs->extension_cgi[req->extension];
-        if (!res->is_cgi)
+        }
+        }
+        else
             fill_response(client, 200, true);
         client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
         client->request->method = "GET";

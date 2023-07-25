@@ -448,3 +448,17 @@ std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, b
     return (res_map);
 }
 
+std::string get_cache_name(std::string requested_uri)
+{
+    size_t      pos;
+    std::string cache_name;
+
+    pos = requested_uri.find("/");
+    while (pos != std::string::npos)
+    {
+        requested_uri = requested_uri.substr(0, pos) + requested_uri.substr(pos + 1);
+        pos = requested_uri.find("/");
+    }
+    cache_name = std::string("cache_") + requested_uri;
+    return cache_name;
+}
