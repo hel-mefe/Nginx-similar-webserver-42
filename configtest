@@ -1,0 +1,8 @@
+http
+{
+  server{
+    listen 8080
+    server_name arsenal
+    client_max_request_timeout 30
+  }
+}
