@@ -30,24 +30,28 @@ void    Get::serve_by_chunked(t_client *client)
 {
     t_response  *res;
     t_request   *req;
-    std::string ress;
+    std::string resp;
     std::string hex;
     int         bts;
 
     res = client->response;
     req = client->request;
-    bzero(res->buffer, MAX_BUFFER_SIZE);
-    bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
+    char buffer[MAX_BUFFER_SIZE];
+    bzero(buffer, MAX_BUFFER_SIZE);
+    bts = read(res->fd, buffer, MAX_BUFFER_SIZE);
     if (bts > 0)
     {
         hex = get_hex_as_string(bts, hex);
         std::cout << "HEX -> " << hex << std::endl;
-        ress = hex + "\r\n" + std::string(res->buffer) + "\r\n";
-        send(client->fd, ress.c_str(), sz(ress), 0);
+        resp = hex + "\r\n";
+        resp.append(buffer, bts);
+        resp += "\r\n";
+        send(client->fd, resp.c_str(), sz(resp), 0);
     }
     else if (bts <= 0)
     {
         send(client->fd, "0\r\n\r\n", 5, 0);
+        close(res->fd);
         client->state = SERVED;
     }
 }
@@ -75,31 +79,25 @@ void    Get::serve_by_content_length(t_client *client)
 
 void    Get::handle_static_file(t_client *client)
 {
-    // int                     bts;
-    t_response              *res;
-    t_request               *req;
-    std::string             ress;
+    t_response              *res = client->response;
+    t_request               *req = client->request;
 
-    res = client->response;
-    req = client->request;
+    if (req->first_time)
+    {
+        res->fd = open(res->filepath.c_str(), O_RDONLY);
+        if (res->fd < 0)
+        {
+            std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
+            fill_response(client, 501, "Internal Server Error", true);
+            client->state = SERVED;
+            return;
+        }
+        req->first_time = false;
+    }
     if (res->is_chunked)
         serve_by_chunked(client);
     else
         serve_by_content_length(client);
-    // bzero(res->buffer, MAX_BUFFER_SIZE);
-    // bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
-    // if (bts > 0)
-    // {
-    //     if (send(client->fd, res->buffer, bts, 0) == -1)
-    //         std::cout << RED_BOLD << "SEND ERROR -> " << strerror(errno) << std::endl;
-    // }
-    // else if (bts <= 0)
-    // {
-    //     // if (IN_MAP(req->request_map, "connection") && req->request_map["connection"] == "keep-alive")
-    //     //     client->state = SERVED ;
-    //     // else
-    //         client->state = SERVED;
-    // }
 }
 
 /**

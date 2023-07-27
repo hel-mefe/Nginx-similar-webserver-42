@@ -29,29 +29,22 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         if (res->is_directory_listing)
             ctype = "text/html";
         res->add("content-type", ctype);
-        if (!res->is_cgi) // dealing with file
-            res->fd = open(res->filepath.c_str(), O_RDONLY); // for sure valid since I checked it before
         if (IN_MAP(client->request->request_map, "transfer-encoding") && client->request->request_map["transfer-encoding"] == "chunked")
+        {
             res->is_chunked = true;
+            res->add("transfer-encoding", "chunked");
+        }
         else
             res->is_chunked = false;
     }
     if (write_it)
     {
         add_to_logs(client);
-        if (client->request->method == "GET")
-        {
-            if (sz(res->filepath))
-                std::cout << "file path is true: " << res->filepath << std::endl ;
-            res->write_response_in_socketfd(client->fd);
-        }
-        else if (client->request->method == "HEAD")
-        {
-            res->filepath = ""; // set to empty string therefore \r\n\r\n can be sent
-            res->write_response_in_socketfd(client->fd);
-        }
+        if (client->request->method == "GET" && sz(res->filepath))
+            std::cout << "file path is true: " << res->filepath << std::endl;
         else
-            res->write_response_in_socketfd(client->fd);
+            res->filepath = "";
+        res->write_response_in_socketfd(client->fd);
     }
 }
 
