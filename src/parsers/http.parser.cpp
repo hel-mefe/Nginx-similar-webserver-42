@@ -19,7 +19,7 @@ bool    HttpParser::read_header(t_client *client)
         return (false);
     }
     int bl = 0, el = 0;
-    std::cout << "READING THE HEADER " << std::endl;
+    //std::cout << "READING THE HEADER " << std::endl;
     while (el < bytes)
     {
         if (buff[el] == '\r' && buff[el + 1] == '\n')
@@ -62,7 +62,7 @@ bool    HttpParser::parse_first_line(t_request *req)
         req->filename = get_filename(req->path);
     }
     delete splitted;
-    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD" || req->method == "PUT") && (req->http_version == "HTTP/1.1"));
+    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD" || req->method == "PUT" || req->method == "TRACE") && (req->http_version == "HTTP/1.1"));
 
 }
 

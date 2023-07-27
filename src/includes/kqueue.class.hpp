@@ -12,6 +12,7 @@
 # include "get.class.hpp"
 # include "options.class.hpp"
 # include "put.class.hpp"
+# include "trace.class.hpp" // need to write it 
 # include "kqueueManager.struct.hpp"
 
 void    handle_cgi(t_client *client);
@@ -35,6 +36,7 @@ class Kqueue : public MultiplexerInterface
             method_handlers->insert(std::make_pair("POST", new Post()));
             method_handlers->insert(std::make_pair("DELETE", new Delete()));
             method_handlers->insert(std::make_pair("OPTIONS", new Options()));
+            method_handlers->insert(std::make_pair("TRACE", new Trace()));
         }
         Kqueue(t_http_configs *_configs, std::vector<t_server *>* _servers)
         {

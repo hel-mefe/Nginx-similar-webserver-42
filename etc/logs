@@ -1023,3 +1023,12 @@
 [1690204807] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
 [1690204813] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
 [1690204820] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690411602] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1690411708] SERVER:arsenal HTTP/1.1 GET /index.html | 404 Not Found
+[1690411717] SERVER:arsenal HTTP/1.1 GET /root/index.html | 200 OK
+[1690411735] SERVER:arsenal HTTP/1.1 GET /root/index.html | 200 OK
+[1690411735] SERVER:arsenal HTTP/1.1 GET /favicon.ico | 404 Not Found
+[1690477279] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1690477342] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1690477387] SERVER:arsenal HTTP/1.1 GET / | 200 OK
+[1690490841] SERVER:arsenal HTTP/1.1 GET / | 200 OK

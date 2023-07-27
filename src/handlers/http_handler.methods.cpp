@@ -36,8 +36,8 @@ void    HttpHandler::handle_http(t_client *client)
             }
             else
             {
-                std::cout << "REQUEST PATH => " << client->request->path << std::endl;
-                client->request->print_data(); 
+                //std::cout << "REQUEST PATH => " << client->request->path << std::endl;
+                //client->request->print_data(); 
                 architect_response(client);
             }
         }
@@ -186,6 +186,8 @@ void    HttpHandler::architect_response(t_client *client)
 
     req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
+    if (req->method == "TRACE")
+        client->state = SERVING_TRACE;
     if (req->method == "OPTIONS")
         client->state = SERVING_OPTIONS;
     else if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \

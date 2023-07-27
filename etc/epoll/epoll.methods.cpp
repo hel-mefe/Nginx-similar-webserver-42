@@ -71,6 +71,7 @@ void    Epoll::set_manager()
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
+    //_manager->handlers.insert(std::make_pair("TRACE", new Trace()));
     _manager->cwd = getwd(NULL);
 
     if (!sz(_manager->cwd))

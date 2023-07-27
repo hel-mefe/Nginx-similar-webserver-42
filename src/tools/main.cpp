@@ -105,9 +105,9 @@ int main(int ac, char **av)
                 if (ws->parse_config_file())
                 {
                     std::cout << GREEN_BOLD << "CONFIG FILE IS VALID" << std::endl;
-                    ws->print_all_data(); 
+                    //ws->print_all_data(); 
                     std::vector<std::string> warnings = ws->generate_all_warnings();
-                    print_warnings(warnings);
+                    //print_warnings(warnings);
                     if (sz(warnings) && c->is_strict_mode_activated)
                         return (1) ;
                     ws->run();

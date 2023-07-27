@@ -72,6 +72,7 @@ void    Kqueue::set_manager()
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
+    _manager->handlers.insert(std::make_pair("TRACE", new Trace()));
     _manager->cwd = getwd(NULL);
 
     if (!sz(_manager->cwd))
@@ -153,7 +154,9 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
     if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
     else if (IS_METHOD_STATE(client->state))
+    {
         manager->handlers[client->request->method]->serve_client(client);
+    }
     if (client->state == SERVED)
     {
         std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;

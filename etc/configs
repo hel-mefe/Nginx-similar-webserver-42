@@ -1,6 +1,6 @@
 http
 {
-  allowed_methods GET POST DELETE OPTIONS HEAD PUT
+  allowed_methods GET POST DELETE OPTIONS HEAD PUT TRACE
   client_max_request_timeout 2
   client_max_body_size 200000000
   cgi_max_request_timeout 30 
@@ -27,14 +27,14 @@ http
     location /uploads
     {
       root httpdocs/uploads
-      allowed_methods POST PUT GET
+      allowed_methods POST PUT GET TRACE
       upload on
     }
 
     location /
     {
       root httpdocs/www
-      allowed_methods GET POST
+      allowed_methods GET POST TRACE
       directory_listing on 
       upload on
     }
@@ -43,6 +43,7 @@ http
 
     location /testing/indexes
     {
+      allowed_methods TRACE
       root httpdocs/testing/indexes
       try_index_files index1.html index2.html index3.html
     }
