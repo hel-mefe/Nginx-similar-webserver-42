@@ -3,3 +3,4 @@
 - infinite loop redirection checker is not correct.
 - HEAD method is not implimented correctly still need alot to change and to add.
 - fill_response need some changes to be dynamic.
+- codes handlers need changes.
