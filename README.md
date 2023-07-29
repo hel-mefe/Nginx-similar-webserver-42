@@ -6,5 +6,5 @@
 - codes handlers need changes.
 
 
-PUT / GET / POST / DELETE / CGI  all are working fine even with multiple requests same time.
-py cgi added.
+> PUT / GET / POST / DELETE / CGI  all are working fine even with multiple requests same time.
+> py cgi added.
