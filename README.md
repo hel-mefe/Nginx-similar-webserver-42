@@ -4,3 +4,7 @@
 - HEAD method is not implimented correctly still need alot to change and to add.
 - fill_response need some changes to be dynamic.
 - codes handlers need changes.
+
+
+PUT / GET / POST / DELETE / CGI  all are working fine even with multiple requests same time.
+py cgi added.
