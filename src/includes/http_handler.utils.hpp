@@ -2,6 +2,7 @@
 # define HTTP_HANDLER_UTILS_HPP
 
 # include "socket.hpp"
+# include "enums.hpp"
 
 typedef struct client t_client;
 
@@ -23,5 +24,20 @@ std::vector<std::string>    *split_first_line(std::string &s);
 
 int     get_rn_endpos(unsigned char *buff, int buff_size); // -1 means not found
 void    add_to_logs(t_client *client);
+
+long long                           get_file_last_modified(const char *filename);
+std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query);
+
+long long   get_cache_folder_size(const char *foldername);
+void        throw_msg(std::string msg, bool is_exit, MSG_TYPE msg_type);
+
+void        reset_logs();
+void        reset_caches();
+void        init_cli_tokens(HashMap<std::string, TOKEN> &cli_tokens);
+t_cli       *parse_and_get_cli(int ac, char **av);
+bool        is_project_structure_valid();
+void        check_is_project_well_structured();
+void        help();
+
 
 #endif

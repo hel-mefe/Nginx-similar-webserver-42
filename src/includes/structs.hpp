@@ -3,7 +3,7 @@
 # include "header.hpp"
 # include "globals.hpp"
 
-# define DEFAULT_MAX_CONNECTIONS 1024
+# define DEFAULT_MAX_CONNECTIONS 10000 //c10k problem our server can handle 10k clients
 # define DEFAULT_MAX_BODY_SIZE 2048 // in bytes
 # define DEFAULT_MAX_REQUEST_TIMEOUT 3 // in seconds
 
@@ -12,6 +12,12 @@ typedef struct cli
     bool        is_strict_mode_activated;
     bool        is_logs_activated;
     bool        is_help;
+    bool        is_cache_register_activated;
+    bool        is_cache_activated;
+    bool        is_debugging_mode;
+    bool        is_reset_caches;
+    bool        is_reset_logs;
+    ll          max_body_size;
     std::string multiplexer;
 
     cli()
@@ -19,8 +25,25 @@ typedef struct cli
         is_strict_mode_activated = false;
         is_logs_activated = false;
         is_help = false;
+        is_cache_register_activated = false;
+        is_cache_activated = false;
     }
 }   t_cli ;
+
+typedef struct cache
+{
+    std::string                         rq_file; // absolute path of requested file
+    std::string                         s_file; // absolute path of served file
+    std::string                         cookies; // cookies as key value pairs
+    std::string                         queries; // queries as key value pairs
+    std::string                         date_created; // date created as string
+    long                                t_created; // unix timestamp created
+    long                                t_rq_last_modified; // unix timestamp request file modified 
+    long                                t_s_last_modified; // unix timestamp served file modified 
+    std::map<std::string, std::string>  cookies_map; // cookies map
+    std::map<std::string, std::string>  queries_map; // queries map
+    bool                                is_valid; // is the cache corrupted or not (corrupted means a file has been edited or so)
+}   t_cache;
 
 typedef struct ServerAttributes
 {
@@ -105,12 +128,24 @@ typedef struct HttpConfigs
     bool                                auto_indexing;
     bool                                connection; // keep-alive or closed
     bool                                cookies;
-    int                                 max_body_size;
-    int                                 max_request_timeout;
-    int                                 max_cgi_timeout;
-    int                                 keep_alive_timeout;
+    bool                                proxy_cache;
+    bool                                proxy_cache_register;
+    bool                                proxy_logs_register;
+    int                                 cacherc_fd;
     int                                 max_connections;
+    ll                                  max_request_timeout;
+    ll                                  max_cgi_timeout;
+    ll                                  keep_alive_timeout;
+    ll                                  max_body_size;
+    ll                                  proxy_cache_max_time;
+    ll                                  proxy_cache_max_size;
+    ll                                  cache_folder_size;
+    ll                                  cache_time_created;
+    ll                                  cache_time_expired;
+    ll                                  cache_time_valid;
+    ll                                  cache_size;
     t_cli                               *cli;
+    std::map<std::string, t_cache*>     *caches;
 
     HttpConfigs()
     {
@@ -120,6 +155,15 @@ typedef struct HttpConfigs
         max_body_size = DEFAULT_MAX_BODY_SIZE;
         max_request_timeout = DEFAULT_MAX_REQUEST_TIMEOUT;
         cli = nullptr;
+        cacherc_fd = UNDEFINED;
+        proxy_cache_max_time = UNDEFINED;
+        proxy_cache_max_size = UNDEFINED;
+        cache_folder_size = 0;
+        caches = nullptr;
+        cache_time_created = UNDEFINED;
+        cache_time_expired = UNDEFINED;
+        cache_time_valid = UNDEFINED;
+        cache_size = UNDEFINED;
     }
 }   t_http_configs;
 
@@ -156,6 +200,14 @@ typedef struct server
             delete server_configs;
         server_configs = _server_configs;
     }
+
+    void    set_http_configs(t_http_configs *h_configs)
+    {
+        if (http_configs)
+            delete http_configs;
+        http_configs = h_configs;
+    }
+
 
     void    print_http()
     {
