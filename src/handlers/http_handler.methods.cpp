@@ -28,10 +28,12 @@ void    HttpHandler::handle_http(t_client *client)
         if (http_parser->read_header(client))
         {
             // std::cout << "HEAD IS BEING PARSING ..." << std::endl
-            if (!http_parser->parse_request(client)) // request is not well-formed
+            int code = http_parser->parse_request(client);
+            if (code != 0) // request is not well-formed
             {
-                std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
-                send(client->fd, bad_request.c_str(), sz(bad_request), 0);
+                std::string ress = "HTTP/1.1 ";
+                ress += std::to_string(code) + " " + codes->at(code) + "\r\n\r\n";
+                send(client->fd, ress.c_str(), sz(ress), 0);
                 client->state = SERVED;
             }
             else

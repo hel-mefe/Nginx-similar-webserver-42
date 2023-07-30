@@ -44,5 +44,14 @@ enum CLIENT_STATE
     SERVED,
 } ;
 
+enum MSG_TYPE
+{
+    INFO,
+    WARNING,
+    SUCCESS,
+    ERROR,
+    NORMAL,
+} ;
+
 
 #endif

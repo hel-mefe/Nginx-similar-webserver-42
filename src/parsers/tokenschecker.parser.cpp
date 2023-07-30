@@ -62,7 +62,7 @@ bool TokensChecker::is_int(std::string s)
 
 bool TokensChecker::is_method(std::string s)
 {
-    return (s == "GET" || s == "POST" || s == "DELETE" || s == "OPTIONS" || s == "HEAD" || s == "PUT");
+    return (s == "GET" || s == "POST" || s == "DELETE" || s == "OPTIONS" || s == "HEAD" || s == "PUT" || s == "TRACE");
 }
 
 bool TokensChecker::is_on_off(std::string s)
@@ -103,4 +103,30 @@ bool TokensChecker::is_multiplexer(std::string s)
         return (false) ;
     }
     return (s == "poll" || s == "kqueue" || s == "epoll" || s == "select");
+}
+
+bool TokensChecker::is_date(std::string s)
+{
+    int         i;
+    std::string ext;
+
+    i = 0;
+    for (; i < sz(s) && isdigit(s[i]); i++);
+    ext = s.substr(i);
+    for (int j = 0; j < sz(ext); j++)
+        ext[j] = tolower(ext[j]);
+    return (ext == "d" || ext == "m" || ext == "s" || ext == "h");
+}
+
+bool TokensChecker::is_size(std::string s)
+{
+    int         i;
+    std::string ext;
+
+    i = 0;
+    for (; i < sz(s) && isdigit(s[i]); i++);
+    ext = s.substr(i);
+    for (int j = 0; j < sz(ext); j++)
+        ext[j] = tolower(ext[j]);
+    return ((ext == "kb" || ext == "mb" || ext == "gb" || ext == "by"));
 }

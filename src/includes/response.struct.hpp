@@ -19,6 +19,7 @@ typedef struct response
     int                                 del_files;
     int                                 cgi_pipe[2];
     int                                 fd;
+    int                                 cache_fd;
     int                                 code;
     int                                 cgi_pid;
     char                                *buffer;
@@ -39,7 +40,7 @@ typedef struct response
     std::map<std::string, std::string>  response_map;
     std::map<std::string, std::string>  cgi_env;
 
-    response() :is_cgi(false), fd(UNDEFINED), configs(nullptr), dir_configs(nullptr){
+    response() :is_cgi(false), fd(UNDEFINED), cache_fd(UNDEFINED), configs(nullptr), dir_configs(nullptr){
         cgi_rn_found = false;
         is_first_time = true;
         cgi_pipe[0] = UNDEFINED;
@@ -77,7 +78,7 @@ typedef struct response
             send(fd, "\r\n", 2, 0);
     }
 
-    void    write_response_in_socketfd(SOCKET fd)
+    void    write_response_in_socketfd(SOCKET fd, bool finish_it)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
         std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
@@ -88,7 +89,7 @@ typedef struct response
             ress += first + " : " + second + "\r\n";
             it++;
         }
-        if (!this->is_directory_listing)
+        if (finish_it)
             ress += "\r\n";
         send(fd, ress.c_str(), sz(ress), 0);
         std::cout << ress << std::endl;

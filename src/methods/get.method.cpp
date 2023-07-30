@@ -4,15 +4,6 @@
 # include <sys/stat.h>
 #include <signal.h>
 
-long    get_file_size(const char *filename)
-{
-    struct stat file_status;
-
-    if (stat(filename, &file_status) < 0)
-        return -1;
-    return (file_status.st_size);
-}
-
 std::string get_hex_as_string(int bts, std::string res)
 {
     std::string hex = "0123456789abcdef";
@@ -29,13 +20,11 @@ std::string get_hex_as_string(int bts, std::string res)
 void    Get::serve_by_chunked(t_client *client)
 {
     t_response  *res;
-    t_request   *req;
     std::string resp;
     std::string hex;
     int         bts;
 
     res = client->response;
-    req = client->request;
     char buffer[MAX_BUFFER_SIZE];
     bzero(buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, buffer, MAX_BUFFER_SIZE);
@@ -60,11 +49,9 @@ void    Get::serve_by_content_length(t_client *client)
 {
     int                     bts;
     t_response              *res;
-    t_request               *req;
     std::string             ress;
 
     res = client->response;
-    req = client->request;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
     if (bts > 0)

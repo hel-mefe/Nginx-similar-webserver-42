@@ -14,6 +14,6 @@ class HttpParser
         ~HttpParser(){};     
 
         bool    read_header(t_client *client);
-        bool    parse_request(t_client *client);
+        int     parse_request(t_client *client); // 0 success
         bool    parse_first_line(t_request *req);
 } ;

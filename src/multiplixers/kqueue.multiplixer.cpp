@@ -48,7 +48,7 @@ SOCKET Kqueue::getsocketfd(int port)
     int bs = bind(fd, (struct sockaddr *)data, data_len);
     if (bs < 0)
         write_error("Internal server socket bind error");
-    int ls = listen(fd, 10);
+    int ls = listen(fd, DEFAULT_MAX_CONNECTIONS);
     if (ls < 0)
         write_error("Internal server socket listen error");
     return fd;
@@ -72,7 +72,13 @@ void    Kqueue::set_manager()
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
-    _manager->cwd = getwd(NULL);
+    
+    char *wd = getwd(NULL);
+    if (wd)
+    {
+        _manager->cwd = wd;
+        free(wd);
+    }
 
     if (!sz(_manager->cwd))
         write_error("Internal server getcwd() error");

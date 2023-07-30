@@ -33,18 +33,26 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         {
             res->is_chunked = true;
             res->add("transfer-encoding", "chunked");
+            std::cout << RED_BOLD << "**** SERVING BY CHUNKED ****" << std::endl;
         }
-        else
+        else if (!res->is_directory_listing)
+        {
             res->is_chunked = false;
+            ll file_size = get_file_size(res->filepath.c_str());
+            std::string s_file_size = std::to_string(file_size);
+            res->add("content-length", s_file_size);
+            std::cout << RED_BOLD << "**** SERVING BY CONTENT LENGTH ****" << std::endl;
+        }
     }
     if (write_it)
     {
-        add_to_logs(client);
+        if (client->server->http_configs->proxy_logs_register) // if logs is activated then register the logs
+            add_to_logs(client);
         if (client->request->method == "GET" && sz(res->filepath))
             std::cout << "file path is true: " << res->filepath << std::endl;
         else
             res->filepath = "";
-        res->write_response_in_socketfd(client->fd);
+        res->write_response_in_socketfd(client->fd, !res->is_directory_listing);
     }
 }
 
@@ -54,6 +62,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
  * then the path should become as follows /justRootExample/dir2
  * we took out the /dir1 and replace it with /justRootExample that's what this function does
  */
+
 std::string Handlers::get_path_after_change(t_client *client, std::string root)
 {
     t_request   *req;
@@ -528,8 +537,14 @@ bool    Handlers::handle_200d(t_client *client)
             client->state = SERVING_GET;
             client->request->method = "GET";
         }
-        else
-            handle_404(client);
+        else // 403 forbidden rather than 404 not found
+        {
+            res->filepath = "";
+            res->rootfilepath = "";
+            fill_response(client, 403, true);
+            client->state = SERVED;
+            // handle_404(client);
+        }
         if (d)
             closedir(d);
     }
@@ -548,6 +563,7 @@ bool Handlers::handle_200f(t_client *client)
     if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
         res->filepath = get_cleanified_path(res->filepath);
+        res->rootfilepath = get_cleanified_path(res->rootfilepath);
         res->extension = get_extension(res->filepath);
         res->is_cgi = IS_CGI_EXTENSION(req->extension);
         if (res->is_cgi)
@@ -593,5 +609,7 @@ bool    Handlers::handle_200(t_client *client)
         handle_200f(client);
     else
         handle_200d(client);
+    if (client->request->method == "HEAD")
+        client->state = SERVED ;
     return (true);
 }

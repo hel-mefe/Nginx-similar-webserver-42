@@ -7,7 +7,7 @@ http
         allowed_methods GET POST DELETE
         root /www
         server_name name
-        port 9080
+        listen 9080
         fastCGI .php /goinfre/hel-mefe/webserverPollClean42/cgi-bin/php-cgi
         fastCGI .pl /sr/bin/perl
         fastCGI .py /usr/bin/python
