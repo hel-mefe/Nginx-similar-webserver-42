@@ -958,66 +958,28 @@ void    Webserver::write_cache_to_cachetm(t_http_configs *http_configs)
 
 void    Webserver::run() // sockets of all servers will run here
 {
-    http_configs->cli = cli;
-    for (int i = 0; i < sz((*servers)); i++)
-        servers->at(i)->http_configs = http_configs;
+    // http_configs->cli = cli;
+    // for (int i = 0; i < sz((*servers)); i++)
+    // {
+    //     if (http_configs != servers->at(i)->http_configs)
+    //         std::cout << "[ THEY ARE DIFFERENT ]" << std::endl;
+    //     servers->at(i)->http_configs = http_configs;
+    // }
 
     /*** CLI always has the priority over config file ***/
-    if (sz(cli->multiplexer)) // multiplexer defined in cli
-        http_configs->multiplexer = cli->multiplexer;
     if (cli->is_logs_activated)
         http_configs->proxy_logs_register = cli->is_logs_activated;
-    if (cli->is_cache_register_activated)
-        http_configs->proxy_cache_register = true ;
-    if (cli->is_cache_activated)
-        http_configs->proxy_cache = true;
 
     /*** setting all the warnings except cache warnings ***/
     set_all_warnings();
-
-    /*** start handling the cache mechanism ***/
-    if (http_configs->proxy_cache)
-    {
-        if (IS_NEW_CACHE_PROVIDED(http_configs))
-        {
-            write_cache_to_cachetm(http_configs);
-            reset_cache();
-        }
-        else
-        {
-            if (parse_cachetm(http_configs)) // checks if the cache is expired or not
-            {
-                if (IS_CACHE_EXPIRED(http_configs->cache_time_created))
-                    reset_cache() ;
-                else if (IS_CACHE_PASSED_SIZE(http_configs->cache_size))
-                {
-                    std::string s = "Cache has been exceeded the provided size, please consider resetting it (use --reset-cache flag)";
-                    std::cout << PURPLE_BOLD << s << std::endl;
-                    msgs_queue.push(std::make_pair(WARNING, s));
-                    this->is_warning_set = true;
-                    http_configs->proxy_cache_register = false;
-                }
-            }
-        }
-        /*** checking if the proxy is activated to work with the cache ***/
-        this->caches = new std::map<std::string, t_cache*>();
-        http_configs->caches = this->caches;
-        parse_cacherc();
-    }
-    if (http_configs->proxy_cache_register)
-        http_configs->cache_folder_size = get_cache_folder_size("caches");
-    /*** end handling the cache mechanism ***/
-
     init_mimes();
     init_codes();
     set_multiplexer();
-
     /*** setting the necessary data for the multiplexer ***/
     multiplexer->set_configs(http_configs);
     multiplexer->set_servers(servers);
     multiplexer->set_mimes(mimes);
     multiplexer->set_codes(codes);
-
     /*** the main multiplexing method being called here ***/
     multiplexer->multiplex();
 }

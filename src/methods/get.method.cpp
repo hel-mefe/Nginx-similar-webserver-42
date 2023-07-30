@@ -35,7 +35,8 @@ void    Get::serve_by_chunked(t_client *client)
         resp = hex + "\r\n";
         resp.append(buffer, bts);
         resp += "\r\n";
-        send(client->fd, resp.c_str(), sz(resp), 0);
+        if (send(client->fd, resp.c_str(), sz(resp), 0) == -1)
+            client->state = SERVED;
     }
     else if (bts <= 0)
     {
@@ -57,7 +58,7 @@ void    Get::serve_by_content_length(t_client *client)
     if (bts > 0)
     {
         if (send(client->fd, res->buffer, bts, 0) == -1)
-            std::cout << RED_BOLD << "SEND ERROR -> " << strerror(errno) << std::endl;
+            client->state = SERVED ;
     }
     else if (bts <= 0)
         client->state = SERVED;
@@ -131,6 +132,7 @@ void    Get::handle_directory_listing(t_client *client)
     t_response  *res;
     std::string html;
     std::string content_length;
+    std::string full_html_response;
     DIR         *D;
 
     res = client->response;
@@ -151,8 +153,10 @@ void    Get::handle_directory_listing(t_client *client)
     }
     html += "</ul></body></html>\r\n";
     content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
-    send(client->fd, content_length.c_str(), sz(content_length), 0);
-    send(client->fd, html.c_str(), sz(html), 0);
+    full_html_response = content_length + html;
+
+    /** send is protected because in all cases the client state will be set to SERVED **/
+    send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
     client->state = SERVED;
     client->request_time = time(NULL);
 }

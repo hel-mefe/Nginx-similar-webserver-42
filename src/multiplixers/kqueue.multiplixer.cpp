@@ -33,7 +33,7 @@ struct sockaddr_in *Kqueue::getsocketdata(PORT port)
  * it takes a port and binds the socket to that port
 **/
 
-SOCKET Kqueue::getsocketfd(int port)
+SOCKET Kqueue::getsocketfd(int port, ll max_connections)
 {
     struct sockaddr_in *data;
     socklen_t data_len;
@@ -48,9 +48,10 @@ SOCKET Kqueue::getsocketfd(int port)
     int bs = bind(fd, (struct sockaddr *)data, data_len);
     if (bs < 0)
         write_error("Internal server socket bind error");
-    int ls = listen(fd, DEFAULT_MAX_CONNECTIONS);
+    int ls = listen(fd, max_connections);
     if (ls < 0)
         write_error("Internal server socket listen error");
+    delete data;
     return fd;
 }
 
@@ -65,28 +66,31 @@ SOCKET Kqueue::getsocketfd(int port)
 
 void    Kqueue::set_manager()
 {
+    catch_leaks("BEFORE MANAGER");
     t_kqueue_manager *_manager = new t_kqueue_manager();
-
+    catch_leaks("MANAGER IS SET, NOW BEFORE HANDLERS");
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
-    
+    catch_leaks("HANDLERS ARE SET, NOW BEFORE GETWD");
     char *wd = getwd(NULL);
     if (wd)
     {
         _manager->cwd = wd;
         free(wd);
     }
-
+    catch_leaks("GETWD FINISHED, LOOP WILL START NOW");
     if (!sz(_manager->cwd))
         write_error("Internal server getcwd() error");
     int i = 0;
     for (; i < sz((*servers)); i++)
     {
         int port = servers->at(i)->server_configs->port;
-        _manager->rEvents[i].ident = getsocketfd(port);
+        ll max_connections = servers->at(i)->server_configs->max_connections;
+        std::cout << "MAX CONNECTIONS FOR SERVER " << i << " IS => " << max_connections << std::endl;
+        _manager->rEvents[i].ident = getsocketfd(port, max_connections);
         _manager->add_kqueue_event(_manager->rEvents[i].ident, EVFILT_READ, NULL);
         if (!_manager->add_server(_manager->rEvents[i].ident, servers->at(i)))
             write_error("Internal server error related to server management");
@@ -101,7 +105,9 @@ void    Kqueue::set_manager()
         _manager->rEvents[i].udata = NULL;
         _manager->add_slot(i);
     }
+    catch_leaks("AFTER LOOP, MANAGER WILL BE SET NOW");
     this->manager = _manager;
+    catch_leaks("MANAGER IS SET, CHECK LEAKS");
 }
 
 /**
@@ -196,10 +202,13 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
 
 void Kqueue::multiplex()
 {
+    catch_leaks("BEFORE MANAGER IS SET");
     set_manager();
+    catch_leaks("AFTER MANAGER IS SET");
     http_handler = new HttpHandler();
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
+    catch_leaks("AFTER HTTP HANDLDER PASSED");
     signal(SIGPIPE, SIG_IGN);
 
     SOCKET  fd;

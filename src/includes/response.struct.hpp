@@ -78,7 +78,7 @@ typedef struct response
             send(fd, "\r\n", 2, 0);
     }
 
-    void    write_response_in_socketfd(SOCKET fd, bool finish_it)
+    bool    write_response_in_socketfd(SOCKET fd, bool finish_it)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
         std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
@@ -91,8 +91,10 @@ typedef struct response
         }
         if (finish_it)
             ress += "\r\n";
-        send(fd, ress.c_str(), sz(ress), 0);
+        if (send(fd, ress.c_str(), sz(ress), 0) == -1)
+            return (false) ;
         std::cout << ress << std::endl;
+        return (true) ;
     }
 
     bool    add(std::string s1, std::string s2)

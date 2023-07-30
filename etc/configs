@@ -33,8 +33,7 @@ http
     location /
     {
       root httpdocs/www
-      allowed_methods GET POST
-      directory_listing on 
+      allowed_methods HEAD GET POST
     }
 
     # comment 2
@@ -43,7 +42,8 @@ http
     {
       root httpdocs/testing/indexes
       try_index_files index1.html index2.html index3.html
-    }
+      allowed_methods GET POST DELETE HEAD
+  }
 
     location /testing/
     {

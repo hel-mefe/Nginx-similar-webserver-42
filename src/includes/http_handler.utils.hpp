@@ -42,5 +42,7 @@ void        help();
 long long   get_file_size(const char *filename);
 std::string get_cache_file_name(std::string filepath);
 
+void    catch_leaks(const char *msg);
+
 
 #endif

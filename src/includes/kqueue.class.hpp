@@ -67,5 +67,5 @@ class Kqueue : public MultiplexerInterface
 
         void                write_error(const std::string err_msg);
         struct sockaddr_in* getsocketdata(PORT port);
-        SOCKET              getsocketfd(int port);
+        SOCKET              getsocketfd(int port, ll max_connections);
 } ;

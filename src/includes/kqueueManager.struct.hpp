@@ -39,7 +39,7 @@ typedef struct kqueueManager
     void add_kqueue_event(int fd, int filter, void *udata){
         struct kevent event;
 
-        EV_SET(&event, fd, filter | EV_EOF, EV_ADD, 0, 0, udata);
+        EV_SET(&event, fd, filter, EV_ADD, 0, 0, udata);
         kevent(kq, &event, 1, NULL, 0, NULL);
     }
 

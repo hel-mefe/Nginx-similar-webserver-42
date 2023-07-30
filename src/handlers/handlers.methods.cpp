@@ -10,7 +10,7 @@
 
 void    Handlers::fill_response(t_client *client, int code, bool write_it)
 {
-    t_response *res;
+    t_response  *res;
     std::string connection;
 
     res = client->response;
@@ -52,7 +52,8 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             std::cout << "file path is true: " << res->filepath << std::endl;
         else
             res->filepath = "";
-        res->write_response_in_socketfd(client->fd, !res->is_directory_listing);
+        if (!res->write_response_in_socketfd(client->fd, (!res->is_directory_listing || client->request->method == "HEAD")))
+            client->state = SERVED ;
     }
 }
 

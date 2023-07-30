@@ -351,3 +351,16 @@ std::string get_cache_file_name(std::string filepath)
     }
     return (cache_name);
 }
+
+void    catch_leaks(const char *msg)
+{
+    std::string k;
+
+    std::cout << "[LEAKS_DBUGGER]: " << msg << std::endl;
+    while (1)
+    {
+        std::getline(std::cin, k);
+        if (k == "1")
+            break ;  
+    }
+}
