@@ -26,12 +26,14 @@ http
 
     location /uploads
     {
+		redirect /
       root httpdocs/uploads
       allowed_methods POST PUT GET
     }
 
     location /
     {
+		redirect uploads
       root httpdocs/www
       allowed_methods HEAD GET POST
     }

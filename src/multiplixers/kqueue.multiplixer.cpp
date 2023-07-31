@@ -66,22 +66,18 @@ SOCKET Kqueue::getsocketfd(int port, ll max_connections)
 
 void    Kqueue::set_manager()
 {
-    catch_leaks("BEFORE MANAGER");
     t_kqueue_manager *_manager = new t_kqueue_manager();
-    catch_leaks("MANAGER IS SET, NOW BEFORE HANDLERS");
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
-    catch_leaks("HANDLERS ARE SET, NOW BEFORE GETWD");
     char *wd = getwd(NULL);
     if (wd)
     {
         _manager->cwd = wd;
         free(wd);
     }
-    catch_leaks("GETWD FINISHED, LOOP WILL START NOW");
     if (!sz(_manager->cwd))
         write_error("Internal server getcwd() error");
     int i = 0;
@@ -105,9 +101,7 @@ void    Kqueue::set_manager()
         _manager->rEvents[i].udata = NULL;
         _manager->add_slot(i);
     }
-    catch_leaks("AFTER LOOP, MANAGER WILL BE SET NOW");
     this->manager = _manager;
-    catch_leaks("MANAGER IS SET, CHECK LEAKS");
 }
 
 /**
@@ -173,17 +167,17 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
     }
     else if (prev_state != client->state)
     {
-        if (R_STATE(client->state))
+        if (R_STATE(client->state)) // client has a read state
         {
-            if (W_STATE(prev_state))
+            if (W_STATE(prev_state)) // previous state is a write state
             {
                 manager->delete_kqueue_event(fd, EVFILT_WRITE);
                 manager->add_kqueue_event(fd, EVFILT_READ, client);
             }
         }
-        else
+        else // client has a write state
         {
-            if (R_STATE(prev_state))
+            if (R_STATE(prev_state)) // previous state is a read state
             {
                 manager->delete_kqueue_event(fd, EVFILT_READ);
                 manager->add_kqueue_event(fd, EVFILT_WRITE, client);
@@ -202,13 +196,10 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
 
 void Kqueue::multiplex()
 {
-    catch_leaks("BEFORE MANAGER IS SET");
     set_manager();
-    catch_leaks("AFTER MANAGER IS SET");
     http_handler = new HttpHandler();
     http_handler->set_mimes(mimes);
     http_handler->set_codes(codes);
-    catch_leaks("AFTER HTTP HANDLDER PASSED");
     signal(SIGPIPE, SIG_IGN);
 
     SOCKET  fd;

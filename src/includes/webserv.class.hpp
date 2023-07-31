@@ -82,6 +82,7 @@ class Webserver
         void                        reset_cache();
         void                        write_cache_to_cachetm(t_http_configs *http_configs);
 
+        void                        set_trace_is_allowed(t_server *s);
         void                        set_all_warnings();
         void                        set_location_defined_multiple_times_warning(t_server *s);
         void                        set_cgi_bins_warning(t_server *s);

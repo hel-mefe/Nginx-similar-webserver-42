@@ -133,10 +133,6 @@ bool    Webserver::parse_config_file() // call the parser and returns if the con
 {
     if (!parser->parse_config_file(config_file, http_configs, servers))
         return (false);
-    if (http_configs->proxy_cache)
-        std::cout << RED_BOLD << "PROXY cache is on YES" << std::endl;
-    else
-        std::cout << RED_BOLD << "PROXY cache is OFF NOO :(" << std::endl;
     return (true);
 }
 
@@ -513,6 +509,28 @@ void    Webserver::set_redirection_loop_warnings(t_server *s)
     }
 }
 
+void    Webserver::set_trace_is_allowed(t_server *s)
+{
+    t_server_configs                            *s_configs;
+    t_location_configs                          *l_configs;
+    std::map<std::string, t_location_configs*>  *dir_configs;
+    std::string                                 msg;
+
+    s_configs = s->server_configs;
+    dir_configs = s->dir_configs;
+    for (std::map<std::string, t_location_configs*>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
+    {
+        l_configs = it->second;
+
+        if (std::find(l_configs->allowed_methods.begin(), l_configs->allowed_methods.end(), "TRACE") != l_configs->allowed_methods.end())
+        {
+            msg = "TRACE method is allowed in a production webserver";
+            this->msgs_queue.push(std::make_pair(WARNING, msg));
+            this->is_warning_set = true ;
+        }
+    }
+}
+
 void    Webserver::set_all_warnings()
 {
     t_server                *s;
@@ -563,8 +581,11 @@ void    Webserver::set_all_warnings()
         /** set redirection loop error **/
         set_redirection_loop_warnings(s);
 
-        // set_redirection_loop_warning(s);
+        /** set_redirection_loop_warning(s); **/
         set_location_defined_multiple_times_warning(s);
+    
+        /** set trace is actiavted, should be in a production server **/
+        set_trace_is_allowed(s);
     }
     while (sz(msgs_queue))
     {
@@ -958,6 +979,8 @@ void    Webserver::write_cache_to_cachetm(t_http_configs *http_configs)
 
 void    Webserver::run() // sockets of all servers will run here
 {
+    std::string msg;
+
     // http_configs->cli = cli;
     // for (int i = 0; i < sz((*servers)); i++)
     // {
@@ -972,6 +995,22 @@ void    Webserver::run() // sockets of all servers will run here
 
     /*** setting all the warnings except cache warnings ***/
     set_all_warnings();
+
+    /** printing all the warnings **/
+    while (!this->msgs_queue.empty())
+    {
+        std::pair<MSG_TYPE, std::string>    p_msg = msgs_queue.front();
+        throw_msg(p_msg.second, false, p_msg.first);
+        msgs_queue.pop();
+    }
+
+    /** quitting when the program has a warning**/
+    if (cli->is_strict_mode_activated && this->is_warning_set)
+    {
+        msg = "\n\nyou are in the strict_mode, please fix all the warnings before running the server in this mode";
+        throw_msg(msg, 1, ERROR);
+    }
+
     init_mimes();
     init_codes();
     set_multiplexer();

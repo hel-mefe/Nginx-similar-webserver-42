@@ -31,7 +31,8 @@ int main(int ac, char **av)
     std::cout << LOGO << std::endl;
     if (!c)
     {
-        std::cout << WHITE_BOLD << "please run webserv with the required arguments ./webserv [configfile]" << std::endl; 
+        msg = "please run webserv42 with the required arguments ./webserv [configfile] [cli_arguments]" ;
+        throw_msg(msg, 1, INFO);
         return (1) ; 
     }
 
@@ -39,8 +40,11 @@ int main(int ac, char **av)
         help();
     check_is_project_well_structured();
     if (c->is_reset_logs)
+    {
         reset_logs(true);
-    
+        if (ac == 2)
+            return (0) ;
+    }
     try
     {
         Webserver *ws = new Webserver(av[1]);
@@ -56,7 +60,7 @@ int main(int ac, char **av)
         }
         else
         {
-            msg = "config file [" + std::string(av[1]) + "] is not valid.";
+            msg = "The provided config file [" + std::string(av[1]) + "] is invalid.";
             throw_msg(msg, true, ERROR);
         }
     }

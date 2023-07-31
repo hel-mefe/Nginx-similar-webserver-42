@@ -742,7 +742,6 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
         {
             if (sz(nodes[i].words[j]) == 2 && nodes[i].words[j][1] == "*")
             {
-                std::cout << "GOT HERE ALLOWED METHODS CAUGHT ALLOWED METHODS:" << std::endl;
                 attr.allowed_methods = conf->allowed_methods;
                 for (int i = 0; i < sz(conf->allowed_methods); i++)
                     std::cout << conf->allowed_methods[i] << std::endl;
@@ -762,8 +761,6 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
         {
             attr.root = get_directory(conf->cwd, nodes[i].words[j][1]);
             attr.is_root_defined = true;
-            // attr.root = conf->root + nodes[i].words[j][1];
-            // attr.root = (attr.root[sz(attr.root) - 1] != '/') ? attr.root + "/" : attr.root;
         }
         else if (token_name == "client_max_connections")
             attr.max_connections = get_max_connections(nodes[i].words[j][1]); // will crash in case passed MAX_CONNECTIONS_ALLOWED 1024
@@ -1096,9 +1093,6 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
 bool ConfigFileParser::parse_config_file(std::string config_file, t_http_configs *http_data, std::vector<t_server *> *servers)
 {
     if (!is_config_file_valid(config_file)) // O(N) to check if the file is valid or not
-    {
-        std::cerr << CYAN_BOLD << "[Webserv42]: config file is not valid" << std::endl;
         return (false);
-    }
     return (fill_http_data(http_data) && fill_servers_data(servers, http_data));
 }

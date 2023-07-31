@@ -133,7 +133,10 @@ void parse_cgi_output(t_client* client)
             break;
         send(client->fd, buff, rbytes, 0);
     }
-    client->state = SERVED;
+    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+        client->state = KEEP_ALIVE;
+    else
+        client->state = SERVED;
     close(cgi_out);
 }
 
@@ -150,7 +153,7 @@ void    handle_cgi(t_client* client)
             return;
         req->first_time = false;
     }
-    else if (res->is_cgi && time(NULL) - client->request_time > 30)
+    else if (res->is_cgi && time(NULL) - client->request_time >= client->server->http_configs->max_cgi_timeout)
     {
         fill_response(client, 408, "Request Timeout", true);
         if (res->cgi_running)

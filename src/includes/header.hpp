@@ -17,7 +17,6 @@
 # include <exception>
 
 /*** Sockets dependencies ***/
-
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include <sys/types.h>

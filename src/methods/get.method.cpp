@@ -41,8 +41,11 @@ void    Get::serve_by_chunked(t_client *client)
     else if (bts <= 0)
     {
         send(client->fd, "0\r\n\r\n", 5, 0);
-        close(res->fd);
-        client->state = SERVED;
+        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+            client->state = KEEP_ALIVE ;
+        else
+            client->state = SERVED;
+        client->request_time = time(NULL);
     }
 }
 
@@ -61,8 +64,13 @@ void    Get::serve_by_content_length(t_client *client)
             client->state = SERVED ;
     }
     else if (bts <= 0)
-        client->state = SERVED;
-
+    {
+        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+            client->state = KEEP_ALIVE ;
+        else
+            client->state = SERVED;
+        client->request_time = time(NULL);
+    }
 }
 
 void    Get::handle_static_file(t_client *client)
@@ -157,7 +165,10 @@ void    Get::handle_directory_listing(t_client *client)
 
     /** send is protected because in all cases the client state will be set to SERVED **/
     send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
-    client->state = SERVED;
+    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+        client->state = KEEP_ALIVE ;
+    else
+        client->state = SERVED;
     client->request_time = time(NULL);
 }
 
