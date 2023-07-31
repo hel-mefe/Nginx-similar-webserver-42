@@ -1,11 +1,11 @@
+## TO DO ##
+- rebuilding is_file function.
+- adding 302 redirection if URL does not terminate with slash.
+- rebuilding status handlers and NOT harcode them !!!!!!!
+- checking KEEP ALIVE in disconnect_client not in GET !!!!!!
+- rebuilding fill_response to fit all METHODS not just GET !!!!!
+- 
+
 ## IMPORTANT ##
-- in a location, if there is no index file && listen_directory is off webserv respond with 404 but correct one in 403.
-- infinite loop redirection checker is not correct.
-- HEAD method is not implimented correctly still need alot to change and to add.
-- fill_response need some changes to be dynamic.
-- codes handlers need changes.
-
-
-> PUT / GET / POST / DELETE / CGI  all are working fine even with multiple requests same time.
-
-> py cgi added.
+- response is too slow or not stuck, compare with previous versions we should know why.
+- response is always served at the end.
