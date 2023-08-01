@@ -17,7 +17,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
-    std::cout << CYAN_BOLD << code << " : " << res->status_line << WHITE << std::endl;
+    // std::cout << CYAN_BOLD << code << " : " << res->status_line << WHITE << std::endl; //[DEBUGGING_LINE]
     if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
         res->add("connection", "keep-alive");
     if (sz(res->redirect_to)) // redirection exists
@@ -33,7 +33,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         {
             res->is_chunked = true;
             res->add("transfer-encoding", "chunked");
-            std::cout << RED_BOLD << "**** SERVING BY CHUNKED ****" << std::endl;
+            // std::cout << RED_BOLD << "**** SERVING BY CHUNKED ****" << std::endl;  //[DEBUGGING_LINE]
         }
         else if (!res->is_directory_listing)
         {
@@ -41,16 +41,14 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             ll file_size = get_file_size(res->filepath.c_str());
             std::string s_file_size = std::to_string(file_size);
             res->add("content-length", s_file_size);
-            std::cout << RED_BOLD << "**** SERVING BY CONTENT LENGTH ****" << std::endl;
+            // std::cout << RED_BOLD << "**** SERVING BY CONTENT LENGTH ****" << std::endl;  //[DEBUGGING_LINE]
         }
     }
     if (write_it)
     {
         if (client->server->http_configs->proxy_logs_register) // if logs is activated then register the logs
             add_to_logs(client);
-        if (client->request->method == "GET" && sz(res->filepath))
-            std::cout << "file path is true: " << res->filepath << std::endl;
-        else
+        if (client->request->method != "GET" || !sz(res->filepath))
             res->filepath = "";
         if (!res->write_response_in_socketfd(client->fd, (!res->is_directory_listing || client->request->method == "HEAD")))
             client->state = SERVED ;
@@ -472,7 +470,7 @@ bool    Handlers::handle_404(t_client *client)
     }
     else
     {
-        std::cout << "404 not found filepath => " << res->filepath << std::endl;
+        // std::cout << "404 not found filepath => " << res->filepath << std::endl; // [DEBUGGING_LINE]
         res->rootfilepath = "";
         res->filepath = "";
         client->state = SERVED;
@@ -496,8 +494,8 @@ bool    Handlers::handle_200d(t_client *client)
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
-    if (d_configs)
-        std::cout << YELLOW_BOLD << "WORKING WITH DIRECTORY CONFIGS" << std::endl;
+    // if (d_configs)
+    //     std::cout << YELLOW_BOLD << "WORKING WITH DIRECTORY CONFIGS" << std::endl; // [DEBUGGING_LINE]
     if (set_file_path(client->cwd, res->rootfilepath, indexes))
     {
         res->filepath = client->cwd + "/" + res->rootfilepath;
@@ -522,17 +520,17 @@ bool    Handlers::handle_200d(t_client *client)
     }
     else
     {
-        std::cout << "CWD => " << client->cwd << std::endl;
-        std::cout << "ROOT => " << res->rootfilepath << std::endl;
-        if (d_configs->directory_listing)
-            std::cout << "DIRECTORY LISTING IS ON" << std::endl;
-        else
-            std::cout << "DIRECTORY LISTING IS OFF" << std::endl;
+        // std::cout << "CWD => " << client->cwd << std::endl; // [DEBUGGING_LINE]
+        // std::cout << "ROOT => " << res->rootfilepath << std::endl; // [DEBUGGING_LINE]
+        // if (d_configs->directory_listing)
+        //     std::cout << "DIRECTORY LISTING IS ON" << std::endl; // [DEBUGGING_LINE]
+        // else
+        //     std::cout << "DIRECTORY LISTING IS OFF" << std::endl; // [DEBUGGING_LINE]
         std::string fpath = client->cwd + res->rootfilepath;
         DIR *d = opendir(fpath.c_str());
         if (d_configs && d_configs->directory_listing && d)
         {
-            std::cout << "DIRECTORY LISTING" << std::endl;
+            // std::cout << "DIRECTORY LISTING" << std::endl; // [DEBUGGING_LINE]
             res->is_directory_listing = true ;
             fill_response(client, 200, true);
             client->state = SERVING_GET;
@@ -568,7 +566,7 @@ bool Handlers::handle_200f(t_client *client)
         res->extension = get_extension(res->filepath);
         res->is_cgi = IS_CGI_EXTENSION(req->extension);
         if (res->is_cgi)
-            res->cgi_path = res->configs->extension_cgi[req->extension];
+            res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!res->is_cgi)
             fill_response(client, 200, true);
         client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;

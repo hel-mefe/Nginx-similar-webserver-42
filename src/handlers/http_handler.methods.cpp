@@ -38,8 +38,8 @@ void    HttpHandler::handle_http(t_client *client)
             }
             else
             {
-                std::cout << "REQUEST PATH => " << client->request->path << std::endl;
-                client->request->print_data(); 
+                // std::cout << "REQUEST PATH => " << client->request->path << std::endl; // [DEBUGGING_LINE]
+                // client->request->print_data(); // [DEBUGGING_LINE]
                 architect_response(client);
             }
         }
@@ -175,8 +175,8 @@ void    HttpHandler::set_response_configs(t_client *client)
     req = client->request;
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
-    std::cout << "REQUESTED PATH => " << req->path << std::endl;
-    std::cout << "DIRECTORY CONFIGS PATH => " << res->directory_configs_path << std::endl;
+    // std::cout << "REQUESTED PATH => " << req->path << std::endl; // [DEBUGGING_LINE]
+    // std::cout << "DIRECTORY CONFIGS PATH => " << res->directory_configs_path << std::endl; // [DEBUGGING_LINE]
     res->configs = client->server->server_configs;
     res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
 }
@@ -190,6 +190,8 @@ void    HttpHandler::architect_response(t_client *client)
     set_response_configs(client);
     if (req->method == "OPTIONS")
         client->state = SERVING_OPTIONS;
+    else if (req->method == "TRACE")
+        client->state = SERVING_TRACE;
     else if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         return ;
@@ -205,7 +207,7 @@ void    HttpHandler::architect_response(t_client *client)
             std::string header = req->request_map.at("content-type");
             if (!res->dir_configs->upload)
             {
-                std::cerr << RED_BOLD << "[error]: upload is not allowed!" << WHITE << std::endl;
+                // std::cerr << RED_BOLD << "[error]: upload is not allowed!" << WHITE << std::endl; // [DEBUGGING_LINE]
                 handlers->fill_response(client, 403, true);
                 client->state = SERVED;
                 return;

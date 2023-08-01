@@ -13,13 +13,13 @@ bool    HttpParser::read_header(t_client *client)
     {
         if (!bytes) // bytes == 0 connection closed
         {
-            std::cout << "READ 0 CHARS" << std::endl;
+            // std::cout << "READ 0 CHARS" << std::endl; // [DEBUGGING_LINE]
             client->state = SERVED;
         }
         return (false);
     }
     int bl = 0, el = 0;
-    std::cout << "READING THE HEADER " << std::endl;
+    // std::cout << "READING THE HEADER " << std::endl;
     while (el < bytes)
     {
         if (buff[el] == '\r' && buff[el + 1] == '\n')

@@ -435,10 +435,7 @@ bool ConfigFileParser::is_http_valid()
     while (i < sz(http_as_words))
     {
         if (!is_http_line_valid(i))
-        {
-            std::cout << "HTTP LINE IS NOT VALID" << std::endl;
             return (false);
-        }
         i++;
     }
     return (true);
@@ -453,7 +450,7 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return true;
     if (server_tokens.find(token_name) == server_tokens.end())
     {
-        std::cout << token_name << " WAS NOT FOUND!" << std::endl;
+        // std::cout << token_name << " WAS NOT FOUND!" << std::endl; // [DEBUGGING_LINE]
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
     }
@@ -534,7 +531,6 @@ bool ConfigFileParser::is_location_block_valid(std::vector<std::string> &block)
     if (location_tokens.find(token_name) == location_tokens.end())
     {
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
-        std::cout << token_name << " was not found" << std::endl;
         return (false);
     }
     token_type = location_tokens[token_name];
@@ -741,11 +737,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
         else if (token_name == "allowed_methods")
         {
             if (sz(nodes[i].words[j]) == 2 && nodes[i].words[j][1] == "*")
-            {
                 attr.allowed_methods = conf->allowed_methods;
-                for (int i = 0; i < sz(conf->allowed_methods); i++)
-                    std::cout << conf->allowed_methods[i] << std::endl;
-            }
             else
             {
                 attr.allowed_methods = get_vector_of_data(nodes[i].words[j]);
@@ -864,14 +856,8 @@ void ConfigFileParser::fill_location_attributes(std::string &cwd, t_server_confi
         }
         else if (token_name == "allowed_methods")
         {
-            std::cout << token_name << " - allowed_methods => " << nodes[i].location_blocks[j][1] << std::endl;
             if (sz(nodes[i].location_blocks[j]) == 2 && nodes[i].location_blocks[j][1] == "*")
-            {
-                std::cout << "Allowed methods in location" << std::endl;
-                for (int i = 0; i < sz(s_confs->allowed_methods); i++)
-                    std::cout << s_confs->allowed_methods[i] << " " << std::endl;
                 l_configs.allowed_methods = s_confs->allowed_methods;
-            }
             else if (sz(nodes[i].location_blocks[j]) != 2 ||  nodes[i].location_blocks[j][1] != "*")
             {
                 l_configs.allowed_methods = get_vector_of_data(nodes[i].location_blocks[j]);
@@ -959,10 +945,6 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
         handle_locations(server, nodes[i].location_blocks, attr, i);
         server->set_server_configs(attr);
         server->set_http_configs(conf); 
-        if (conf->proxy_cache)
-            std::cout << PURPLE_BOLD << "IN HTTP PROXY CACHE IS ON" << std::endl;
-        else
-            std::cout << PURPLE_BOLD << "IN HTTP PROXY CACHE IS OFF" << std::endl;
         servers->push_back(server);
     }
     return (true);
@@ -1063,10 +1045,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
             for (int j = 0; j < sz(http_data->allowed_methods); j++) // checking if all methods are valid
             {
                 if (!tc.is_method(http_data->allowed_methods[j]))
-                {
-                    std::cout << "INVALID METHOD => " << http_data->allowed_methods[j] << std::endl;
                     throw InvalidMethod();
-                }
             }
             http_data->allowed_methods_set = vector_to_hashset(http_data->allowed_methods);
         }

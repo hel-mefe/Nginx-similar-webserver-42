@@ -12,7 +12,7 @@
 
 void    Kqueue::write_error(const std::string err_msg)
 {
-    std::cout << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
+    std::cerr << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
     exit(1);
 }
 
@@ -72,6 +72,7 @@ void    Kqueue::set_manager()
     _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
+    _manager->handlers.insert(std::make_pair("TRACE", new Trace()));
     char *wd = getwd(NULL);
     if (wd)
     {
@@ -84,8 +85,10 @@ void    Kqueue::set_manager()
     for (; i < sz((*servers)); i++)
     {
         int port = servers->at(i)->server_configs->port;
+        std::string name = servers->at(i)->server_configs->server_name;
+        std::cout << WHITE << "server " << name << " is listening on port " << port << " ..." << std::endl;
         ll max_connections = servers->at(i)->server_configs->max_connections;
-        std::cout << "MAX CONNECTIONS FOR SERVER " << i << " IS => " << max_connections << std::endl;
+        // std::cout << "MAX CONNECTIONS FOR SERVER " << i << " IS => " << max_connections << std::endl; // [DEBUGGING_LINE]
         _manager->rEvents[i].ident = getsocketfd(port, max_connections);
         _manager->add_kqueue_event(_manager->rEvents[i].ident, EVFILT_READ, NULL);
         if (!_manager->add_server(_manager->rEvents[i].ident, servers->at(i)))
@@ -122,7 +125,7 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
         write_error("Internal server socket accept error");
     if (!this->manager->add_client(con, server))
         write_error("Internal server client error");
-    std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
+    // std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
     // handle_client(manager, con);
 }
 
@@ -135,9 +138,10 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
     (void)manager;
-    std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
-    if (!this->manager->remove_client(fd))
-        std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
+    // std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
+    this->manager->remove_client(fd);
+    // if (!this->manager->remove_client(fd))
+    //     // std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
 
@@ -162,7 +166,7 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
         manager->handlers[client->request->method]->serve_client(client);
     if (client->state == SERVED)
     {
-        std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;
+        // std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;
         handle_disconnection(manager, fd);
     }
     else if (prev_state != client->state)
@@ -204,7 +208,7 @@ void Kqueue::multiplex()
 
     SOCKET  fd;
     struct kevent *events = manager->rEvents;
-    std::cout << "KQUEUE IS RUNNING ..." << std::endl;
+    // std::cout << "KQUEUE IS RUNNING ..." << std::endl;
     while (1)
     {
         int revents = kevent(manager->kq, NULL, 0, events, MAX_KQUEUE_FDS, NULL);
@@ -226,7 +230,7 @@ void Kqueue::multiplex()
                     if (events[i].flags & EV_EOF) // disconnection
                     {
                         handle_disconnection(this->manager, fd);
-                        std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl;
+                        // std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl; // [DEBUGGING_LINE]
                         manager->client_num -= 1;
                     }
                     else

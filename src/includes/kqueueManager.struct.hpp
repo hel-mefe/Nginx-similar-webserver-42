@@ -82,21 +82,6 @@ typedef struct kqueueManager
         return clients_map[fd];
     }
 
-    // int     get_free_slot()
-    // {
-    //     int free_slot = UNDEFINED;
-        
-    //     for (int i = 0; i < MAX_FDS; i++)
-    //     {
-    //         if (fds[i].fd == UNDEFINED)
-    //         {
-    //             free_slot = i ;
-    //             break ;
-    //         }
-    //     }
-    //     return (free_slot) ;
-    // }
-
     void    printClientsMap()
     {
         for (std::map<SOCKET, t_client *>::iterator it = clients_map.begin(); it != clients_map.end(); it++)
@@ -121,10 +106,11 @@ typedef struct kqueueManager
     {
         if (!IN_MAP(clients_map, fd))
             return false ;
-        std::cout << "Working on " << fd << std::endl;
-        printClientsMap();
         if (close(fd))
-            std::cout << RED_BOLD << "[ FD WAS NOT CLOSED ]" << std::endl;
+        {
+            std::cerr << RED_BOLD << "[WEBSERVER42]: Internal server error, close() failed!" << std::endl;
+            exit(1);
+        }
         t_client *data = clients_map[fd];
         clients_map.erase(fd);
         if ((data && data->request && data->request->method == "POST") || IS_HTTP_STATE(data->state))

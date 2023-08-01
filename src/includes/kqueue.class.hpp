@@ -12,6 +12,7 @@
 # include "get.class.hpp"
 # include "options.class.hpp"
 # include "put.class.hpp"
+# include "trace.class.hpp"
 # include "kqueueManager.struct.hpp"
 
 void    handle_cgi(t_client *client);

@@ -45,6 +45,7 @@
 # define WAITING_TIMEOUT 10
 # define READING_HEADER_TIMEOUT 10
 
+
 # define PORT short int
 # define SOCKET int
 # define HashMap std::map
@@ -71,7 +72,8 @@ typedef struct kevent k_event;
 
 #define IS_MULTIPLEXER(m) (m == "kqueue" || m == "epoll" || m == "select" || m == "poll")
 #define IS_RESPONSE_HEADER_COMPLETE(client) ((client->request->method == "HEAD" || !sz(client->response->filepath)) && !client->response->is_directory_listing)
-
+#define SUCCESS(syscall_expression) (syscall_expression != -1)
+#define FAILURE(syscall_expression) (syscall_expression == -1)
 // # define READ_FILTER EVFILT_READ
 // # define WRITE_FILTER EVFILT_WRITE
 // # define EOF_EVENT EV_EOF

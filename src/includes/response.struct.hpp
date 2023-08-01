@@ -83,6 +83,8 @@ typedef struct response
         std::map<std::string, std::string>::iterator it = response_map.begin();
         std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
 
+    if (this->is_directory_listing)
+        response_map["connection"] = "closed" ;
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
@@ -90,10 +92,15 @@ typedef struct response
             it++;
         }
         if (finish_it)
+        {
+            std::cout << "YES FINISHED" << std::endl;
             ress += "\r\n";
+        }
         if (send(fd, ress.c_str(), sz(ress), 0) == -1)
             return (false) ;
+        std::cout << "RESPONSE => " << std::endl ;
         std::cout << ress << std::endl;
+        // std::cout << ress << std::endl; // [DEBUGGING_LINE]
         return (true) ;
     }
 

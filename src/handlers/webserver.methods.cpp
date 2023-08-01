@@ -527,6 +527,7 @@ void    Webserver::set_trace_is_allowed(t_server *s)
             msg = "TRACE method is allowed in a production webserver";
             this->msgs_queue.push(std::make_pair(WARNING, msg));
             this->is_warning_set = true ;
+            break ;
         }
     }
 }
@@ -552,9 +553,6 @@ void    Webserver::set_all_warnings()
         else
             keep_server_names.insert(server_name);
         set_cgi_bin_warning(s->server_configs->server_name, &s->server_configs->extension_cgi);
-
-        std::cout << CYAN_BOLD << "KEEP_ALIVE = " << s->server_configs->keep_alive_timeout << std::endl;
-        std::cout << "MAX_REQUEST_TIMEOUT = " << s->server_configs->max_request_timeout << std::endl;
         
         /** handling keep_alive_max_timeout that our server can handle **/
         if (s->server_configs->keep_alive_timeout > MAX_KEEP_ALIVE_TIMEOUT_ALLOWED)
@@ -741,20 +739,20 @@ void    Webserver::set_cache_data(t_cache *c, std::string &line)
     c->cookies_map = get_cookies_queries_map(c->cookies, false);
     c->is_valid = IS_CACHE_VALID(c);
 
-    std::cout << "REQUESTED_FILE = " << c->rq_file << std::endl;
-    std::cout << "SERVED FILE = " << c->s_file << std::endl;
-    std::cout << "QUERIES = " << c->queries << std::endl;
-    std::cout << "COOKIES = " << c->cookies << std::endl;
-    std::cout << "DATE_CREATED = " << c->date_created << std::endl;
-    std::cout << "REQUEST_LAST_MODIFIED = " << c->t_rq_last_modified << std::endl;
-    std::cout << "SERVED_LAST_MODIFIED = " << c->t_s_last_modified << std::endl;
-    std::cout << "*** PRINTING QUERIES ***" << std::endl;
-    for (std::map<std::string, std::string>::iterator it = c->queries_map.begin(); it != c->queries_map.end(); it++)
-        std::cout << it->first << " -> " << it->second << std::endl;
-    std::cout << "*** PRINTING COOKIES ***" << std::endl;
-    for (std::map<std::string, std::string>::iterator it = c->cookies_map.begin(); it != c->cookies_map.end(); it++)
-        std::cout << it->first << " -> " << it->second << std::endl;
-    std::cout << "IS_VALID = " << (c->is_valid ? "YES" : "NO") << std::endl;
+    // std::cout << "REQUESTED_FILE = " << c->rq_file << std::endl;
+    // std::cout << "SERVED FILE = " << c->s_file << std::endl;
+    // std::cout << "QUERIES = " << c->queries << std::endl;
+    // std::cout << "COOKIES = " << c->cookies << std::endl;
+    // std::cout << "DATE_CREATED = " << c->date_created << std::endl;
+    // std::cout << "REQUEST_LAST_MODIFIED = " << c->t_rq_last_modified << std::endl;
+    // std::cout << "SERVED_LAST_MODIFIED = " << c->t_s_last_modified << std::endl;
+    // std::cout << "*** PRINTING QUERIES ***" << std::endl;
+    // for (std::map<std::string, std::string>::iterator it = c->queries_map.begin(); it != c->queries_map.end(); it++)
+    //     std::cout << it->first << " -> " << it->second << std::endl;
+    // std::cout << "*** PRINTING COOKIES ***" << std::endl;
+    // for (std::map<std::string, std::string>::iterator it = c->cookies_map.begin(); it != c->cookies_map.end(); it++)
+    //     std::cout << it->first << " -> " << it->second << std::endl;
+    // std::cout << "IS_VALID = " << (c->is_valid ? "YES" : "NO") << std::endl;
 }
 
 bool    Webserver::parse_cache_line(std::string &line)
@@ -832,28 +830,23 @@ void    Webserver::reset_cache()
     DIR         *dir;
     struct dirent *entry;
 
-    std::cout << GREEN_BOLD << "RESETTING THE CACHE IS WORKING" << std::endl;
     folder = "caches";
     dir = opendir(folder.c_str());
     if (!dir)
         return ;
-    std::cout << "AFTER OPENDIR" << std::endl;
     while (1)
     {
         entry = readdir(dir);
         if (!entry)
             break ;
         entry_name = entry->d_name;
-        std::cout << "ENTRY_NAME = " << entry_name << std::endl;
         if (entry->d_type == DT_REG && entry_name != "." && entry_name != "..") // regular file
         {
             prefix = entry_name.substr(0, 6);
-            std::cout << "PREFIX => " << prefix << std::endl;
             if (prefix == "cache_")
             {
                 filepath = "caches/" + entry_name;
-                if (unlink(filepath.c_str()))
-                    std::cout << YELLOW_BOLD << filepath << " cannot be removed because unlink failed" << std::endl;
+                unlink(filepath.c_str());
             }
         }
     }    
@@ -905,7 +898,7 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
             else if (sz(part1) || sz(part2))
             {
                 std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
-                std::cout << "CACHE TIME FILE IS CORRUPT IN WHILE PRINTED -> " << part1 << " - " << part2 << std::endl;
+                // std::cout << "CACHE TIME FILE IS CORRUPT IN WHILE PRINTED -> " << part1 << " - " << part2 << std::endl;
                 msgs_queue.push(std::make_pair(WARNING, s));
                 this->is_warning_set = true;
                 SET_CACHE_OFF(http_configs);
@@ -918,17 +911,17 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
     if ((!tc_found || !vu_found || !sz_found || !tv_found) && (tc_found || vu_found || sz_found || tv_found))
     {
         std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
-        std::cout << PURPLE_BOLD << s << std::endl;
+        // std::cout << PURPLE_BOLD << s << std::endl;
         this->msgs_queue.push(std::make_pair(WARNING, s));
         this->is_warning_set = true ;
         return (false);
     }
-    std::cout << "***** START PRINTING CACHE_TM DATA *******" << std::endl;
-    std::cout << GREEN_BOLD << "time_created -> " << time_created << std::endl;
-    std::cout << "time_expired -> " << time_expired << std::endl;
-    std::cout << "time_valid -> " << time_valid << std::endl;
-    std::cout << "cache_size -> " << cache_size << std::endl;
-    std::cout << "***** END PRINTING CACHE_TM DATA *******" << std::endl;
+    // std::cout << "***** START PRINTING CACHE_TM DATA *******" << std::endl;
+    // std::cout << GREEN_BOLD << "time_created -> " << time_created << std::endl;
+    // std::cout << "time_expired -> " << time_expired << std::endl;
+    // std::cout << "time_valid -> " << time_valid << std::endl;
+    // std::cout << "cache_size -> " << cache_size << std::endl;
+    // std::cout << "***** END PRINTING CACHE_TM DATA *******" << std::endl;
     
     http_configs->cache_time_created = time_created;
     http_configs->cache_time_expired = time_expired;
@@ -941,13 +934,13 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
     {
         if (IS_CACHE_EXPIRED(time_expired))
         {
-            std::cout << "CACHE IS EXPIRED SO IT WILL BE RESET" << std::endl;
+            // std::cout << "CACHE IS EXPIRED SO IT WILL BE RESET" << std::endl;
             reset_cache() ;
         }
         else if (IS_CACHE_PASSED_SIZE(cache_size))
         {
             std::string s = "Cache has been exceeded the provided size, please consider resetting it (use --reset-cache flag)";
-            std::cout << PURPLE_BOLD << s << std::endl;
+            // std::cout << PURPLE_BOLD << s << std::endl;
             msgs_queue.push(std::make_pair(WARNING, s));
             this->is_warning_set = true;
             http_configs->proxy_cache_register = false;
@@ -1003,17 +996,18 @@ void    Webserver::run() // sockets of all servers will run here
         throw_msg(p_msg.second, false, p_msg.first);
         msgs_queue.pop();
     }
-
+    std::cout << "\n";
     /** quitting when the program has a warning**/
     if (cli->is_strict_mode_activated && this->is_warning_set)
     {
-        msg = "\n\nyou are in the strict_mode, please fix all the warnings before running the server in this mode";
+        msg = "you are in the strict_mode, please fix all the warnings before running the server in this mode";
         throw_msg(msg, 1, ERROR);
     }
 
     init_mimes();
     init_codes();
     set_multiplexer();
+
     /*** setting the necessary data for the multiplexer ***/
     multiplexer->set_configs(http_configs);
     multiplexer->set_servers(servers);

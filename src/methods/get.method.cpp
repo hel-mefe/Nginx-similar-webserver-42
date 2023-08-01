@@ -31,7 +31,7 @@ void    Get::serve_by_chunked(t_client *client)
     if (bts > 0)
     {
         hex = get_hex_as_string(bts, hex);
-        std::cout << "HEX -> " << hex << std::endl;
+        // std::cout << "HEX -> " << hex << std::endl;
         resp = hex + "\r\n";
         resp.append(buffer, bts);
         resp += "\r\n";
@@ -42,7 +42,7 @@ void    Get::serve_by_chunked(t_client *client)
     {
         send(client->fd, "0\r\n\r\n", 5, 0);
         if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-            client->state = KEEP_ALIVE ;
+            client->reset(KEEP_ALIVE);
         else
             client->state = SERVED;
         client->request_time = time(NULL);
@@ -58,18 +58,25 @@ void    Get::serve_by_content_length(t_client *client)
     res = client->response;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
+    std::cout << bts << " have been read" << std::endl;
+    std::cout << res->buffer << std::endl; 
     if (bts > 0)
     {
         if (send(client->fd, res->buffer, bts, 0) == -1)
             client->state = SERVED ;
     }
-    else if (bts <= 0)
+    else if (!bts)
     {
         if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-            client->state = KEEP_ALIVE ;
+            client->reset(KEEP_ALIVE);
         else
             client->state = SERVED;
         client->request_time = time(NULL);
+    }
+    else
+    {
+        std::cout << "READ ERROR -> " << strerror(errno) << std::endl;
+        client->state = SERVED;
     }
 }
 
@@ -80,6 +87,11 @@ void    Get::handle_static_file(t_client *client)
 
     if (req->first_time)
     {
+        if (res->fd != UNDEFINED)
+        {
+            close(res->fd);
+            res->fd = UNDEFINED;
+        }
         res->fd = open(res->filepath.c_str(), O_RDONLY);
         if (res->fd < 0)
         {
@@ -142,6 +154,7 @@ void    Get::handle_directory_listing(t_client *client)
     std::string content_length;
     std::string full_html_response;
     DIR         *D;
+    int         clength;
 
     res = client->response;
     list_directories(client);
@@ -160,23 +173,25 @@ void    Get::handle_directory_listing(t_client *client)
         html += tag;
     }
     html += "</ul></body></html>\r\n";
-    content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
+    clength = sz(html) - 2;
+    content_length = "content_length: " + std::to_string(clength) + "\r\n\r\n";
+    if (IN_MAP(client->request->request_map, "content-length"))
+        std::cout << "YES CONTENT LENGTH IS THERE" << std::endl;
+    std::cout << "CONTENT LENGTH => " << clength << std::endl;
     full_html_response = content_length + html;
-
+    std::cout << full_html_response << std::endl;
     /** send is protected because in all cases the client state will be set to SERVED **/
-    send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
-    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-        client->state = KEEP_ALIVE ;
+    if (SUCCESS(send(client->fd, full_html_response.c_str(), sz(full_html_response), 0)))
+        client->state = SERVED;
     else
         client->state = SERVED;
-    client->request_time = time(NULL);
 }
 
 
 /***
  * main function for serving get request
  * this function is the main function for GET
-*/
+***/
 void    Get::serve_client(t_client *client)
 {
     t_response* res = client->response;
