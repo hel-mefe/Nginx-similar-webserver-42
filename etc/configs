@@ -14,7 +14,7 @@ http
     listen 9080
     server_name arsenal
     root httpdocs/www
-    error_page 404 error_pages/404.html
+    error_page 404 error_pages/404/404.html
     error_page 403 error_pages/403.html
     # fastCGI .py /usr/bin/python
 #    fastCGI .pl /usr/bin/perl
@@ -26,14 +26,12 @@ http
 
     location /uploads
     {
-		redirect /
       root httpdocs/uploads
       allowed_methods POST PUT GET
     }
 
     location /
     {
-		redirect uploads
       root httpdocs/www
     }
 

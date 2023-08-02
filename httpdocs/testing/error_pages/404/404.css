@@ -1,0 +1,13 @@
+html, body{
+  width:100%; 
+  min-height:100%;
+  background:black;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  overflow:auto;
+}
+canvas{
+  align-self:center;
+  cursor:move;
+}

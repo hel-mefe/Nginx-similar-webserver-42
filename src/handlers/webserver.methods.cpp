@@ -511,12 +511,10 @@ void    Webserver::set_redirection_loop_warnings(t_server *s)
 
 void    Webserver::set_trace_is_allowed(t_server *s)
 {
-    t_server_configs                            *s_configs;
     t_location_configs                          *l_configs;
     std::map<std::string, t_location_configs*>  *dir_configs;
     std::string                                 msg;
 
-    s_configs = s->server_configs;
     dir_configs = s->dir_configs;
     for (std::map<std::string, t_location_configs*>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
     {

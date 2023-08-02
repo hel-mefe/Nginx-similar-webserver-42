@@ -120,6 +120,24 @@ typedef struct response
         return (true);
     }
 
+    void    reset()
+    {
+        is_cgi = false;
+        fd = UNDEFINED;
+        cache_fd = UNDEFINED;
+        configs = nullptr;
+        dir_configs = nullptr;
+        cgi_rn_found = false;
+        is_first_time = true;
+        cgi_pipe[0] = UNDEFINED;
+        cgi_pipe[1] = UNDEFINED;
+        del_files = 0;
+        delete []buffer;
+        buffer = new char[MAX_BUFFER_SIZE]();
+        file_exist = false; 
+        response_map.clear();
+    }
+
     void    print_data()
     {
         std::cout << CYAN_BOLD << " **** PRINTING RESPONSE DATA **** " << WHITE_BOLD << std::endl;

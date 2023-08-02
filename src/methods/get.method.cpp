@@ -95,11 +95,13 @@ void    Get::handle_static_file(t_client *client)
         res->fd = open(res->filepath.c_str(), O_RDONLY);
         if (res->fd < 0)
         {
-            std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
-            fill_response(client, 501, "Internal Server Error", true);
+            res->reset();
+            fill_response(client, 500, "Internal Server Error", true);
             client->state = SERVED;
             return;
         }
+        else
+            res->write_response_in_socketfd(client->fd, true);
         req->first_time = false;
     }
     if (res->is_chunked)
@@ -126,6 +128,8 @@ void    Get::list_directories(t_client *client)
     dirstream = opendir(fullpath.c_str());
     if (!dirstream)
     {
+        client->response->reset();
+        fill_response(client, 500, "Internal Server Error", true);
         client->state = SERVED;
         return ;
     }
@@ -163,7 +167,7 @@ void    Get::handle_directory_listing(t_client *client)
     {
         std::string dir = it->first;
         std::string link = it->second;
-        D = opendir(link.c_str());
+        D = opendir(link.c_str()); // only checks if directory or not
         if (D)
         {
             dir += "/";
@@ -174,17 +178,17 @@ void    Get::handle_directory_listing(t_client *client)
     }
     html += "</ul></body></html>\r\n";
     clength = sz(html) - 2;
-    content_length = "content_length: " + std::to_string(clength) + "\r\n\r\n";
-    if (IN_MAP(client->request->request_map, "content-length"))
-        std::cout << "YES CONTENT LENGTH IS THERE" << std::endl;
-    std::cout << "CONTENT LENGTH => " << clength << std::endl;
-    full_html_response = content_length + html;
+    res->add("content-length", std::to_string(clength));
+    if (!res->write_response_in_socketfd(client->fd, true))
+    {
+        client->state = SERVED;
+        return ;
+    }
+    full_html_response = html;
     std::cout << full_html_response << std::endl;
     /** send is protected because in all cases the client state will be set to SERVED **/
-    if (SUCCESS(send(client->fd, full_html_response.c_str(), sz(full_html_response), 0)))
-        client->state = SERVED;
-    else
-        client->state = SERVED;
+    send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
+    client->state = SERVED;
 }
 
 

@@ -33,7 +33,6 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
         {
             res->is_chunked = true;
             res->add("transfer-encoding", "chunked");
-            // std::cout << RED_BOLD << "**** SERVING BY CHUNKED ****" << std::endl;  //[DEBUGGING_LINE]
         }
         else if (!res->is_directory_listing)
         {
@@ -170,7 +169,7 @@ bool    Handlers::handle_400(t_client *client)
             res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if (res->is_cgi)
                 res->cgi_path = res->configs->extension_cgi[res->extension];
-            fill_response(client, 400, true);
+            fill_response(client, 400, req->method == "HEAD");
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
@@ -217,7 +216,7 @@ bool Handlers::handle_414(t_client *client)
             res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if (res->is_cgi)
                 res->cgi_path = res->configs->extension_cgi[res->extension];
-            fill_response(client, 414, true);
+            fill_response(client, 414, (req->method == "HEAD"));
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
@@ -270,7 +269,7 @@ bool    Handlers::handle_501(t_client *client)
                 res->is_cgi = IS_CGI_EXTENSION(res->extension);
                 if (res->is_cgi)
                     res->cgi_path = res->configs->extension_cgi[res->extension];
-                fill_response(client, 501, true);
+                fill_response(client, 501, req->method == "HEAD");
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
                 client->request->method = "GET";
@@ -325,7 +324,7 @@ bool Handlers::handle_413(t_client *client)
                 res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if (res->is_cgi)
                 res->cgi_path = res->configs->extension_cgi[res->extension];
-                fill_response(client, 413, true);
+                fill_response(client, 413, req->method == "HEAD");
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
                 client->request->method = "GET";
@@ -380,7 +379,7 @@ bool    Handlers::handle_405(t_client *client)
             res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if (res->is_cgi)
                 res->cgi_path = res->configs->extension_cgi[res->extension];
-            fill_response(client, 405, true);
+            fill_response(client, 405, req->method == "HEAD");
             client->state = (req->method == "HEAD") ? SERVED : SERVING_GET;
             client->state = (res->is_cgi && client->state == SERVING_GET) ? SERVING_CGI : SERVING_GET;
             req->method = "GET";
@@ -455,7 +454,7 @@ bool    Handlers::handle_404(t_client *client)
             res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!access(res->filepath.c_str(), R_OK))
         {
-            fill_response(client, 404, true);
+            fill_response(client, 404, client->request->method == "HEAD");
             client->state = client->request->method == "HEAD" ? SERVED : SERVING_GET;
             client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
@@ -506,7 +505,7 @@ bool    Handlers::handle_200d(t_client *client)
             res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!access(res->filepath.c_str(), R_OK))
         {
-            fill_response(client, 200, true);
+            fill_response(client, 200, false);
             client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
             client->request->method = "GET";
         }
@@ -532,7 +531,7 @@ bool    Handlers::handle_200d(t_client *client)
         {
             // std::cout << "DIRECTORY LISTING" << std::endl; // [DEBUGGING_LINE]
             res->is_directory_listing = true ;
-            fill_response(client, 200, true);
+            fill_response(client, 200, false);
             client->state = SERVING_GET;
             client->request->method = "GET";
         }
@@ -568,7 +567,7 @@ bool Handlers::handle_200f(t_client *client)
         if (res->is_cgi)
             res->cgi_path = res->configs->extension_cgi[res->extension];
         if (!res->is_cgi)
-            fill_response(client, 200, true);
+            fill_response(client, 200, false);
         client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
         client->request->method = "GET";
     }
