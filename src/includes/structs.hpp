@@ -65,6 +65,7 @@ typedef struct ServerAttributes
     HashSet<std::string>                pages_404_set;
     int                                 max_connections;
     int                                 max_body_size;
+    int                                 max_uri_size;
     int                                 max_request_timeout;
     int                                 max_cgi_timeout;
     int                                 keep_alive_timeout;
@@ -137,6 +138,7 @@ typedef struct HttpConfigs
     ll                                  max_cgi_timeout;
     ll                                  keep_alive_timeout;
     ll                                  max_body_size;
+    ll                                  max_uri_size;
     ll                                  proxy_cache_max_time;
     ll                                  proxy_cache_max_size;
     ll                                  cache_folder_size;

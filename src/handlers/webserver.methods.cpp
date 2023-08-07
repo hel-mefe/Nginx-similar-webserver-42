@@ -574,6 +574,17 @@ void    Webserver::set_all_warnings()
             this->is_warning_set = true;
         }
 
+        /** handling client_max_uri_size that our client can handle **/
+        if (s->server_configs->max_uri_size > DEFAULT_MAX_URI_SIZE)
+        {
+            msg = "you surpassed the max_uri_size recommended which is " + std::to_string(DEFAULT_MAX_URI_SIZE) + ".";
+            this->msgs_queue.push(std::make_pair(WARNING, msg));
+            s->server_configs->max_uri_size = DEFAULT_MAX_URI_SIZE; // reset it to the higher value our server allows
+            msg = "the client_max_request_timeout is set automatically to " + std::to_string(DEFAULT_MAX_URI_SIZE) + " because the server cannot accept a value higher than this" ;
+            this->msgs_queue.push(std::make_pair(INFO, msg)); 
+            this->is_warning_set = true;
+        }
+    
         /** set redirection loop error **/
         set_redirection_loop_warnings(s);
 

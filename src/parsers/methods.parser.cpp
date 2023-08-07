@@ -328,6 +328,7 @@ void ConfigFileParser::fill_http_hashmap()
     http_tokens.insert(std::make_pair("client_max_connections", INT));
     http_tokens.insert(std::make_pair("client_max_body_size", SIZE));
     http_tokens.insert(std::make_pair("client_max_request_timeout", DATE));
+    http_tokens.insert(std::make_pair("client_max_uri_size", INT));
     http_tokens.insert(std::make_pair("multiplexer", MULTIP));
     http_tokens.insert(std::make_pair("support_cookies", ON_OFF));
     http_tokens.insert(std::make_pair("cgi_bin", CGI));
@@ -342,6 +343,7 @@ void ConfigFileParser::fill_server_hashmap()
     server_tokens.insert(std::make_pair("root", DIRECTORY));
     server_tokens.insert(std::make_pair("allowed_methods", METHOD_VECTOR));
     server_tokens.insert(std::make_pair("client_max_connections", INT));
+    server_tokens.insert(std::make_pair("client_max_uri_size", INT));
     server_tokens.insert(std::make_pair("client_max_body_size", SIZE));
     server_tokens.insert(std::make_pair("support_cookies", ON_OFF));
     server_tokens.insert(std::make_pair("server_name", STRING));
@@ -712,6 +714,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     attr.max_cgi_timeout = conf->max_cgi_timeout;
     attr.keep_alive_timeout = conf->keep_alive_timeout;
     attr.max_connections = conf->max_connections;
+    attr.max_uri_size = conf->max_uri_size;
 
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
@@ -774,6 +777,8 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
             attr.max_request_timeout = get_time(nodes[i].words[j][1]);
         else if (token_name == "cgi_max_request_timeout")
             attr.max_cgi_timeout = get_time(nodes[i].words[j][1]);
+        else if (token_name == "client_max_uri_size")
+            attr.max_uri_size = std::atoll(nodes[i].words[i][1].c_str());
         else if (token_name == "keep_alive_max_timeout")
             attr.keep_alive_timeout = get_time(nodes[i].words[j][1]);
     }
@@ -1018,6 +1023,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
     http_data->max_request_timeout = DEFAULT_CLIENT_MAX_REQUEST_TIMEOUT;
     http_data->max_cgi_timeout = DEFAULT_CGI_MAX_REQUEST_TIMEOUT;
+    http_data->max_uri_size = DEFAULT_MAX_URI_SIZE;
     http_data->multiplexer = MAIN_MULTIPLEXER == KQUEUE ? "kqueue" : "epoll";
     http_data->cookies = "on";
     http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
@@ -1051,6 +1057,8 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
         }
         else if (token_name == "client_max_body_size")
             http_data->max_body_size = get_size(http_as_words[i][1]);
+        else if (token_name == "client_max_uri_size")
+            http_data->max_uri_size = std::atoll(http_as_words[i][1].c_str());
         else if (token_name == "client_max_request_timeout")
             http_data->max_request_timeout = get_time(http_as_words[i][1]);
         else if (token_name == "cgi_max_request_timeout")

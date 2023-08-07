@@ -6,6 +6,9 @@
 # include "globals.hpp"
 # include "structs.hpp"
 # include <sys/stat.h>
+# include "http_handler.utils.hpp"
+
+#define IS_CGI_EXT(e) (e == ".php" || e == ".py" || e == ".pl")
 
 typedef struct response
 {
@@ -156,5 +159,7 @@ typedef struct response
     }
 
 }   t_response ;
+
+void    clarify_response(t_response *res);
 
 #endif

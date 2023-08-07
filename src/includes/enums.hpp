@@ -11,7 +11,7 @@ typedef struct LocationConfigs t_location_configs;
 #define MAX_REQUEST_TIMEOUT 30
 
 #define HTTP_VERSION "HTTP/1.1"
-#define MAX_REQUEST_URI_SIZE 2048
+#define MAX_REQUEST_URI_SIZE 30
 
 
 # define sz(x) ((int)x.size())

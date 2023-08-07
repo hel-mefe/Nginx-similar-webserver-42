@@ -43,6 +43,6 @@ long long   get_file_size(const char *filename);
 std::string get_cache_file_name(std::string filepath);
 
 void    catch_leaks(const char *msg);
-
+bool    set_error_page(std::map<int, std::string> &code_to_page, std::string &fullpath, int code);
 
 #endif

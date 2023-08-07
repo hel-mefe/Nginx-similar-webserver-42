@@ -159,16 +159,11 @@ bool    Handlers::handle_400(t_client *client)
     if ((req->method == "POST" && (!IN_MAP((*request_map), "content-type") || (!IN_MAP((*request_map), "transfer-encoding") && \
     !IN_MAP((*request_map), "content-length")))) || !is_request_uri_valid(req->path))
     {
-        error_page = code_to_page[400];
-        path = res->root;
-        if (IN_MAP(code_to_page, 400) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
+        res->filepath = client->cwd + "/" + res->root;
+        if (set_error_page(code_to_page, res->filepath, 400)) // error code is exist page provided in config file
         {
             res->filepath = client->cwd + "/" + path + "/" + error_page;
-            res->filepath = get_cleanified_path(res->filepath);
-            res->extension = get_extension(res->filepath);
-            res->is_cgi = IS_CGI_EXTENSION(res->extension);
-            if (res->is_cgi)
-                res->cgi_path = res->configs->extension_cgi[res->extension];
+            clarify_response(res);
             fill_response(client, 400, req->method == "HEAD");
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
@@ -204,18 +199,12 @@ bool Handlers::handle_414(t_client *client)
         code_to_page = res->dir_configs->code_to_page;
     else
         code_to_page = res->configs->code_to_page;
-    if (sz(req->path) >= MAX_REQUEST_URI_SIZE)
+    if (sz(req->path) >= client->server->server_configs->max_uri_size)
     {
-        error_page = code_to_page[414];
-        path = res->root;
-        if (IN_MAP(code_to_page, 414) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
+        res->filepath = client->cwd + "/" + res->root;
+        if (set_error_page(code_to_page, res->filepath, 414))
         {
-            res->filepath = client->cwd + "/" + path + "/" + error_page;
-            res->filepath = get_cleanified_path(res->filepath);
-            res->extension = get_extension(res->filepath);
-            res->is_cgi = IS_CGI_EXTENSION(res->extension);
-            if (res->is_cgi)
-                res->cgi_path = res->configs->extension_cgi[res->extension];
+            clarify_response(res);
             fill_response(client, 414, (req->method == "HEAD"));
             client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
             client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
@@ -259,16 +248,10 @@ bool    Handlers::handle_501(t_client *client)
             req->is_chunked = true;
         else
         {
-            error_page = code_to_page[501];
-            path = res->root;
-            if (IN_MAP(code_to_page, 501) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
+            res->filepath = client->cwd + "/" + res->root;
+            if (set_error_page(code_to_page, res->filepath, 501)) // error code is exist page provided in config file
             {
-                res->filepath = client->cwd + "/" + path + "/" + error_page;
-                res->filepath = get_cleanified_path(res->filepath);
-                res->extension = get_extension(res->filepath);
-                res->is_cgi = IS_CGI_EXTENSION(res->extension);
-                if (res->is_cgi)
-                    res->cgi_path = res->configs->extension_cgi[res->extension];
+                clarify_response(res);
                 fill_response(client, 501, req->method == "HEAD");
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
@@ -314,16 +297,10 @@ bool Handlers::handle_413(t_client *client)
         req->content_length = std::atoi(request_map->at("content-length").c_str());
         if(sconf->max_body_size < req->content_length)
         {
-            error_page = code_to_page[413];
-            path = res->root;
-            if (IN_MAP(code_to_page, 413) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
+            res->filepath = client->cwd + "/" + res->root;
+            if (set_error_page(code_to_page, res->filepath, 413))
             {
-                res->filepath = client->cwd + "/" + path + "/" + error_page;
-                res->filepath = get_cleanified_path(res->filepath);
-                res->extension = get_extension(res->filepath);
-                res->is_cgi = IS_CGI_EXTENSION(res->extension);
-            if (res->is_cgi)
-                res->cgi_path = res->configs->extension_cgi[res->extension];
+                clarify_response(res);
                 fill_response(client, 413, req->method == "HEAD");
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
@@ -369,16 +346,11 @@ bool    Handlers::handle_405(t_client *client)
     /*** Method is not allowed ****/
     if (std::find(allowed_methods.begin(), allowed_methods.end(), req->method) == allowed_methods.end())
     {
-        error_page = code_to_page[405];
-        path = res->root;
-        if (IN_MAP(code_to_page, 405) && set_path_for_file(client->cwd, path, error_page)) // error code is exist page provided in config file
+        res->filepath = client->cwd + "/" + res->root;
+        if (set_error_page(code_to_page, res->filepath, 405))
         {
             res->filepath = client->cwd + "/" + path + "/" + error_page;
-            res->filepath = get_cleanified_path(res->filepath);
-            res->extension = get_extension(res->filepath);
-            res->is_cgi = IS_CGI_EXTENSION(res->extension);
-            if (res->is_cgi)
-                res->cgi_path = res->configs->extension_cgi[res->extension];
+            clarify_response(res);
             fill_response(client, 405, req->method == "HEAD");
             client->state = (req->method == "HEAD") ? SERVED : SERVING_GET;
             client->state = (res->is_cgi && client->state == SERVING_GET) ? SERVING_CGI : SERVING_GET;
@@ -433,25 +405,23 @@ bool    Handlers::handle_301(t_client *client)
 
 bool    Handlers::handle_404(t_client *client)
 {
-    t_response          *res;
-    t_location_configs  *d_configs;
-    t_server_configs    *s_configs;
-    std::string         root;
-    std::vector<std::string> files_404;
+    t_response                  *res;
+    t_location_configs          *d_configs;
+    t_server_configs            *s_configs;
+    std::string                 root;
+    std::vector<std::string>    files_404;
+    std::map<int, std::string>  code_to_page;
 
     res = client->response;
     d_configs = res->dir_configs;
     s_configs = res->configs;
     files_404 = (d_configs) ? d_configs->pages_404 : s_configs->pages_404;
     root = res->root;
+    code_to_page = (d_configs ? d_configs->code_to_page : s_configs->code_to_page);
     if (set_file_path(client->cwd, root, files_404))
     {
         res->filepath = client->cwd + "/" + root;
-        res->filepath = get_cleanified_path(res->filepath);
-        res->extension = get_extension(res->filepath);
-        res->is_cgi = IS_CGI_EXTENSION(res->extension); 
-        if (res->is_cgi)
-            res->cgi_path = res->configs->extension_cgi[res->extension];
+        clarify_response(res);
         if (!access(res->filepath.c_str(), R_OK))
         {
             fill_response(client, 404, client->request->method == "HEAD");
@@ -463,8 +433,18 @@ bool    Handlers::handle_404(t_client *client)
         {
             res->filepath = "";
             res->rootfilepath = "";
-            fill_response(client, 403, true);
-            client->state = SERVED;
+            res->filepath = client->cwd + "/" + res->root;
+            if (set_error_page(code_to_page, res->filepath, 403))
+            {
+                clarify_response(res);
+                fill_response(client, 403, false);
+                client->state = SERVING_GET;
+            }
+            else
+            {
+                fill_response(client, 403, true) ;
+                client->state = SERVED;
+            }
         }
     }
     else
@@ -488,21 +468,19 @@ bool    Handlers::handle_200d(t_client *client)
     t_location_configs  *d_configs;
     t_server_configs    *s_configs;
     std::vector<std::string> indexes;
+    std::map<int, std::string>  code_to_page;
 
     res = client->response;
     d_configs = res->dir_configs;
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
+    code_to_page = (d_configs ? d_configs->code_to_page : s_configs->code_to_page);
     // if (d_configs)
     //     std::cout << YELLOW_BOLD << "WORKING WITH DIRECTORY CONFIGS" << std::endl; // [DEBUGGING_LINE]
     if (set_file_path(client->cwd, res->rootfilepath, indexes))
     {
         res->filepath = client->cwd + "/" + res->rootfilepath;
-        res->filepath = get_cleanified_path(res->filepath);
-        res->extension = get_extension(res->filepath);
-        res->is_cgi = IS_CGI_EXTENSION(res->extension);
-        if (res->is_cgi)
-            res->cgi_path = res->configs->extension_cgi[res->extension];
+        clarify_response(res);
         if (!access(res->filepath.c_str(), R_OK))
         {
             fill_response(client, 200, false);
@@ -511,10 +489,18 @@ bool    Handlers::handle_200d(t_client *client)
         }
         else
         {
-            res->filepath = "";
-            res->rootfilepath = "";
-            fill_response(client, 403, true);
-            client->state = SERVED;
+            res->filepath = client->cwd + "/" + res->rootfilepath;
+            if (set_error_page(code_to_page, res->filepath, 403))
+            {
+                clarify_response(res);
+                fill_response(client, 403, false);
+                client->state = SERVING_GET;
+            }
+            else
+            {
+                fill_response(client, 403, true) ;
+                client->state = SERVED;
+            }
         }
     }
     else
@@ -537,10 +523,20 @@ bool    Handlers::handle_200d(t_client *client)
         }
         else // 403 forbidden rather than 404 not found
         {
-            res->filepath = "";
-            res->rootfilepath = "";
-            fill_response(client, 403, true);
-            client->state = SERVED;
+            res->filepath = client->cwd + "/" + res->rootfilepath;
+            // res->filepath = "";
+            // res->rootfilepath = "";
+            if (set_error_page(code_to_page, res->filepath, 403))
+            {
+                clarify_response(res);
+                fill_response(client, 403, false);
+                client->state = SERVING_GET;
+            }
+            else
+            {
+                fill_response(client, 403, true);
+                client->state = SERVED;
+            }
             // handle_404(client);
         }
         if (d)
@@ -556,16 +552,16 @@ bool    Handlers::handle_200d(t_client *client)
 bool Handlers::handle_200f(t_client *client)
 {
     t_response *res = client->response;
-    t_request  *req = client->request;
+    t_location_configs          *d_configs;
+    t_server_configs            *s_configs;
+    std::map<int, std::string>  code_to_page;
 
+    d_configs = res->dir_configs;
+    s_configs = res->configs;
+    code_to_page = (d_configs ? d_configs->code_to_page : s_configs->code_to_page);
     if (!access(res->filepath.c_str(), R_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 200 ok
     {
-        res->filepath = get_cleanified_path(res->filepath);
-        res->rootfilepath = get_cleanified_path(res->rootfilepath);
-        res->extension = get_extension(res->filepath);
-        res->is_cgi = IS_CGI_EXTENSION(req->extension);
-        if (res->is_cgi)
-            res->cgi_path = res->configs->extension_cgi[res->extension];
+        clarify_response(res);
         if (!res->is_cgi)
             fill_response(client, 200, false);
         client->state = (res->is_cgi) ? SERVING_CGI : SERVING_GET;
@@ -573,10 +569,20 @@ bool Handlers::handle_200f(t_client *client)
     }
     else if (!access(res->filepath.c_str(), F_OK) && !is_directory_exist(client->cwd, res->rootfilepath)) // 403 forbidden
     {
-        res->filepath = "";
-        res->rootfilepath = "";
-        fill_response(client, 403, true);
-        client->state = SERVED;
+        res->filepath = client->cwd + "/" + res->rootfilepath;
+        if (set_error_page(code_to_page, res->filepath, 403))
+        {
+            clarify_response(res);
+            fill_response(client, 403, false);
+            client->state = SERVING_GET;
+        }
+        else
+        {
+            res->filepath = "";
+            res->rootfilepath = "";
+            fill_response(client, 403, true);
+            client->state = SERVED;
+        }
     }
     else // 404 not found
         handle_404(client);

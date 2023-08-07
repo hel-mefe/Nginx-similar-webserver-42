@@ -173,7 +173,7 @@ void    Get::handle_directory_listing(t_client *client)
             dir += "/";
             closedir(D);
         }
-        std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
+         std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
         html += tag;
     }
     html += "</ul></body></html>\r\n";

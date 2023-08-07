@@ -364,3 +364,30 @@ void    catch_leaks(const char *msg)
             break ;  
     }
 }
+
+bool    set_error_page(std::map<int, std::string> &code_to_page, std::string &fullpath, int code)
+{
+    std::string path;
+
+    if (!IN_MAP(code_to_page, code))
+        return false ;
+    path = fullpath;
+    if (!sz(path))
+        return false ;
+    path = (path[sz(path) - 1] != '/') ? path + "/" + code_to_page[code]: path + code_to_page[code];
+    if (!access(path.c_str(), R_OK))
+    {
+        fullpath = path;
+        return (true) ;
+    }
+    return (false) ;
+}
+
+void    clarify_response(t_response *res)
+{
+    res->filepath = get_cleanified_path(res->filepath);
+    res->extension = get_extension(res->filepath);
+    res->is_cgi = IS_CGI_EXT(res->extension); 
+    if (res->is_cgi)
+        res->cgi_path = res->configs->extension_cgi[res->extension];
+}
