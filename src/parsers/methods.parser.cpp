@@ -715,6 +715,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     attr.keep_alive_timeout = conf->keep_alive_timeout;
     attr.max_connections = conf->max_connections;
     attr.max_uri_size = conf->max_uri_size;
+    attr.port = UNDEFINED;
 
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
@@ -722,7 +723,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
             throw InvalidHttpToken();
         std::string token_name = nodes[i].words[j][0];
         if (token_name == "directory_listing")
-            attr.auto_indexing = get_auto_indexing(nodes[i].words[j]);
+            attr.directory_listing = get_auto_indexing(nodes[i].words[j]);
         else if (token_name == "server_name")
             attr.server_name = nodes[i].words[j][1];
         else if (token_name == "listen")
@@ -784,6 +785,8 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
+    if (attr.port == UNDEFINED)
+        throw UndefinedPort();
 }
 
 bool ConfigFileParser::get_auto_indexing(std::vector<std::string> &line)

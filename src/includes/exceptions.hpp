@@ -102,5 +102,14 @@ class ParsingExceptionMaxBodySizeInterval
         }
 } ;
 
+class UndefinedPort : public std::exception
+{
+    public:
+        const char *what() const _NOEXCEPT
+        {
+            return ("Undefined Port Error.");
+        }
+} ;
+
 
 # endif

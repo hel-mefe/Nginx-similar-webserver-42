@@ -43,9 +43,11 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             res->add("content-length", s_file_size);
             // std::cout << RED_BOLD << "**** SERVING BY CONTENT LENGTH ****" << std::endl;  //[DEBUGGING_LINE]
         }
-        if (!IN_MAP(res->response_map, "content-length"))
+        if (!IN_MAP(res->response_map, "content-length") && (!res->is_directory_listing || client->request->is_file))
             res->add("content-length", "0") ;
     }
+    else
+        res->add("content-length", "0");
 
     if (res->is_cgi)
         res->response_map["connection"] = "closed";
@@ -522,10 +524,15 @@ bool    Handlers::handle_200d(t_client *client)
         // else
         //     std::cout << "DIRECTORY LISTING IS OFF" << std::endl; // [DEBUGGING_LINE]
         std::string fpath = client->cwd + res->rootfilepath;
+        if (s_configs->directory_listing)
+            std::cout << "DIRECTORY LISTING IS ON ..." << std::endl;
+        std::cout << "FULL PATH IS => " << fpath << std::endl;
         DIR *d = opendir(fpath.c_str());
-        if (d_configs && d_configs->directory_listing && d)
+        if (d)
+            std::cout << "YES DIRECTORY IS EXIST!" << std::endl;
+        if (((d_configs && d_configs->directory_listing) || s_configs->directory_listing) && d)
         {
-            // std::cout << "DIRECTORY LISTING" << std::endl; // [DEBUGGING_LINE]
+            std::cout << "DIRECTORY LISTING" << std::endl; // [DEBUGGING_LINE]
             res->is_directory_listing = true ;
             fill_response(client, 200, false);
             client->state = SERVING_GET;
