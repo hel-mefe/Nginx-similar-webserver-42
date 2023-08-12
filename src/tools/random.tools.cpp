@@ -372,6 +372,7 @@ bool    set_error_page(std::map<int, std::string> &code_to_page, std::string &fu
     if (!IN_MAP(code_to_page, code))
         return false ;
     path = fullpath;
+    std::cout << "PATH FOR " << code << " => " << path << std::endl;
     if (!sz(path))
         return false ;
     path = (path[sz(path) - 1] != '/') ? path + "/" + code_to_page[code]: path + code_to_page[code];

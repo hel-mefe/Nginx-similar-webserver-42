@@ -133,10 +133,7 @@ void parse_cgi_output(t_client* client)
             break;
         send(client->fd, buff, rbytes, 0);
     }
-    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-        client->state = KEEP_ALIVE;
-    else
-        client->state = SERVED;
+    client->state = SERVED;
     close(cgi_out);
 }
 

@@ -138,7 +138,7 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
     (void)manager;
-    // std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
+    std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
     this->manager->remove_client(fd);
     // if (!this->manager->remove_client(fd))
     //     // std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
@@ -162,14 +162,18 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
         handle_cgi(client);
     if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
-    else if (IS_METHOD_STATE(client->state))
+    if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
     if (client->state == SERVED)
     {
-        // std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;
-        handle_disconnection(manager, fd);
+        client->request_time = time(NULL);
+        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive" && !client->response->is_directory_listing \
+        && client->request->method != "POST" && client->request->method != "PUT" && !client->response->is_cgi)
+            client->reset(KEEP_ALIVE);
+        else
+            handle_disconnection(manager, fd);
     }
-    else if (prev_state != client->state)
+    if (prev_state != client->state)
     {
         if (R_STATE(client->state)) // client has a read state
         {

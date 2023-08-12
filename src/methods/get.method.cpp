@@ -31,7 +31,6 @@ void    Get::serve_by_chunked(t_client *client)
     if (bts > 0)
     {
         hex = get_hex_as_string(bts, hex);
-        // std::cout << "HEX -> " << hex << std::endl;
         resp = hex + "\r\n";
         resp.append(buffer, bts);
         resp += "\r\n";
@@ -41,11 +40,7 @@ void    Get::serve_by_chunked(t_client *client)
     else if (bts <= 0)
     {
         send(client->fd, "0\r\n\r\n", 5, 0);
-        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-            client->reset(KEEP_ALIVE);
-        else
-            client->state = SERVED;
-        client->request_time = time(NULL);
+        client->state = SERVED;
     }
 }
 
@@ -66,18 +61,7 @@ void    Get::serve_by_content_length(t_client *client)
             client->state = SERVED ;
     }
     else if (!bts)
-    {
-        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
-            client->reset(KEEP_ALIVE);
-        else
-            client->state = SERVED;
-        client->request_time = time(NULL);
-    }
-    else
-    {
-        std::cout << "READ ERROR -> " << strerror(errno) << std::endl;
         client->state = SERVED;
-    }
 }
 
 void    Get::handle_static_file(t_client *client)

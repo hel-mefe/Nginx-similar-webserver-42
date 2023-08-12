@@ -18,7 +18,8 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
     res->status_code = std::to_string(code);
     res->status_line = codes->at(code);
     // std::cout << CYAN_BOLD << code << " : " << res->status_line << WHITE << std::endl; //[DEBUGGING_LINE]
-    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive")
+    if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive"  \
+    && client->request->method != "POST" && client->request->method != "PUT")
         res->add("connection", "keep-alive");
     if (sz(res->redirect_to)) // redirection exists
         res->add("location", res->redirect_to);
@@ -34,7 +35,7 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             res->is_chunked = true;
             res->add("transfer-encoding", "chunked");
         }
-        else if (!res->is_directory_listing)
+        else if (!res->is_directory_listing && !access(res->filepath.c_str(), R_OK) && client->request->is_file)
         {
             res->is_chunked = false;
             ll file_size = get_file_size(res->filepath.c_str());
@@ -42,14 +43,22 @@ void    Handlers::fill_response(t_client *client, int code, bool write_it)
             res->add("content-length", s_file_size);
             // std::cout << RED_BOLD << "**** SERVING BY CONTENT LENGTH ****" << std::endl;  //[DEBUGGING_LINE]
         }
+        if (!IN_MAP(res->response_map, "content-length"))
+            res->add("content-length", "0") ;
     }
+
+    if (res->is_cgi)
+        res->response_map["connection"] = "closed";
     if (write_it)
     {
         if (client->server->http_configs->proxy_logs_register) // if logs is activated then register the logs
             add_to_logs(client);
         if (client->request->method != "GET" || !sz(res->filepath))
             res->filepath = "";
-        if (!res->write_response_in_socketfd(client->fd, (!res->is_directory_listing || client->request->method == "HEAD")))
+        std::cout << "FILE => " << res->filepath << std::endl;
+        if (access(res->filepath.c_str(), R_OK))
+            std::cout << "FILE IS NOT VALID" << std::endl;
+        if (!res->write_response_in_socketfd(client->fd, (!res->is_directory_listing || access(res->filepath.c_str(), R_OK) || client->request->method == "HEAD")))
             client->state = SERVED ;
     }
 }
@@ -304,7 +313,7 @@ bool Handlers::handle_413(t_client *client)
                 fill_response(client, 413, req->method == "HEAD");
                 client->state = (req->method == "HEAD" ? SERVED : SERVING_GET);
                 client->state = (client->state == SERVING_GET && res->is_cgi) ? SERVING_CGI : SERVING_GET;
-                client->request->method = "GET";
+                client->request->method = "GET"; 
             }
             else
             {
@@ -475,6 +484,7 @@ bool    Handlers::handle_200d(t_client *client)
     s_configs = res->configs;
     indexes = (d_configs) ? d_configs->indexes : s_configs->indexes;
     code_to_page = (d_configs ? d_configs->code_to_page : s_configs->code_to_page);
+    std::cout << "HANDLING DIRECTORY" << std::endl;
     // if (d_configs)
     //     std::cout << YELLOW_BOLD << "WORKING WITH DIRECTORY CONFIGS" << std::endl; // [DEBUGGING_LINE]
     if (set_file_path(client->cwd, res->rootfilepath, indexes))
@@ -520,6 +530,23 @@ bool    Handlers::handle_200d(t_client *client)
             fill_response(client, 200, false);
             client->state = SERVING_GET;
             client->request->method = "GET";
+        }
+        else if (!d) // file does not exist 
+        {
+            res->filepath = client->cwd + "/" + res->root;
+            // res->filepath = "";
+            // res->rootfilepath = "";
+            if (set_error_page(code_to_page, res->filepath, 404))
+            {
+                clarify_response(res);
+                fill_response(client, 404, false);
+                client->state = SERVING_GET;
+            }
+            else
+            {
+                fill_response(client, 404, true);
+                client->state = SERVED;
+            }
         }
         else // 403 forbidden rather than 404 not found
         {
@@ -609,6 +636,7 @@ bool Handlers::handle_200f(t_client *client)
 
 bool    Handlers::handle_200(t_client *client)
 {
+    std::cout << "### " << client->response->filepath << " ###\n";
     if (client->request->is_file)
         handle_200f(client);
     else

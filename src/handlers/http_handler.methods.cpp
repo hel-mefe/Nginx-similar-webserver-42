@@ -205,13 +205,6 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
         {
             std::string header = req->request_map.at("content-type");
-            if (!res->dir_configs->upload)
-            {
-                // std::cerr << RED_BOLD << "[error]: upload is not allowed!" << WHITE << std::endl; // [DEBUGGING_LINE]
-                handlers->fill_response(client, 403, true);
-                client->state = SERVED;
-                return;
-            }
             res->is_cgi = IS_CGI_EXTENSION(req->extension);
             if(res->is_cgi)
             {
