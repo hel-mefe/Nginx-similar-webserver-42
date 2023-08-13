@@ -19,7 +19,6 @@ char** convert_cgi_env(t_client* client)
     t_response* res = client->response;
     int env_size = res->cgi_env.size();
     char** args = (char**) malloc((env_size + 1) * sizeof(char*));
-    std::cout << CYAN_BOLD << "... [HANDLING CGI] ..." << WHITE << std::endl;
     args[env_size] = NULL;
     std::map<std::string, std::string>::iterator it = res->cgi_env.begin();
     int i = 0;
@@ -27,7 +26,6 @@ char** convert_cgi_env(t_client* client)
     {
         std::string arg = it->first + it->second;
         args[i] = strdup(arg.c_str());
-        std::cout << args[i] << std::endl;
         i++;
     }
     return args;
@@ -50,7 +48,6 @@ void    fill_cgi_env(t_client* client)
 
 void    serve_cgi(t_client* client, char** env, int args_size)
 {
-    std::cout << "[CGI_PATH]: " << client->response->cgi_path << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));
     args[0] = strdup(client->response->cgi_path.c_str());
     args[1] = strdup(client->response->filepath.c_str());
@@ -69,7 +66,6 @@ void    serve_cgi(t_client* client, char** env, int args_size)
     client->response->cgi_pid = fork();
     if (client->response->cgi_pid < 0)
     {
-        std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
         fill_response(client, 501, "Internal Server Error", true);
         client->state = SERVED;
         return;
@@ -102,7 +98,6 @@ void parse_cgi_output(t_client* client)
     if (cgi_out < 0)
     {
         fill_response(client, 501, "Internal Server Error", true);
-        std::cerr << RED_BOLD <<"[error][cgi]: failed!" << WHITE << std::endl;
         client->state = SERVED;
         return ;
     }
@@ -170,7 +165,6 @@ void    handle_cgi(t_client* client)
     }
     if (client->request->first_time)
     {
-        std::cout << "## FILL CGI START ##\n";
         fill_cgi_env(client);
         serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
         req->first_time = false;
@@ -181,7 +175,6 @@ void    handle_cgi(t_client* client)
         if (it->second == 42)
         {
             client->state = SERVED;
-            std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
             fill_response(client, 501, "Internal Server Error", true);
             return;
         }

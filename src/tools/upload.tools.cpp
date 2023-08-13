@@ -1,12 +1,5 @@
 #include "../includes/http_handler.utils.hpp"
 
-// if (client->response->is_cgi)
-// {
-//     fill_cgi_env(client);
-//     serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
-//     return;
-// }
-
 bool create_file(t_client* client)
 {
     std::string file_path = client->cwd + client->response->root;
@@ -59,7 +52,6 @@ bool create_file(t_client* client)
     if (client->request->file < 0)
     {
         client->state = SERVED;
-        std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
         fill_response(client, 500, "Internal Server Error", true);
         return false;
     }

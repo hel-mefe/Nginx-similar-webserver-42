@@ -12,7 +12,6 @@ void    fill_response(t_client *client, int code, std::string status_line, bool 
     t_response *res = client->response;
     std::string connection = req->get_param("connection"); // used for keep-alive
 
-    std::cout << CYAN_BOLD << code << " : " << status_line << WHITE << std::endl;
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = status_line ;
@@ -253,10 +252,7 @@ long long get_cache_folder_size(const char *foldername)
 
     dir = opendir(foldername);
     if (!dir)
-    {
-        std::cout << "0 returned -> " << strerror(errno) << std::endl;
         return (0) ;
-    }
     s_foldername = foldername;
     while (1)
     {
@@ -366,7 +362,6 @@ bool    set_error_page(std::map<int, std::string> &code_to_page, std::string &fu
     if (!IN_MAP(code_to_page, code))
         return false ;
     path = fullpath;
-    std::cout << "PATH FOR " << code << " => " << path << std::endl;
     if (!sz(path))
         return false ;
     path = (path[sz(path) - 1] != '/') ? path + "/" + code_to_page[code]: path + code_to_page[code];

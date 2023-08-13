@@ -133,11 +133,7 @@ void    Webserver::print_all_data()
 bool    Webserver::parse_config_file() // call the parser and returns if the config file is valid or not
 {
     if (!parser->parse_config_file(config_file, http_configs, servers))
-    {
-        std::cout << "WBS IS DONE 1" << std::endl;
         return (false);
-    }
-    std::cout << "WBS IS DONE 2" << std::endl;
     return (true);
 }
 
@@ -946,17 +942,10 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
     if ((!tc_found || !vu_found || !sz_found || !tv_found) && (tc_found || vu_found || sz_found || tv_found))
     {
         std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
-        // std::cout << PURPLE_BOLD << s << std::endl;
         this->msgs_queue.push(std::make_pair(WARNING, s));
         this->is_warning_set = true ;
         return (false);
     }
-    // std::cout << "***** START PRINTING CACHE_TM DATA *******" << std::endl;
-    // std::cout << GREEN_BOLD << "time_created -> " << time_created << std::endl;
-    // std::cout << "time_expired -> " << time_expired << std::endl;
-    // std::cout << "time_valid -> " << time_valid << std::endl;
-    // std::cout << "cache_size -> " << cache_size << std::endl;
-    // std::cout << "***** END PRINTING CACHE_TM DATA *******" << std::endl;
     
     http_configs->cache_time_created = time_created;
     http_configs->cache_time_expired = time_expired;
@@ -975,7 +964,6 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
         else if (IS_CACHE_PASSED_SIZE(cache_size))
         {
             std::string s = "Cache has been exceeded the provided size, please consider resetting it (use --reset-cache flag)";
-            // std::cout << PURPLE_BOLD << s << std::endl;
             msgs_queue.push(std::make_pair(WARNING, s));
             this->is_warning_set = true;
             http_configs->proxy_cache_register = false;

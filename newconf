@@ -1,18 +1,26 @@
 http
 {
+	keep_alive_max_timeout 2s
+	client_max_uri_size 200
+	client_max_body_size 10mb
 	server
 	{
 		listen 8080
 		server_name server_1
-		
-
-		root httpdocs
-		error_page 404 404.html # NOT FOUND
-		error_page 400 400.html # BAD REQUEST
-		error_page 405 405.html # METHOD NOT ALLOWED
-		error_page 414 414.html # URI MAX
-		error_page 501 501.html # NOT IMPLEMENTED
-		error_page 500 500.html # Internal Server Error
+		cgi_bin .pl /usr/bin/perl
+		root httpdocs/www
+		error_page 404 404.png # NOT FOUND
+		error_page 400 400.png # BAD REQUEST
+		error_page 405 405.png # METHOD NOT ALLOWED
+		error_page 414 414.png # URI MAX
+		error_page 501 501.png # NOT IMPLEMENTED
+		error_page 500 500.png # Internal Server Error
+		# try_index_files GoldRojer.png Mihawk.png 200.png
 		directory_listing on
+
+		location a
+		{
+			try_index_files 501.png
+		}
 	}
 }

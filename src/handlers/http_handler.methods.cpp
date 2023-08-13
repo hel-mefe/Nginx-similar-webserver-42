@@ -9,10 +9,6 @@ void    HttpHandler::handle_http(t_client *client)
     int time_passed = time(NULL) - client->request_time;
     CLIENT_STATE      prev_state = client->state;
 
-    // if (prev_state == KEEP_ALIVE)
-    //     std::cout << "KEEP_ALIVE IS WORKING ..." << std::endl;
-    // else if (prev_state == WAITING)
-    //     std::cout << "WAITING IS WORKING ..." << std::endl;
     if (client->state == WAITING || client->state == KEEP_ALIVE)
     {
         if (time_passed > max_request_timeout)
@@ -20,30 +16,20 @@ void    HttpHandler::handle_http(t_client *client)
         else
             client->state = READING_HEADER;
     }
-    // std::cout << "GOT INTO HANDLING HTTP ... " << std::endl;
     if (client->state == READING_HEADER)
     {
-        // std::cout << "READING THE HEADER ..." << std::endl;
         if (http_parser->read_header(client))
         {
-            // std::cout << "HEAD IS BEING PARSING ..." << std::endl
             int code = http_parser->parse_request(client);
-            std::cout << "THE CODE IS -> " << code << std::endl;
             if (code != 0) // request is not well-formed
             {
                 std::string ress = "HTTP/1.1 ";
                 ress += std::to_string(code) + " " + codes->at(code) + "\r\nContent-length: 0\r\n\r\n";
-                std::cout << ress << std::endl;
-                if (send(client->fd, ress.c_str(), sz(ress), 0) == -1)
-                    std::cout << "COULD NOT SEND IT" << std::endl;
+                send(client->fd, ress.c_str(), sz(ress), 0);
                 client->state = SERVED;
             }
             else
-            {
-                // std::cout << "REQUEST PATH => " << client->request->path << std::endl; // [DEBUGGING_LINE]
-                // client->request->print_data(); // [DEBUGGING_LINE]
                 architect_response(client);
-            }
         }
         else
             client->state = client->state != SERVED ? prev_state : SERVED; // in case http_parser read 0 characters then connection is closed

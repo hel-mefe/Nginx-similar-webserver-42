@@ -1,31 +1,5 @@
-http
-{	
-	server
-	{
-		listen 9000 
-		cgi_bin .py justCGI
-
-		directory_listing on
-
-		location /a
-		{
-			redirect b
-		}
-
-		location /b
-		{
-			redirect c
-		}
-
-		location /c
-		{
-			redirect /a
-		}
-	}
-
-	server
-	{
-		listen 1000
-		server_name abc
-	}
+http { 
+	allowed_methods GET POST DELETE
+	server { listen 9000 
+	server_name nice_server} 
 }

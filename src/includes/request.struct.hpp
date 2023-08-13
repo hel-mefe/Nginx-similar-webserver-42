@@ -16,6 +16,8 @@ typedef struct request
     bool                                endwr;
     bool                                data;
     bool                                is_file;
+    bool                                is_not_implemented; // priority goes to this one
+    bool                                is_bad_request;
     std::string                         method;
     std::string                         path;
     std::string                         cgi_in;
@@ -36,6 +38,8 @@ typedef struct request
         is_chunked = false;
         data = false;
         endwr = false;
+        is_bad_request = false ;
+        is_not_implemented = false;
     }
     ~request()
     {

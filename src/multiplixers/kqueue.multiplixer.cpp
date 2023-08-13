@@ -86,7 +86,7 @@ void    Kqueue::set_manager()
     {
         int port = servers->at(i)->server_configs->port;
         std::string name = servers->at(i)->server_configs->server_name;
-        std::cout << WHITE << "server " << name << " is listening on port " << port << " ..." << std::endl;
+        std::cout << WHITE_BOLD << "server " << name << " is listening on port " << GREEN_BOLD << port << " ..." << std::endl;
         ll max_connections = servers->at(i)->server_configs->max_connections;
         // std::cout << "MAX CONNECTIONS FOR SERVER " << i << " IS => " << max_connections << std::endl; // [DEBUGGING_LINE]
         _manager->rEvents[i].ident = getsocketfd(port, max_connections);
@@ -128,8 +128,6 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 
      if (manager->servers_map.begin()->second->http_configs->cli->is_debugging_mode)
         std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been connected" << std::endl;
-    // std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
-    // handle_client(manager, con);
 }
 
 
@@ -140,12 +138,9 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 
 void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
-    // (void)manager;
     if (manager->servers_map.begin()->second->http_configs->cli->is_debugging_mode)
         std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
     this->manager->remove_client(fd);
-    // if (!this->manager->remove_client(fd))
-    //     // std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
 
@@ -225,7 +220,6 @@ void Kqueue::multiplex()
 
     SOCKET  fd;
     struct kevent *events = manager->rEvents;
-    // std::cout << "KQUEUE IS RUNNING ..." << std::endl;
     while (1)
     {
         int revents = kevent(manager->kq, NULL, 0, events, MAX_KQUEUE_FDS, NULL);

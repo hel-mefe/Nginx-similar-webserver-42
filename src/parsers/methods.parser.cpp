@@ -452,7 +452,6 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return true;
     if (server_tokens.find(token_name) == server_tokens.end())
     {
-        // std::cout << token_name << " WAS NOT FOUND!" << std::endl; // [DEBUGGING_LINE]
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
     }

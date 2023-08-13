@@ -98,7 +98,6 @@ typedef struct response
             ress += "\r\n";
         if (send(fd, ress.c_str(), sz(ress), 0) == -1)
             return (false) ;
-        std::cout << RED_BOLD << ress << WHITE_BOLD << std::endl; // [DEBUGGING_LINE]
         return (true) ;
     }
 

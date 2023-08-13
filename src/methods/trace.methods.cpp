@@ -46,7 +46,6 @@ std::string Trace::setBody(t_client *client, std::vector<std::string> forbiddenH
     std::string body;
     for(it = client->request->request_map.begin(); it != client->request->request_map.end(); it++)
     {
-        //std::cout<<it->first<<" = "<<it->second<<std::endl;
         std::vector<std::string>::iterator itf = std::find(forbiddenHeaders.begin(), forbiddenHeaders.end(), it->first);
         if (itf == forbiddenHeaders.end())
         {
@@ -84,11 +83,6 @@ void Trace::serve_client(t_client *client)
                            "Via: " + via + "\r\n"
                            "" + std::string(dateStr) + "\r\n";
     response += body;
-    int sendResult = send(clientFd, response.c_str(), response.length(), 0);
-    if (sendResult <= 0)
-    {
-        std::cerr<<"Error sending message\n";
-        return;
-    }
+    send(clientFd, response.c_str(), response.length(), 0);
     client->state = SERVED;
 }
