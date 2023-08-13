@@ -1,50 +1,57 @@
 http
 {
-  allowed_methods GET POST DELETE OPTIONS HEAD PUT
-  client_max_request_timeout 2
-  client_max_body_size 200000000
-  cgi_max_request_timeout 30 
+  allowed_methods GET POST TRACE DELETE OPTIONS HEAD PUT
+  client_max_request_timeout 2s
+  client_max_body_size 20mb
+  client_max_uri_size 2049
+  cgi_max_request_timeout 30s
+  keep_alive_max_timeout 4s
   multiplexer kqueue
   root httpdocs
+  support_cookies on
 
   server
   {
-    allowed_methods GET POST DELETE
-    port 9080
+    allowed_methods HEAD GET POST TRACE
+    listen 9080
     server_name arsenal
-    cgi_max_request_timeout 10 
-    root httpdocs/www
-    error_page 404 error_pages/404.html
-    error_page 403 error_pages/403.html
-    fastCGI .pl /usr/bin/perl
-    fastCGI .py /usr/bin/python
-    fastCGI .php bin/php-cgi
-
+    root httpdocs
+    error_page 404 error_pages/404/404.html
+    # error_page 403 error_pages/403.html
+    error_page 403 403.html
+    cgi_bin .py /usr/bin/python
+    cgi_bin .pl /usr/bin/perl
+    cgi_bin .php bin/php-cgi
     try_index_files index.html index1.html index2.html index3.html
 
-    # comment 1
+
+    error_page 414 404.html
+
 
     location /uploads
     {
       root httpdocs/uploads
       allowed_methods POST PUT GET
-      upload on
     }
-
-    location /
+  
+    location /deleting
     {
-      root httpdocs/www
-      allowed_methods GET POST
-      directory_listing on 
-      upload on
+      root httpdocs/deleting
+      allowed_methods DELETE
     }
 
-    # comment 2
+    location /cgi
+    {
+      root httpdocs/cgi_test
+      allowed_methods POST PUT GET
+      error_page 404 404.html
+    }
 
     location /testing/indexes
     {
       root httpdocs/testing/indexes
       try_index_files index1.html index2.html index3.html
+      allowed_methods GET POST DELETE HEAD
     }
 
     location /testing/
@@ -52,7 +59,5 @@ http
       root httpdocs/testing
       directory_listing on 
     }
-    # comment 3
   }
-
 }

@@ -6,6 +6,9 @@
 # include "globals.hpp"
 # include "structs.hpp"
 # include <sys/stat.h>
+# include "http_handler.utils.hpp"
+
+#define IS_CGI_EXT(e) (e == ".php" || e == ".py" || e == ".pl")
 
 typedef struct response
 {
@@ -19,6 +22,7 @@ typedef struct response
     int                                 del_files;
     int                                 cgi_pipe[2];
     int                                 fd;
+    int                                 cache_fd;
     int                                 code;
     int                                 cgi_pid;
     char                                *buffer;
@@ -39,7 +43,7 @@ typedef struct response
     std::map<std::string, std::string>  response_map;
     std::map<std::string, std::string>  cgi_env;
 
-    response() :is_cgi(false), fd(UNDEFINED), configs(nullptr), dir_configs(nullptr){
+    response() :is_cgi(false), fd(UNDEFINED), cache_fd(UNDEFINED), configs(nullptr), dir_configs(nullptr){
         cgi_rn_found = false;
         is_first_time = true;
         cgi_pipe[0] = UNDEFINED;
@@ -77,21 +81,30 @@ typedef struct response
             send(fd, "\r\n", 2, 0);
     }
 
-    void    write_response_in_socketfd(SOCKET fd)
+    bool    write_response_in_socketfd(SOCKET fd, bool finish_it)
     {
         std::map<std::string, std::string>::iterator it = response_map.begin();
         std::string ress = "HTTP/1.1 " + status_code + " " + status_line + "\r\n" ;
 
+    if (this->is_directory_listing)
+        response_map["connection"] = "closed" ;
         while (it != response_map.end())
         {
             std::string first = it->first, second = it->second;
             ress += first + " : " + second + "\r\n";
             it++;
         }
-        if (!this->is_directory_listing)
+        if (finish_it)
+        {
+            std::cout << "YES FINISHED" << std::endl;
             ress += "\r\n";
-        send(fd, ress.c_str(), sz(ress), 0);
+        }
+        if (send(fd, ress.c_str(), sz(ress), 0) == -1)
+            return (false) ;
+        std::cout << "RESPONSE => " << std::endl ;
         std::cout << ress << std::endl;
+        // std::cout << ress << std::endl; // [DEBUGGING_LINE]
+        return (true) ;
     }
 
     bool    add(std::string s1, std::string s2)
@@ -108,6 +121,24 @@ typedef struct response
             return (false);
         response_map.erase(s);
         return (true);
+    }
+
+    void    reset()
+    {
+        is_cgi = false;
+        fd = UNDEFINED;
+        cache_fd = UNDEFINED;
+        configs = nullptr;
+        dir_configs = nullptr;
+        cgi_rn_found = false;
+        is_first_time = true;
+        cgi_pipe[0] = UNDEFINED;
+        cgi_pipe[1] = UNDEFINED;
+        del_files = 0;
+        delete []buffer;
+        buffer = new char[MAX_BUFFER_SIZE]();
+        file_exist = false; 
+        response_map.clear();
     }
 
     void    print_data()
@@ -128,5 +159,7 @@ typedef struct response
     }
 
 }   t_response ;
+
+void    clarify_response(t_response *res);
 
 #endif

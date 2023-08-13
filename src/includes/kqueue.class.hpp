@@ -8,10 +8,11 @@
 # include "socket.hpp"
 # include "http_handler.class.hpp"
 # include "post.class.hpp"
+# include "put.class.hpp"
 # include "delete.class.hpp"
 # include "get.class.hpp"
 # include "options.class.hpp"
-# include "put.class.hpp"
+# include "trace.class.hpp"
 # include "kqueueManager.struct.hpp"
 
 void    handle_cgi(t_client *client);
@@ -33,6 +34,7 @@ class Kqueue : public MultiplexerInterface
             method_handlers = new HashMap<std::string, MethodHandler*>();
             method_handlers->insert(std::make_pair("GET", new Get()));
             method_handlers->insert(std::make_pair("POST", new Post()));
+            method_handlers->insert(std::make_pair("PUT", new Put()));
             method_handlers->insert(std::make_pair("DELETE", new Delete()));
             method_handlers->insert(std::make_pair("OPTIONS", new Options()));
         }
@@ -67,5 +69,5 @@ class Kqueue : public MultiplexerInterface
 
         void                write_error(const std::string err_msg);
         struct sockaddr_in* getsocketdata(PORT port);
-        SOCKET              getsocketfd(int port);
+        SOCKET              getsocketfd(int port, ll max_connections);
 } ;

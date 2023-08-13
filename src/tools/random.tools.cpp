@@ -11,14 +11,17 @@ void    fill_response(t_client *client, int code, std::string status_line, bool 
     t_request *req = client->request;
     t_response *res = client->response;
     std::string connection = req->get_param("connection"); // used for keep-alive
+
     std::cout << CYAN_BOLD << code << " : " << status_line << WHITE << std::endl;
     res->http_version = HTTP_VERSION;
     res->status_code = std::to_string(code);
     res->status_line = status_line ;
     if (sz(connection) && connection == "keep-alive") // type of connection
         res->add("connection", "keep-alive");
+    if (!IN_MAP(res->response_map, "content-length"))
+        res->add("content-length", "0") ;
     if (write_it)
-        res->write_response_in_socketfd(client->fd);
+        res->write_response_in_socketfd(client->fd, !res->is_directory_listing);
 }
 
 std::string get_cleanified_path(std::string s)
@@ -33,14 +36,6 @@ std::string get_cleanified_path(std::string s)
         flag = !(s[i] == '/');
     }
     return (res);
-}
-
-bool    is_file(std::string &path)
-{
-    int i = sz(path) - 1;
-
-    for (; i >= 0 && path[i] != '/' && path[i] != '.'; i--);
-    return (i >= 0 && path[i] == '.');
 }
 
 std::string trim_string(std::string &s)
@@ -226,4 +221,168 @@ void    add_to_logs(t_client* client)
     str += "\n";
     write(fd, str.c_str(), str.size());
     close(fd);
+}
+
+long long get_file_last_modified(const char *filename)
+{
+    struct stat info;
+
+    if (!stat(filename, &info))
+        return (info.st_mtime) ;
+    return (-1) ;
+}
+
+long long get_file_size(const char *filename)
+{
+    struct stat info;
+
+    if (!stat(filename, &info))
+        return (info.st_size) ;
+    return (-1) ;
+
+}
+
+long long get_cache_folder_size(const char *foldername)
+{
+    DIR         *dir;
+    std::string d_name;
+    std::string filepath;
+    std::string s_foldername;
+    long long   res = 0;
+    struct dirent *entry;
+
+    dir = opendir(foldername);
+    if (!dir)
+    {
+        std::cout << "0 returned -> " << strerror(errno) << std::endl;
+        return (0) ;
+    }
+    s_foldername = foldername;
+    while (1)
+    {
+        entry = readdir(dir);
+        if (!entry)
+            break ;
+        d_name = entry->d_name; 
+        if (d_name != "." && d_name != ".." && entry->d_type == DT_REG) // not special directory and a file
+        {
+            if (d_name.substr(0, 6) == "cache_") // cache_file always starts with "cache_"
+            {
+                filepath = s_foldername;
+                if (sz(filepath) && filepath[sz(filepath) - 1] != '/')
+                    filepath += "/" ;
+                filepath += d_name; 
+                res += get_file_size(filepath.c_str());
+            }
+        }
+
+    }
+    closedir(dir);
+    return (res) ;
+}
+
+std::map<std::string, std::string>  get_cookies_queries_map(std::string &line, bool is_query)
+{
+    size_t      s_point;
+    size_t      e_point;
+    size_t      equal_char_pos;
+    std::string part;
+    std::string key;
+    std::string value;
+    std::map<std::string, std::string>  res_map;
+
+    s_point = -1;
+    e_point = UNDEFINED;
+    while (e_point != line.size())
+    {
+        e_point = line.find(",", s_point + 1);
+        e_point = (e_point == std::string::npos ? line.size() : e_point);
+        part = line.substr(s_point + 1, e_point - (s_point + 1));
+        equal_char_pos = part.find("=");
+        key = part.substr(0, equal_char_pos);
+        value = part.substr(equal_char_pos + 1);
+        key = trim_string(key);
+        value = trim_string(value);
+        if (is_query || key != "ssid")
+            res_map.insert(std::make_pair(key, value));
+        s_point = e_point;
+    }
+    return (res_map);
+}
+
+void    throw_msg(std::string msg, bool is_exit, MSG_TYPE msg_type)
+{
+    if (msg_type == INFO)
+        std::cout << CYAN_BOLD << "[WEBSERVER42]: " << msg << std::endl;
+    else if (msg_type == WARNING)
+        std::cout << YELLOW_BOLD << "[WEBSERVER42]: " << msg << std::endl;
+    else if (msg_type == ERROR)
+        std::cout << RED_BOLD << "[WEBSERVER42]: " << msg << std::endl;
+    else if (msg_type == SUCCESS)
+        std::cout << GREEN_BOLD << "[WEBSERVER42]: " << msg << std::endl;
+    else if (msg_type == NORMAL)
+        std::cout << WHITE_BOLD << "[WEBSERVER42]: " << msg << std::endl;
+    std::cout << WHITE_BOLD ;
+    if (is_exit)
+        exit(127) ;
+}
+
+std::string get_cache_file_name(std::string filepath)
+{
+    std::string cache_name;
+    std::string part;
+    size_t      pos;
+    size_t      prev_pos;
+
+    pos = filepath.find("/");
+    prev_pos = -1;
+    while (pos != std::string::npos)
+    {
+        part = filepath.substr(prev_pos + 1, pos - prev_pos - 1);
+        cache_name += part;
+        prev_pos = pos;
+        pos = filepath.find("/", pos + 1);
+    }
+    return (cache_name);
+}
+
+void    catch_leaks(const char *msg)
+{
+    std::string k;
+
+    std::cout << "[LEAKS_DBUGGER]: " << msg << std::endl;
+    while (1)
+    {
+        std::getline(std::cin, k);
+        if (k == "1")
+            break ;  
+    }
+}
+
+bool    set_error_page(std::map<int, std::string> &code_to_page, std::string &fullpath, int code)
+{
+    std::string path;
+
+    if (!IN_MAP(code_to_page, code))
+        return false ;
+    path = fullpath;
+    std::cout << "PATH FOR " << code << " => " << path << std::endl;
+    if (!sz(path))
+        return false ;
+    path = (path[sz(path) - 1] != '/') ? path + "/" + code_to_page[code]: path + code_to_page[code];
+    if (!access(path.c_str(), R_OK))
+    {
+        fullpath = path;
+        return (true) ;
+    }
+    return (false) ;
+}
+
+void    clarify_response(t_response *res)
+{
+    res->filepath = get_cleanified_path(res->filepath);
+    res->extension = get_extension(res->filepath);
+    res->is_cgi = IS_CGI_EXT(res->extension); 
+    if (res->is_cgi)
+        res->cgi_path = res->configs->extension_cgi[res->extension];
 }

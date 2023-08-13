@@ -12,7 +12,7 @@
 
 void    Kqueue::write_error(const std::string err_msg)
 {
-    std::cout << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
+    std::cerr << CYAN_BOLD << "[webserv42]: " << err_msg << std::endl;
     exit(1);
 }
 
@@ -33,7 +33,7 @@ struct sockaddr_in *Kqueue::getsocketdata(PORT port)
  * it takes a port and binds the socket to that port
 **/
 
-SOCKET Kqueue::getsocketfd(int port)
+SOCKET Kqueue::getsocketfd(int port, ll max_connections)
 {
     struct sockaddr_in *data;
     socklen_t data_len;
@@ -48,9 +48,10 @@ SOCKET Kqueue::getsocketfd(int port)
     int bs = bind(fd, (struct sockaddr *)data, data_len);
     if (bs < 0)
         write_error("Internal server socket bind error");
-    int ls = listen(fd, 10);
+    int ls = listen(fd, max_connections);
     if (ls < 0)
         write_error("Internal server socket listen error");
+    delete data;
     return fd;
 }
 
@@ -66,21 +67,29 @@ SOCKET Kqueue::getsocketfd(int port)
 void    Kqueue::set_manager()
 {
     t_kqueue_manager *_manager = new t_kqueue_manager();
-
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
-    _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("PUT", new Put()));
+    _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
-    _manager->cwd = getwd(NULL);
-
+    _manager->handlers.insert(std::make_pair("TRACE", new Trace()));
+    char *wd = getwd(NULL);
+    if (wd)
+    {
+        _manager->cwd = wd;
+        free(wd);
+    }
     if (!sz(_manager->cwd))
         write_error("Internal server getcwd() error");
     int i = 0;
     for (; i < sz((*servers)); i++)
     {
         int port = servers->at(i)->server_configs->port;
-        _manager->rEvents[i].ident = getsocketfd(port);
+        std::string name = servers->at(i)->server_configs->server_name;
+        std::cout << WHITE << "server " << name << " is listening on port " << port << " ..." << std::endl;
+        ll max_connections = servers->at(i)->server_configs->max_connections;
+        // std::cout << "MAX CONNECTIONS FOR SERVER " << i << " IS => " << max_connections << std::endl; // [DEBUGGING_LINE]
+        _manager->rEvents[i].ident = getsocketfd(port, max_connections);
         _manager->add_kqueue_event(_manager->rEvents[i].ident, EVFILT_READ, NULL);
         if (!_manager->add_server(_manager->rEvents[i].ident, servers->at(i)))
             write_error("Internal server error related to server management");
@@ -116,7 +125,7 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
         write_error("Internal server socket accept error");
     if (!this->manager->add_client(con, server))
         write_error("Internal server client error");
-    std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
+    // std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
     // handle_client(manager, con);
 }
 
@@ -130,14 +139,9 @@ void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
     (void)manager;
     std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
-    if (!this->manager->remove_client(fd))
-        std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
-}
-
-
-bool is_method_handler_state(CLIENT_STATE state)
-{
-    return (state == SERVING_GET || state == SERVING_POST || state == SERVING_DELETE);
+    this->manager->remove_client(fd);
+    // if (!this->manager->remove_client(fd))
+    //     // std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
 }
 
 void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
@@ -152,26 +156,30 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
         handle_cgi(client);
     if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
-    else if (IS_METHOD_STATE(client->state))
+    if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
     if (client->state == SERVED)
     {
-        std::cout << CYAN_BOLD << "SERVED BLOCK -> " << client->request->path << std::endl;
-        handle_disconnection(manager, fd);
+        client->request_time = time(NULL);
+        if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive" && !client->response->is_directory_listing \
+        && client->request->method != "POST" && client->request->method != "PUT" && !client->response->is_cgi)
+            client->reset(KEEP_ALIVE);
+        else
+            handle_disconnection(manager, fd);
     }
-    else if (prev_state != client->state)
+    if (prev_state != client->state)
     {
-        if (R_STATE(client->state))
+        if (R_STATE(client->state)) // client has a read state
         {
-            if (W_STATE(prev_state))
+            if (W_STATE(prev_state)) // previous state is a write state
             {
                 manager->delete_kqueue_event(fd, EVFILT_WRITE);
                 manager->add_kqueue_event(fd, EVFILT_READ, client);
             }
         }
-        else
+        else // client has a write state
         {
-            if (R_STATE(prev_state))
+            if (R_STATE(prev_state)) // previous state is a read state
             {
                 manager->delete_kqueue_event(fd, EVFILT_READ);
                 manager->add_kqueue_event(fd, EVFILT_WRITE, client);
@@ -198,7 +206,7 @@ void Kqueue::multiplex()
 
     SOCKET  fd;
     struct kevent *events = manager->rEvents;
-    std::cout << "KQUEUE IS RUNNING ..." << std::endl;
+    // std::cout << "KQUEUE IS RUNNING ..." << std::endl;
     while (1)
     {
         int revents = kevent(manager->kq, NULL, 0, events, MAX_KQUEUE_FDS, NULL);
@@ -220,7 +228,7 @@ void Kqueue::multiplex()
                     if (events[i].flags & EV_EOF) // disconnection
                     {
                         handle_disconnection(this->manager, fd);
-                        std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl;
+                        // std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl; // [DEBUGGING_LINE]
                         manager->client_num -= 1;
                     }
                     else

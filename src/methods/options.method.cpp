@@ -24,8 +24,8 @@ std::string Options::get_allowed_methods(t_client *client)
         s = trim_string(s);
         asked_methods.push_back(s);        
     }
-    for (int i = 0; i < sz(allowed_methods); i++)
-        std::cout << allowed_methods[i] << " " << std::endl;
+    // for (int i = 0; i < sz(allowed_methods); i++)
+    //     std::cout << allowed_methods[i] << " " << std::endl;
     for (int i = 0; i < sz(asked_methods); i++)
     {
         if (std::find(allowed_methods.begin(), allowed_methods.end(), asked_methods[i]) != allowed_methods.end())
@@ -55,7 +55,7 @@ void    Options::serve_client(t_client *client)
         ress += ((client->server->server_configs->cookies) ? "true\r\n" : "false\r\n");
     }
     ress += "\r\n";
-    std::cout << GREEN_BOLD << ress << std::endl;
+    // std::cout << GREEN_BOLD << ress << std::endl;
     send(client->fd, ress.c_str(), sz(ress), 0);
     client->state = SERVED;
 }

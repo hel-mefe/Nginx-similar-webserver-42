@@ -9,16 +9,25 @@
 
 bool create_file(t_client* client)
 {
-    std::string file_path;
+    std::string file_path = client->cwd + client->response->root;
+    if (access(file_path.c_str(), F_OK))
+    {
+        fill_response(client, 404, "Not Found", true);
+        client->state = SERVED;
+        return false;
+    }
+    if (access(file_path.c_str(), W_OK | X_OK))
+    {
+        fill_response(client, 403, "Forbidden", true);
+        client->state = SERVED;
+        return false;
+    }
     if (client->request->method == "POST")
     {
         if (client->response->is_cgi)
             file_path = "/tmp/cgi_in";
         else
-        {
-            file_path = client->cwd +  client->response->root;
             file_path.append("/uploaded_file");
-        }
         for (int i = 0; i < INT_MAX; i++)
         {
             if (i)
@@ -33,7 +42,15 @@ bool create_file(t_client* client)
     {
         file_path = client->response->filepath;
         if (!access(file_path.c_str(), F_OK))
+        {
             client->response->file_exist = true;
+            if (access(file_path.c_str(), W_OK))
+            {
+                fill_response(client, 403, "Forbidden", true);
+                client->state = SERVED;
+                return false;
+            }
+        }
     }
     if (!client->response->file_exist)
         client->request->file = open(file_path.c_str(), O_CREAT | O_RDWR, 0777);
@@ -43,7 +60,7 @@ bool create_file(t_client* client)
     {
         client->state = SERVED;
         std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
-        fill_response(client, 501, "Internal Server Error", true);
+        fill_response(client, 500, "Internal Server Error", true);
         return false;
     }
     if (client->response->is_cgi)

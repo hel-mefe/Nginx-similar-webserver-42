@@ -69,10 +69,14 @@ void    Poll::set_manager()
 
     _manager->handlers.insert(std::make_pair("GET", new Get()));
     _manager->handlers.insert(std::make_pair("POST", new Post()));
-    _manager->handlers.insert(std::make_pair("DELETE", new Put()));
+    _manager->handlers.insert(std::make_pair("DELETE", new Delete()));
     _manager->handlers.insert(std::make_pair("OPTIONS", new Options()));
-    _manager->handlers.insert(std::make_pair("PUT", new Options()));
-    _manager->cwd = getwd(NULL);
+    char *wd = getwd(NULL);
+    if (wd)
+    {
+        _manager->cwd = getwd(NULL);
+        free(wd);
+    }
     _manager->fds = new struct pollfd[MAX_FDS]();
 
     if (!sz(_manager->cwd))

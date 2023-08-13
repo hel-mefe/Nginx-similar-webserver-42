@@ -4,6 +4,13 @@
 # include "exceptions.hpp"
 # include "structs.hpp"
 # include "tokenschecker.class.hpp"
+# include "http_handler.utils.hpp"
+
+#define DAYS_TO_SECS(ndays) (ndays * 24 * 60 * 60)
+#define MINS_TO_SECS(nmins) (nmins * 60)
+#define FROM_KB_TO_B(v) (v * 1000)
+#define FROM_MB_TO_B(v) (v * 1000 * 1000)
+#define FROM_GB_TO_B(v) (v * 1000 * 1000 * 1000)
 
 typedef struct ast_node
 {
@@ -68,12 +75,14 @@ class ConfigFileParser
         bool    fill_servers_data(std::vector<t_server *> *servers, t_http_configs *conf);
         bool    fill_http_data(t_http_configs *http_data);
         void    fill_server_attributes(t_server_configs &attr, t_http_configs *conf, int i);
-        void    fill_location_attributes(std::string &cwd, t_location_configs &l_configs, int i, int j, int ej);
+        void    fill_location_attributes(std::string &cwd, t_server_configs *s_confs, t_location_configs &l_configs, int i, int j, int ej);
         void    handle_locations(t_server *server, std::vector<std::vector<std::string> > &location_blocks, t_server_configs *s_conf, int index);
         // data parsing getters;
         bool                        get_auto_indexing(std::vector<std::string> &line);
         bool                        get_connection(std::vector<std::string> &line);
         int                         get_port(std::vector<std::string> &line);
+        unsigned long long          get_size(std::string &s);
+        unsigned long long          get_time(std::string &s);
         std::vector<std::string>    get_vector_of_data(std::vector<std::string> &line); 
         HashSet<std::string>        vector_to_hashset(std::vector<std::string> &vec);
         void                        insert_cgi_to_hashmap(std::string cwd, HashMap<std::string, std::string> &extension_cgi, std::vector<std::string> &line);
@@ -84,5 +93,5 @@ class ConfigFileParser
 
         void    normalize_directories_vector(std::vector<std::string> &vec);
         std::string get_directory(std::string &cwd, std::string &s);
-
+        std::string get_location(std::string s);
 } ;

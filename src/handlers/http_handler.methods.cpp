@@ -28,16 +28,18 @@ void    HttpHandler::handle_http(t_client *client)
         if (http_parser->read_header(client))
         {
             // std::cout << "HEAD IS BEING PARSING ..." << std::endl
-            if (!http_parser->parse_request(client)) // request is not well-formed
+            int code = http_parser->parse_request(client);
+            if (code != 0) // request is not well-formed
             {
-                std::string bad_request = "HTTP/1.1 400 Bad Request\r\n\r\n";
-                send(client->fd, bad_request.c_str(), sz(bad_request), 0);
+                std::string ress = "HTTP/1.1 ";
+                ress += std::to_string(code) + " " + codes->at(code) + "\r\n\r\n";
+                send(client->fd, ress.c_str(), sz(ress), 0);
                 client->state = SERVED;
             }
             else
             {
-                std::cout << "REQUEST PATH => " << client->request->path << std::endl;
-                client->request->print_data(); 
+                // std::cout << "REQUEST PATH => " << client->request->path << std::endl; // [DEBUGGING_LINE]
+                // client->request->print_data(); // [DEBUGGING_LINE]
                 architect_response(client);
             }
         }
@@ -173,8 +175,6 @@ void    HttpHandler::set_response_configs(t_client *client)
     req = client->request;
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
-    std::cout << "REQUESTED PATH => " << req->path << std::endl;
-    std::cout << "DIRECTORY CONFIGS PATH => " << res->directory_configs_path << std::endl;
     res->configs = client->server->server_configs;
     res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
 }
@@ -184,10 +184,12 @@ void    HttpHandler::architect_response(t_client *client)
     t_request *req = client->request;
     t_response *res = client->response;
 
-    req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
+    req->is_file = (req->path[sz(req->path) - 1] != '/');
     if (req->method == "OPTIONS")
         client->state = SERVING_OPTIONS;
+    else if (req->method == "TRACE")
+        client->state = SERVING_TRACE;
     else if ((handlers->handle_400(client) || handlers->handle_414(client) || handlers->handle_501(client) \
     || handlers->handle_413(client) || handlers->handle_405(client)) || handlers->handle_301(client))
         return ;
@@ -201,17 +203,11 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
         {
             std::string header = req->request_map.at("content-type");
-            if (!res->dir_configs->upload)
-            {
-                std::cerr << RED_BOLD << "[error]: upload is not allowed!" << WHITE << std::endl;
-                handlers->fill_response(client, 403, true);
-                client->state = SERVED;
-                return;
-            }
-            res->is_cgi = IS_CGI_EXTENSION(req->extension);
+            res->extension = get_extension(req->path);
+            res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if(res->is_cgi)
             {
-                res->cgi_path = res->configs->extension_cgi[req->extension];
+                res->cgi_path = res->configs->extension_cgi[res->extension];
                 client->state = SERVING_CGI;
                 return;
             }

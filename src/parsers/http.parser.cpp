@@ -13,13 +13,13 @@ bool    HttpParser::read_header(t_client *client)
     {
         if (!bytes) // bytes == 0 connection closed
         {
-            std::cout << "READ 0 CHARS" << std::endl;
+            // std::cout << "READ 0 CHARS" << std::endl; // [DEBUGGING_LINE]
             client->state = SERVED;
         }
         return (false);
     }
     int bl = 0, el = 0;
-    std::cout << "READING THE HEADER " << std::endl;
+    // std::cout << "READING THE HEADER " << std::endl;
     while (el < bytes)
     {
         if (buff[el] == '\r' && buff[el + 1] == '\n')
@@ -55,30 +55,28 @@ bool    HttpParser::parse_first_line(t_request *req)
         req->path.erase(pos);
     }
     req->http_version = get_upper_case(splitted->at(2));
-    req->is_file = is_file(req->path);
-    if (req->is_file)
-    {
-        req->extension = get_extension(req->path);
-        req->filename = get_filename(req->path);
-    }
     delete splitted;
-    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD" || req->method == "PUT") && (req->http_version == "HTTP/1.1"));
+    return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD" || req->method == "PUT" || req->method == "TRACE") && (req->http_version == "HTTP/1.1"));
 
 }
 
-bool    HttpParser::parse_request(t_client *client)
+int    HttpParser::parse_request(t_client *client)
 {
     t_request *req;
 
     req = client->request;
     if (!parse_first_line(req))
-        return (false) ;
+    {
+        if (req->http_version != "HTTP/1.1" || req->method == "QUERY" || req->method == "CONNECT")
+            return (501);
+        return (400);
+    }
     for (int i = 1; i < sz(req->lines); i++)
     {
         std::string line = req->lines[i], first, second;
 
         if (sz(line) < 3)
-            return (false) ;
+            return (400) ;
         size_t  spoint = line.find_first_of(":");
         first = line.substr(0, spoint);
         first = trim_string(first);
@@ -87,7 +85,7 @@ bool    HttpParser::parse_request(t_client *client)
         second = get_lower_case(second);
         first = get_lower_case(first);
         if (!sz(first) || !sz(second))
-            return (false) ;
+            return (400) ;
         if (first == "cookie" && client->server->server_configs->cookies)
         {
             if (!req->cookies.empty())
@@ -98,8 +96,8 @@ bool    HttpParser::parse_request(t_client *client)
             req->request_map.insert(std::make_pair(first, second));
     }
     if (req->method == "OPTIONS" && !IN_MAP(req->request_map, "origin"))
-        return (false) ;
-    return (true) ;
+        return (400) ;
+    return (0) ;
 }
 
 /*** END PARSING PART ***/

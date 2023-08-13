@@ -1,11 +1,7 @@
-## TO DO ##
-- rebuilding is_file function.
-- adding 302 redirection if URL does not terminate with slash.
-- rebuilding status handlers and not hardcoding them.
-- checking KEEP ALIVE in disconnect_client not in get.
-- rebuilding fill_response to fit all methods.
-- HEAD method still need changes (some headers ares missing ex:"content-length") ...
-
 ## IMPORTANT ##
-- response is too slow or not stuck, compare with previous versions we should know why.
-- response is always served at the end.
+- must serve default error pages if doesnt exist in location.
+- infinite loop redirection checker is not correct.
+- handler function for 404 and 403. (to check accessiblity for root path).
+- need tests to check permissions for all methods.
+- function to check if path file or dir.
+-if request body so small [client write in socket one time]  multiplixer handle client one time and does not return to it.

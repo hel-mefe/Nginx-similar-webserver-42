@@ -70,7 +70,7 @@ void    serve_cgi(t_client* client, char** env, int args_size)
     if (client->response->cgi_pid < 0)
     {
         std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
-        fill_response(client, 501, "Internal Server Error", true);
+        fill_response(client, 500, "Internal Server Error", true);
         client->state = SERVED;
         return;
     }
@@ -101,7 +101,7 @@ void parse_cgi_output(t_client* client)
     int cgi_out = open(client->request->cgi_out.c_str(), O_RDONLY), rbytes = 0;
     if (cgi_out < 0)
     {
-        fill_response(client, 501, "Internal Server Error", true);
+        fill_response(client, 500, "Internal Server Error", true);
         std::cerr << RED_BOLD <<"[error][cgi]: failed!" << WHITE << std::endl;
         client->state = SERVED;
         return ;
@@ -150,7 +150,7 @@ void    handle_cgi(t_client* client)
             return;
         req->first_time = false;
     }
-    else if (res->is_cgi && time(NULL) - client->request_time > 30)
+    else if (res->is_cgi && time(NULL) - client->request_time >= client->server->http_configs->max_cgi_timeout)
     {
         fill_response(client, 408, "Request Timeout", true);
         if (res->cgi_running)
@@ -170,7 +170,6 @@ void    handle_cgi(t_client* client)
     }
     if (client->request->first_time)
     {
-        std::cout << "## FILL CGI START ##\n";
         fill_cgi_env(client);
         serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
         req->first_time = false;
@@ -182,7 +181,7 @@ void    handle_cgi(t_client* client)
         {
             client->state = SERVED;
             std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
-            fill_response(client, 501, "Internal Server Error", true);
+            fill_response(client, 500, "Internal Server Error", true);
             return;
         }
         client->ex_childs->erase(res->cgi_pid);

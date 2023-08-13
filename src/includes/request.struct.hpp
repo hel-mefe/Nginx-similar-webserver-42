@@ -62,9 +62,6 @@ typedef struct request
         std::cout << "PATH: " << path << std::endl;
         std::cout << "HTTP_VERSION: " << http_version << std::endl;
         std::cout << "EXTENSION: " << extension << std::endl;
-        std::cout << "TYPE: " << (is_file ? "file" : "directory") << std::endl;
-        if (is_file)
-            std::cout << "FILENAME: " << filename << std::endl;
         for (std::map<std::string, std::string>::iterator it = request_map.begin(); it != request_map.end(); it++)
             std::cout << it->first << ": " << it->second << std::endl;
         std::cout << PURPLE_BOLD << " **** PRINTING REQUEST DATA **** " << WHITE << std::endl;

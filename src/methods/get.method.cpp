@@ -4,15 +4,6 @@
 # include <sys/stat.h>
 #include <signal.h>
 
-long    get_file_size(const char *filename)
-{
-    struct stat file_status;
-
-    if (stat(filename, &file_status) < 0)
-        return -1;
-    return (file_status.st_size);
-}
-
 std::string get_hex_as_string(int bts, std::string res)
 {
     std::string hex = "0123456789abcdef";
@@ -29,29 +20,26 @@ std::string get_hex_as_string(int bts, std::string res)
 void    Get::serve_by_chunked(t_client *client)
 {
     t_response  *res;
-    t_request   *req;
     std::string resp;
     std::string hex;
     int         bts;
 
     res = client->response;
-    req = client->request;
     char buffer[MAX_BUFFER_SIZE];
     bzero(buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, buffer, MAX_BUFFER_SIZE);
     if (bts > 0)
     {
         hex = get_hex_as_string(bts, hex);
-        std::cout << "HEX -> " << hex << std::endl;
         resp = hex + "\r\n";
         resp.append(buffer, bts);
         resp += "\r\n";
-        send(client->fd, resp.c_str(), sz(resp), 0);
+        if (send(client->fd, resp.c_str(), sz(resp), 0) == -1)
+            client->state = SERVED;
     }
     else if (bts <= 0)
     {
         send(client->fd, "0\r\n\r\n", 5, 0);
-        close(res->fd);
         client->state = SERVED;
     }
 }
@@ -60,21 +48,20 @@ void    Get::serve_by_content_length(t_client *client)
 {
     int                     bts;
     t_response              *res;
-    t_request               *req;
     std::string             ress;
 
     res = client->response;
-    req = client->request;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
+    std::cout << bts << " have been read" << std::endl;
+    std::cout << res->buffer << std::endl; 
     if (bts > 0)
     {
         if (send(client->fd, res->buffer, bts, 0) == -1)
-            std::cout << RED_BOLD << "SEND ERROR -> " << strerror(errno) << std::endl;
+            client->state = SERVED ;
     }
-    else if (bts <= 0)
+    else if (!bts)
         client->state = SERVED;
-
 }
 
 void    Get::handle_static_file(t_client *client)
@@ -84,14 +71,21 @@ void    Get::handle_static_file(t_client *client)
 
     if (req->first_time)
     {
+        if (res->fd != UNDEFINED)
+        {
+            close(res->fd);
+            res->fd = UNDEFINED;
+        }
         res->fd = open(res->filepath.c_str(), O_RDONLY);
         if (res->fd < 0)
         {
-            std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
-            fill_response(client, 501, "Internal Server Error", true);
+            res->reset();
+            fill_response(client, 500, "Internal Server Error", true);
             client->state = SERVED;
             return;
         }
+        else
+            res->write_response_in_socketfd(client->fd, true);
         req->first_time = false;
     }
     if (res->is_chunked)
@@ -118,6 +112,8 @@ void    Get::list_directories(t_client *client)
     dirstream = opendir(fullpath.c_str());
     if (!dirstream)
     {
+        client->response->reset();
+        fill_response(client, 500, "Internal Server Error", true);
         client->state = SERVED;
         return ;
     }
@@ -144,7 +140,9 @@ void    Get::handle_directory_listing(t_client *client)
     t_response  *res;
     std::string html;
     std::string content_length;
+    std::string full_html_response;
     DIR         *D;
+    int         clength;
 
     res = client->response;
     list_directories(client);
@@ -153,28 +151,35 @@ void    Get::handle_directory_listing(t_client *client)
     {
         std::string dir = it->first;
         std::string link = it->second;
-        D = opendir(link.c_str());
+        D = opendir(link.c_str()); // only checks if directory or not
         if (D)
         {
             dir += "/";
             closedir(D);
         }
-        std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
+         std::string tag = "<li><a href=\"" + dir + "\" />" + dir + "</li>";
         html += tag;
     }
     html += "</ul></body></html>\r\n";
-    content_length = "content_length: " + std::to_string(sz(html)) + "\r\n\r\n";
-    send(client->fd, content_length.c_str(), sz(content_length), 0);
-    send(client->fd, html.c_str(), sz(html), 0);
+    clength = sz(html) - 2;
+    res->add("content-length", std::to_string(clength));
+    if (!res->write_response_in_socketfd(client->fd, true))
+    {
+        client->state = SERVED;
+        return ;
+    }
+    full_html_response = html;
+    std::cout << full_html_response << std::endl;
+    /** send is protected because in all cases the client state will be set to SERVED **/
+    send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
     client->state = SERVED;
-    client->request_time = time(NULL);
 }
 
 
 /***
  * main function for serving get request
  * this function is the main function for GET
-*/
+***/
 void    Get::serve_client(t_client *client)
 {
     t_response* res = client->response;
