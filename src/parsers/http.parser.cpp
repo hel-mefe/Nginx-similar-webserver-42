@@ -55,12 +55,6 @@ bool    HttpParser::parse_first_line(t_request *req)
         req->path.erase(pos);
     }
     req->http_version = get_upper_case(splitted->at(2));
-    req->is_file = is_file(req->path);
-    if (req->is_file)
-    {
-        req->extension = get_extension(req->path);
-        req->filename = get_filename(req->path);
-    }
     delete splitted;
     return ((req->method == "GET" || req->method == "POST" || req->method == "DELETE" || req->method == "OPTIONS" || req->method == "HEAD" || req->method == "PUT" || req->method == "TRACE") && (req->http_version == "HTTP/1.1"));
 

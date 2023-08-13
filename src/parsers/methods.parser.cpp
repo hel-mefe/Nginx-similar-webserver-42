@@ -955,17 +955,18 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
         server->set_http_configs(conf); 
         servers->push_back(server);
     }
-    return (true);
+    return (sz((*servers)) > 0);
 }
 
 std::string ConfigFileParser::get_directory(std::string &cwd, std::string &s)
 {
     std::string res;
 
+    (void)cwd;
     if (sz(s) && s[0] == '/')
         res = s;
     else
-        res = cwd + "/" + s;
+        res =  "/" + s;
     return (res);
 }
 

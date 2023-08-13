@@ -42,35 +42,37 @@ bool Delete::rmfiles(const char* dirname, int* del_files)
 
 void    Delete::handle_delete_file(t_client *client)
 {
-    t_response                  *res;
-    std::string                 path;
+    t_response *res = client->response;
+    struct stat file_stat;
 
-    res = client->response;
-    path = client->cwd + res->rootfilepath;
-    if (access(path.c_str(), F_OK))
+    if(stat(res->filepath.c_str(), &file_stat))
         fill_response(client, 404, "Not Found", true);
-    else if (!remove(path.c_str())) // deleted succesfully
-        fill_response(client, 204, "No Content", true);
     else
-        fill_response(client, 403, "Forbidden", true);
+    {
+        if (S_ISDIR(file_stat.st_mode))
+            fill_response(client, 404, "Not Found", true);
+        else if (!remove(res->filepath.c_str())) // deleted succesfully
+            fill_response(client, 204, "No Content", true);
+        else
+            fill_response(client, 403, "Forbidden", true);
+    }
 
 }
 
 void    Delete::handle_delete_folder(t_client *client)
 {
     t_response  *res = client->response;
-    std::string path = client->cwd + res->rootfilepath;
 
-    if (access(path.c_str(), F_OK))
+    if (access(res->filepath.c_str(), F_OK))
         fill_response(client, 404, "Not Found", true);
-    else if (rmfiles(path.c_str(), &res->del_files))
+    else if (rmfiles(res->filepath.c_str(), &res->del_files))
         fill_response(client, 204, "No Content", true);
     else
     {
         if (!res->del_files)
             fill_response(client, 403, "Forbidden", true);
         else
-            fill_response(client, 409, "Conflict", true);
+            fill_response(client, 207, "Multi-Status", true);
     }
     res->del_files = 0;
 }

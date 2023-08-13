@@ -53,15 +53,16 @@ void    Get::serve_by_content_length(t_client *client)
     res = client->response;
     bzero(res->buffer, MAX_BUFFER_SIZE);
     bts = read(res->fd, res->buffer, MAX_BUFFER_SIZE);
-    std::cout << bts << " have been read" << std::endl;
-    std::cout << res->buffer << std::endl; 
     if (bts > 0)
     {
         if (send(client->fd, res->buffer, bts, 0) == -1)
             client->state = SERVED ;
     }
     else if (!bts)
+    {
+        send(client->fd, "\r\n", 2, 0);
         client->state = SERVED;
+    }
 }
 
 void    Get::handle_static_file(t_client *client)
@@ -169,7 +170,6 @@ void    Get::handle_directory_listing(t_client *client)
         return ;
     }
     full_html_response = html;
-    std::cout << full_html_response << std::endl;
     /** send is protected because in all cases the client state will be set to SERVED **/
     send(client->fd, full_html_response.c_str(), sz(full_html_response), 0);
     client->state = SERVED;

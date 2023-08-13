@@ -1,0 +1,18 @@
+http
+{
+	server
+	{
+		listen 8080
+		server_name server_1
+		
+
+		root httpdocs
+		error_page 404 404.html # NOT FOUND
+		error_page 400 400.html # BAD REQUEST
+		error_page 405 405.html # METHOD NOT ALLOWED
+		error_page 414 414.html # URI MAX
+		error_page 501 501.html # NOT IMPLEMENTED
+		error_page 500 500.html # Internal Server Error
+		directory_listing on
+	}
+}

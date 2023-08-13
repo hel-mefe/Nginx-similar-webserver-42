@@ -143,6 +143,8 @@ t_cli   *parse_and_get_cli(int ac, char **av)
             c->is_logs_activated = true;
         if (arg == "--activate-strict_mode")
             c->is_strict_mode_activated = true;
+        if (arg == "--activate-debugging_mode")
+            c->is_debugging_mode = true;
         if (arg == "--help")
             c->is_help = true;
         if (arg == "--activate-caches")

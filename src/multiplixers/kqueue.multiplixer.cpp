@@ -125,6 +125,9 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
         write_error("Internal server socket accept error");
     if (!this->manager->add_client(con, server))
         write_error("Internal server client error");
+
+     if (manager->servers_map.begin()->second->http_configs->cli->is_debugging_mode)
+        std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been connected" << std::endl;
     // std::cout << GREEN_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << con << " has been connected" << std::endl;
     // handle_client(manager, con);
 }
@@ -137,8 +140,9 @@ void Kqueue::handle_connection(t_kqueue_manager *manager, SOCKET fd)
 
 void Kqueue::handle_disconnection(t_kqueue_manager *manager, SOCKET fd)
 {
-    (void)manager;
-    std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
+    // (void)manager;
+    if (manager->servers_map.begin()->second->http_configs->cli->is_debugging_mode)
+        std::cout << YELLOW_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " has been disconnected" << std::endl;
     this->manager->remove_client(fd);
     // if (!this->manager->remove_client(fd))
     //     // std::cout << fd << " HAS NOT BEEN REMOVED!" << std::endl;
@@ -162,6 +166,11 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
         handle_cgi(client);
     if (IS_HTTP_STATE(client->state) || client->state == WAITING || client->state == KEEP_ALIVE)
         http_handler->handle_http(client);
+    if (client->state == SERVED)
+    {
+        handle_disconnection(manager, fd);
+        return ;
+    }
     if (IS_METHOD_STATE(client->state))
         manager->handlers[client->request->method]->serve_client(client);
     if (client->state == SERVED)
@@ -169,7 +178,11 @@ void Kqueue::handle_client(t_kqueue_manager *manager, SOCKET fd)
         client->request_time = time(NULL);
         if (IN_MAP(client->request->request_map, "connection") && client->request->request_map["connection"] == "keep-alive" && !client->response->is_directory_listing \
         && client->request->method != "POST" && client->request->method != "PUT" && !client->response->is_cgi)
+        {
+            if (manager->servers_map.begin()->second->http_configs->cli->is_debugging_mode)
+                std::cout << BLUE_BOLD << "[" << time(NULL) << "]: " << WHITE_BOLD << "client with socket " << fd << " is in keeping the connection alive" << std::endl;
             client->reset(KEEP_ALIVE);
+        }
         else
             handle_disconnection(manager, fd);
     }
@@ -230,11 +243,9 @@ void Kqueue::multiplex()
                 }
                 else // client
                 {
-                    // t_client *client = manager->clients_map[fd];
                     if (events[i].flags & EV_EOF) // disconnection
                     {
                         handle_disconnection(this->manager, fd);
-                        // std::cout << CYAN_BOLD << "EV EOF BLOCK" << std::endl; // [DEBUGGING_LINE]
                         manager->client_num -= 1;
                     }
                     else

@@ -133,7 +133,11 @@ void    Webserver::print_all_data()
 bool    Webserver::parse_config_file() // call the parser and returns if the config file is valid or not
 {
     if (!parser->parse_config_file(config_file, http_configs, servers))
+    {
+        std::cout << "WBS IS DONE 1" << std::endl;
         return (false);
+    }
+    std::cout << "WBS IS DONE 2" << std::endl;
     return (true);
 }
 
@@ -1016,7 +1020,7 @@ void    Webserver::run() // sockets of all servers will run here
     /*** CLI always has the priority over config file ***/
     if (cli->is_logs_activated)
         http_configs->proxy_logs_register = cli->is_logs_activated;
-
+    http_configs->cli = cli;
     /*** setting all the warnings except cache warnings ***/
     set_all_warnings();
 

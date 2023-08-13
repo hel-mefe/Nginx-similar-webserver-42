@@ -2,7 +2,6 @@
 
 
 
-
 void    HttpHandler::handle_http(t_client *client)
 {
     t_server_configs *s_configs = client->server->server_configs;
@@ -29,11 +28,14 @@ void    HttpHandler::handle_http(t_client *client)
         {
             // std::cout << "HEAD IS BEING PARSING ..." << std::endl
             int code = http_parser->parse_request(client);
+            std::cout << "THE CODE IS -> " << code << std::endl;
             if (code != 0) // request is not well-formed
             {
                 std::string ress = "HTTP/1.1 ";
-                ress += std::to_string(code) + " " + codes->at(code) + "\r\n\r\n";
-                send(client->fd, ress.c_str(), sz(ress), 0);
+                ress += std::to_string(code) + " " + codes->at(code) + "\r\nContent-length: 0\r\n\r\n";
+                std::cout << ress << std::endl;
+                if (send(client->fd, ress.c_str(), sz(ress), 0) == -1)
+                    std::cout << "COULD NOT SEND IT" << std::endl;
                 client->state = SERVED;
             }
             else
@@ -175,8 +177,6 @@ void    HttpHandler::set_response_configs(t_client *client)
     req = client->request;
     res->dir_configs = get_location_configs_from_path(client);
     res->directory_configs_path = get_longest_directory_prefix(client, req->path, true);
-    // std::cout << "REQUESTED PATH => " << req->path << std::endl; // [DEBUGGING_LINE]
-    // std::cout << "DIRECTORY CONFIGS PATH => " << res->directory_configs_path << std::endl; // [DEBUGGING_LINE]
     res->configs = client->server->server_configs;
     res->root = res->dir_configs ? res->dir_configs->root : res->configs->root;
 }
@@ -186,8 +186,8 @@ void    HttpHandler::architect_response(t_client *client)
     t_request *req = client->request;
     t_response *res = client->response;
 
-    req->is_file = (req->path[sz(req->path) - 1] != '/');
     set_response_configs(client);
+    req->is_file = (req->path[sz(req->path) - 1] != '/');
     if (req->method == "OPTIONS")
         client->state = SERVING_OPTIONS;
     else if (req->method == "TRACE")
@@ -205,10 +205,11 @@ void    HttpHandler::architect_response(t_client *client)
         else if (req->method == "POST")
         {
             std::string header = req->request_map.at("content-type");
-            res->is_cgi = IS_CGI_EXTENSION(req->extension);
+            res->extension = get_extension(req->path);
+            res->is_cgi = IS_CGI_EXTENSION(res->extension);
             if(res->is_cgi)
             {
-                res->cgi_path = res->configs->extension_cgi[req->extension];
+                res->cgi_path = res->configs->extension_cgi[res->extension];
                 client->state = SERVING_CGI;
                 return;
             }

@@ -18,6 +18,8 @@ void    fill_response(t_client *client, int code, std::string status_line, bool 
     res->status_line = status_line ;
     if (sz(connection) && connection == "keep-alive") // type of connection
         res->add("connection", "keep-alive");
+    if (!IN_MAP(res->response_map, "content-length"))
+        res->add("content-length", "0") ;
     if (write_it)
         res->write_response_in_socketfd(client->fd, !res->is_directory_listing);
 }
@@ -34,14 +36,6 @@ std::string get_cleanified_path(std::string s)
         flag = !(s[i] == '/');
     }
     return (res);
-}
-
-bool    is_file(std::string &path)
-{
-    int i = sz(path) - 1;
-
-    for (; i >= 0 && path[i] != '/' && path[i] != '.'; i--);
-    return (i >= 0 && path[i] == '.');
 }
 
 std::string trim_string(std::string &s)
