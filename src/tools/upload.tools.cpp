@@ -17,18 +17,22 @@ bool create_file(t_client* client)
     }
     if (client->request->method == "POST")
     {
-        if (client->response->is_cgi)
-            file_path = "/tmp/cgi_in";
-        else
-            file_path.append("/uploaded_file");
         for (int i = 0; i < INT_MAX; i++)
         {
+            std::string path = file_path;
+            if (client->response->is_cgi)
+                path = "/tmp/cgi_in";
+            else
+                path.append("/uploaded_file");
             if (i)
-                file_path.append(intToString(i));
+                path.append(intToString(i));
             if (!client->response->is_cgi)
-                file_path.append(client->request->extension);
-            if (access(file_path.c_str(), F_OK))
+                path.append(client->request->extension);
+            if (access(path.c_str(), F_OK))
+            {
+                file_path = path;
                 break;
+            }
         }
     }
     else

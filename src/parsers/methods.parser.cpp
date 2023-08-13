@@ -675,7 +675,10 @@ void ConfigFileParser::insert_cgi_to_hashmap(std::string cwd, HashMap<std::strin
     //     std::cerr << "[Webserv42]: Internal server token error " << std::endl;
     //     throw ParsingExceptionCgi();
     // }
-    extension_cgi[extension] = get_directory(cwd, cgi_path);
+    if (sz(cgi_path) && cgi_path[0] != '/')
+        extension_cgi[extension] = cwd + "/" + cgi_path;
+    else
+        extension_cgi[extension] = cgi_path;
 }
 
 int get_max_connections(std::string &s)
@@ -706,7 +709,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     /*** setting default values for the server which are http context values ***/
     attr.allowed_methods = conf->allowed_methods;
     attr.allowed_methods_set = conf->allowed_methods_set;
-    attr.max_body_size = conf->max_body_size;
+    attr.max_body_size = conf->max_body_size; 
     attr.root = conf->root;
     attr.max_request_timeout = conf->max_request_timeout;
     attr.cookies = conf->cookies;
@@ -1028,7 +1031,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->max_cgi_timeout = DEFAULT_CGI_MAX_REQUEST_TIMEOUT;
     http_data->max_uri_size = DEFAULT_MAX_URI_SIZE;
     http_data->multiplexer = MAIN_MULTIPLEXER == KQUEUE ? "kqueue" : "epoll";
-    http_data->cookies = "on";
+    http_data->cookies = true;
     http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
     http_data->max_connections = DEFAULT_MAX_CONNECTIONS;
     http_data->proxy_cache = true;

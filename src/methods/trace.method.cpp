@@ -41,9 +41,11 @@ std::vector<std::string> Trace::getForbiddenHeades(void)
 
 std::string Trace::setBody(t_client *client, std::vector<std::string> forbiddenHeaders)
 {
-    //(void)forbiddenHeaders;
     std::map<std::string, std::string>::iterator it;
+    std::string reqLine;
+    reqLine = client->request->method + " " + client->request->path + " " + client->request->http_version + "\n";
     std::string body;
+    body += reqLine;
     for(it = client->request->request_map.begin(); it != client->request->request_map.end(); it++)
     {
         std::vector<std::string>::iterator itf = std::find(forbiddenHeaders.begin(), forbiddenHeaders.end(), it->first);
