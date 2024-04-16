@@ -7,7 +7,7 @@ This project explores the fundamentals of web server development, focusing on so
 
 - **Socket Programming**: Master the art of establishing connections, transmitting data, and managing communication channels between clients and servers.
 - **HTTP/1.1 Protocol**: Explore HTTP methods, headers, status codes, and message formats to interpret and construct HTTP messages accurately.
-- **Request-Response Cycle**: Understand the heartbeat of web communication, from client requests to server processing and response delivery.
+- **Request-response lifecycle**: Understand the heartbeat of web communication, from client requests to server processing and response delivery.
 
 ## Getting Started
 
@@ -52,34 +52,34 @@ the default value is 65 seconds
  - <b>proxy_cache_max_size [size] ex. (10by, 10kb, 10mb, 10gb)</b>:  specifies max size of the caches that the server should never surpass,  12mb is the default
 
 The following tokens are available for each server block:
- - server_name [string]: specifies the server name
- - listen [number]: specifies the port the virtual server should listen on
- - try_index_files [index1, index2, ... indexN]: takes index files that should be served as indexes
+ - <b>server_name [string]</b>: specifies the server name
+ - <b>listen [number]</b>: specifies the port the virtual server should listen on
+ - <b>try_index_files [index1, index2, ... indexN]</b>: takes index files that should be served as indexes
  in case a directory has been requested rather than a normal file
- - try_404_files [file1, file2, ... fileN]: takes 404 files that should be
+ - <b>try_404_files [file1, file2, ... fileN]</b>: takes 404 files that should be
  served in case the requested path was not found
- - allowed_methods [*] for all the methods or [METHOD1, METHOD2, ... METHOD_N]: takes multiple methods that
+ - <b>allowed_methods [*] for all the methods or [METHOD1, METHOD2, ... METHOD_N]</b>: takes multiple methods that
  should be supported by the server
- - root [string]: takes the root directory and starts serving files starting from it
- - client_max_connections [number]: takes the number of the maximum simultaneous connections that a server can handle
- - error_page [error_number] [error_file]: takes the number of the error and whenever the server has to respond
+ - <b>root [string]</b>: takes the root directory and starts serving files starting from it
+ - <b>client_max_connections [number]</b>: takes the number of the maximum simultaneous connections that a server can handle
+ - <b>error_page [error_number] [error_file]</b>: takes the number of the error and whenever the server has to respond
  with that http code it servers the provided file as http body response
- - cgi_bin [.extension] [/bin_path]: takes the extension and maps it with the bin cgi path that should be run in case a file
+ - <b>cgi_bin [.extension] [/bin_path]</b>: takes the extension and maps it with the bin cgi path that should be run in case a file
  with the provided extension has been provided
- - max_client_request_timeout: maximum time the server should wait for the client to write something as request,
+ - <b>max_client_request_timeout</b>: maximum time the server should wait for the client to write something as request,
  the default is 2 seconds in case not provided
- - max_client_body_size: maximum body size the server should consider from the client as http request
-  - cgi_max_request_timeout [number]:  specifies number of seconds to wait for the cgi process before it gets killed,
+ - <b>max_client_body_size</b>: maximum body size the server should consider from the client as http request
+ - <b>cgi_max_request_timeout [number]</b>:  specifies number of seconds to wait for the cgi process before it gets killed,
 the default value is 30 seconds
-  - keep_alive_max_timeout [number]:  specifies the number of seconds to wait in a keep alive connection and the client has written nothing,
+  - <b>keep_alive_max_timeout [number]</b>:  specifies the number of seconds to wait in a keep alive connection and the client has written nothing,
 the default value is 65 seconds
- - location [location]: defines a location block inside the server block more details about it below
+ - <b>location [location]</b>: defines a location block inside the server block more details about it below
 
 The following tokens are available for each location block:
- - try_index_files [index1, index2, ... indexN]: takes index files that should be served as indexes
+ - <b>try_index_files [index1, index2, ... indexN]</b>: takes index files that should be served as indexes
  in case this directory has been requested
- - try_404_files [file1, file2, ... fileN]: takes 404 files that should be served in case the requested path was not found
- - redirect [path]: takes a path and redirects the client to it whenever this location has been requested
- - support_cookies [on/off]: specifies if the requested directory supports cookies or not
- - directory_listing [on/off]: the default value depends on the server block, if specifies on then whenever there is no file
+ - <b>try_404_files [file1, file2, ... fileN]</b>: takes 404 files that should be served in case the requested path was not found
+ - <b>redirect [path]</b>: takes a path and redirects the client to it whenever this location has been requested
+ - <b>support_cookies [on/off]</b>: specifies if the requested directory supports cookies or not
+ - <b>directory_listing [on/off]</b>: the default value depends on the server block, if specifies on then whenever there is no file
  to serve and this location is requested the directory_listing will run
