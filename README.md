@@ -8,6 +8,7 @@ This project explores the fundamentals of web server development, focusing on so
 - **Socket Programming**: Master the art of establishing connections, transmitting data, and managing communication channels between clients and servers.
 - **HTTP/1.1 Protocol**: Explore HTTP methods, headers, status codes, and message formats to interpret and construct HTTP messages accurately.
 - **Request-response lifecycle**: Understand the heartbeat of web communication, from client requests to server processing and response delivery.
+- - **Multiplexing with kqueue and epoll**: Utilize efficient event notification mechanisms for handling multiple connections concurrently, enhancing the scalability and performance of the web server.
 
 ## Getting Started
 
@@ -26,6 +27,8 @@ Our web server supports a range of functionalities, including:
 - Handling dynamic requests (CGI scripts, server-side scripting, etc.).
 - Logging server activity and client requests for analysis and troubleshooting.
 - Configurable settings for port number, server root directory, etc.
+- GET, POST, PATCH, PUT, TRACE, OPTIONS, DELETE are all supported
+- Keep-alive is also supported
 
 ## Configuration file documentation
 
@@ -85,3 +88,7 @@ The following tokens are available for each location block:
  - <b>support_cookies [on/off]</b>: specifies if the requested directory supports cookies or not
  - <b>directory_listing [on/off]</b>: the default value depends on the server block, if specifies on then whenever there is no file
  to serve and this location is requested the directory_listing will run
+
+## How to build your own webserver as well?
+
+[](!https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXgxczRqZm45NGxnd2x4dXBndWU5N3ZlOWFqMDY1NzdteGd0MXhxdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT1R9IJlFwp1ImrPig/giphy.gif)
