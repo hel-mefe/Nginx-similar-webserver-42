@@ -14,10 +14,17 @@ This project explores the fundamentals of web server development, focusing on so
 
 To get started with our web server project, follow these steps:
 
-1. **Clone the Repository**: `git clone https://github.com/yourusername/web-server.git`
-2. **Build the Project**: Navigate to the project directory and build the project using your preferred build system (e.g., Makefile).
-3. **Run the Web Server**: Execute the compiled binary to start the web server.
-4. **Access the Web Server**: Open a web browser and navigate to `http://localhost:port` (replace `port` with the port number configured in the server).
+1. **Clone the Repository**: `git clone https://github.com/hel-mefe/Nginx-similar-webserver-42.git`
+2. **Build the Project**: Navigate to the project directory and build the project using the Makefile
+
+    ```
+	make
+    ```
+4. **Run the Web Server**: Execute the compiled binary to start the web server.
+   ```
+	./webserv [configuration_file]
+   ```
+6. **Access the Web Server**: Open a web browser and navigate to `http://localhost:port` (replace `port` with the port number configured in the server).
 
 ## Usage
 
