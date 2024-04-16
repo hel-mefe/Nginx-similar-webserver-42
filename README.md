@@ -134,6 +134,6 @@ http
 
 **Generate HTTP Responses:** Based on the request received, generate an appropriate HTTP response. This may involve reading files from the server's file system, executing server-side scripts, or generating dynamic content. Construct the HTTP response with the correct status code, headers, and content.
 
-** Send Response to Client: ** Once the HTTP response is generated, send it back to the client over the established connection. Use the send() or write() function to send the response data over the socket.
+**Send Response to Client:** Once the HTTP response is generated, send it back to the client over the established connection. Use the send() or write() function to send the response data over the socket.
 
 
