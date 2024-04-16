@@ -122,5 +122,18 @@ http
 
 ![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXgxczRqZm45NGxnd2x4dXBndWU5N3ZlOWFqMDY1NzdteGd0MXhxdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT1R9IJlFwp1ImrPig/giphy.gif)
 
-If you are student of any 42 network, or you're a software engineer curious to know more about how can you build your own server, then this guide is crafted for you.
+** Understand the HTTP Protocol: ** Before diving into web server development, it's crucial to have a solid understanding of the HTTP protocol. Familiarize yourself with HTTP methods (GET, POST, etc.), status codes (200 OK, 404 Not Found, etc.), headers, and the overall request-response cycle. There is no place better than their official RFC's to read from, feel free to read about them from the official RFC's.
+
+** Set Up TCP Socket: ** If you're not using a networking library, start by creating a TCP socket to listen for incoming connections. Use the socket() function to create the socket, bind() to associate it with a port, and listen() to start listening for incoming connections.
+
+** Choose a Multiplexing Syscall: ** You have the choice between <b>select</b> and <b>poll</b> as a low-level syscalls, but the issue with these ones is that they are linear functions which mean they take O(N) time complexity, you have to iterate over all the sockets in your webserver to figure out which one is ready for I/O operations. There are some high-level ones as <b>Kqueue</b> in FreeBSD and MacOS distributions, in addition to <b>Epoll</b> which is a good multiplexing method if you're on a Linux distribution.
+
+** Accept Incoming Connections: ** Once the server socket is set up, use the accept() function to accept incoming connections from clients. This function will return a new socket for each client connection, which you can then use to send and receive data.
+
+** Handle HTTP Requests: ** Receive and parse HTTP requests from clients. Extract information such as the request method, requested URL, headers, and body. Depending on the request method and URL, decide how to handle the request (e.g., serve static files, execute dynamic content, etc.).
+
+** Generate HTTP Responses: ** Based on the request received, generate an appropriate HTTP response. This may involve reading files from the server's file system, executing server-side scripts, or generating dynamic content. Construct the HTTP response with the correct status code, headers, and content.
+
+** Send Response to Client: ** Once the HTTP response is generated, send it back to the client over the established connection. Use the send() or write() function to send the response data over the socket.
+
 
