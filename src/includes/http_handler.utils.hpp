@@ -7,7 +7,9 @@
 typedef struct client t_client;
 
 std::string                 get_cleanified_path(std::string s);
+void                        alert(std::string s, const char *color);
 
+bool                        is_file(std::string &path);
 bool                        is_request_uri_valid(std::string &path);
 bool                        is_path_valid(std::string &path);
 bool                        set_file_path(std::string basepath, std::string &path, std::vector<std::string> &files);

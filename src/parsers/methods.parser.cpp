@@ -452,7 +452,6 @@ bool ConfigFileParser::is_server_line_valid(std::vector<std::string> &_words)
         return true;
     if (server_tokens.find(token_name) == server_tokens.end())
     {
-        // std::cout << token_name << " WAS NOT FOUND!" << std::endl; // [DEBUGGING_LINE]
         std::cerr << RED_BOLD << "Invalid token in the config file" << std::endl;
         return (false);
     }
@@ -676,7 +675,10 @@ void ConfigFileParser::insert_cgi_to_hashmap(std::string cwd, HashMap<std::strin
     //     std::cerr << "[Webserv42]: Internal server token error " << std::endl;
     //     throw ParsingExceptionCgi();
     // }
-    extension_cgi[extension] = get_directory(cwd, cgi_path);
+    if (sz(cgi_path) && cgi_path[0] != '/')
+        extension_cgi[extension] = cwd + "/" + cgi_path;
+    else
+        extension_cgi[extension] = cgi_path;
 }
 
 int get_max_connections(std::string &s)
@@ -707,7 +709,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     /*** setting default values for the server which are http context values ***/
     attr.allowed_methods = conf->allowed_methods;
     attr.allowed_methods_set = conf->allowed_methods_set;
-    attr.max_body_size = conf->max_body_size;
+    attr.max_body_size = conf->max_body_size; 
     attr.root = conf->root;
     attr.max_request_timeout = conf->max_request_timeout;
     attr.cookies = conf->cookies;
@@ -715,6 +717,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     attr.keep_alive_timeout = conf->keep_alive_timeout;
     attr.max_connections = conf->max_connections;
     attr.max_uri_size = conf->max_uri_size;
+    attr.port = UNDEFINED;
 
     for (int j = 0; j < sz(nodes[i].words); j++)
     {
@@ -722,7 +725,7 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
             throw InvalidHttpToken();
         std::string token_name = nodes[i].words[j][0];
         if (token_name == "directory_listing")
-            attr.auto_indexing = get_auto_indexing(nodes[i].words[j]);
+            attr.directory_listing = get_auto_indexing(nodes[i].words[j]);
         else if (token_name == "server_name")
             attr.server_name = nodes[i].words[j][1];
         else if (token_name == "listen")
@@ -784,6 +787,8 @@ void ConfigFileParser::fill_server_attributes(t_server_configs &attr, t_http_con
     }
     if (attr.code_to_page.find(404) != attr.code_to_page.end())
         attr.pages_404.push_back(attr.code_to_page[404]);
+    if (attr.port == UNDEFINED)
+        throw UndefinedPort();
 }
 
 bool ConfigFileParser::get_auto_indexing(std::vector<std::string> &line)
@@ -952,17 +957,18 @@ bool ConfigFileParser::fill_servers_data(std::vector<t_server *> *servers, t_htt
         server->set_http_configs(conf); 
         servers->push_back(server);
     }
-    return (true);
+    return (sz((*servers)) > 0);
 }
 
 std::string ConfigFileParser::get_directory(std::string &cwd, std::string &s)
 {
     std::string res;
 
+    (void)cwd;
     if (sz(s) && s[0] == '/')
         res = s;
     else
-        res = cwd + "/" + s;
+        res =  "/" + s;
     return (res);
 }
 
@@ -1025,7 +1031,7 @@ bool ConfigFileParser::fill_http_data(t_http_configs *http_data)
     http_data->max_cgi_timeout = DEFAULT_CGI_MAX_REQUEST_TIMEOUT;
     http_data->max_uri_size = DEFAULT_MAX_URI_SIZE;
     http_data->multiplexer = MAIN_MULTIPLEXER == KQUEUE ? "kqueue" : "epoll";
-    http_data->cookies = "on";
+    http_data->cookies = true;
     http_data->keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
     http_data->max_connections = DEFAULT_MAX_CONNECTIONS;
     http_data->proxy_cache = true;

@@ -2,7 +2,7 @@ http
 {
   allowed_methods GET POST TRACE DELETE OPTIONS HEAD PUT
   client_max_request_timeout 2s
-  client_max_body_size 20mb
+  client_max_body_size 2by
   client_max_uri_size 2049
   cgi_max_request_timeout 30s
   keep_alive_max_timeout 4s
@@ -12,18 +12,20 @@ http
 
   server
   {
-    allowed_methods HEAD GET POST TRACE
+    allowed_methods HEAD GET POST DELETE TRACE
     listen 9080
     server_name arsenal
-    root httpdocs
+    root httpdocs/www/cgi_test
     error_page 404 error_pages/404/404.html
     # error_page 403 error_pages/403.html
     error_page 403 403.html
     cgi_bin .py /usr/bin/python
     cgi_bin .pl /usr/bin/perl
     cgi_bin .php bin/php-cgi
+
     try_index_files index.html index1.html index2.html index3.html
 
+    # comment 1
 
     error_page 414 404.html
 
@@ -33,31 +35,54 @@ http
       root httpdocs/uploads
       allowed_methods POST PUT GET
     }
-  
-    location /deleting
-    {
-      root httpdocs/deleting
-      allowed_methods DELETE
-    }
 
     location /cgi
     {
-      root httpdocs/cgi_test
+      root httpdocs/www/cgi_test
       allowed_methods POST PUT GET
       error_page 404 404.html
     }
+
+    location /a
+    {
+      root httpdocs/www/cgi_test
+      error_page 404 a404.html
+    }
+
+    location /a/b
+    {
+      root httpdocs/www/cgi_test
+      error_page 404 b404.html
+    }
+
+    location /a/b/c
+    {
+      root httpdocs/www/cgi_test
+      error_page 404 c404.html
+    }
+
+
+
+    location /
+    {
+      root httpdocs/www
+    }
+
+    # comment 2
 
     location /testing/indexes
     {
       root httpdocs/testing/indexes
       try_index_files index1.html index2.html index3.html
       allowed_methods GET POST DELETE HEAD
-    }
+  }
 
     location /testing/
     {
       root httpdocs/testing
       directory_listing on 
     }
+    # comment 3
   }
+
 }

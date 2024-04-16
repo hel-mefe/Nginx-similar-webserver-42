@@ -30,7 +30,7 @@
 
 /**** Default values for parsing data *****/
 # define DEFAULT_CLIENT_MAX_BODY_SIZE 1000000
-# define DEFAULT_CLIENT_MAX_REQUEST_TIMEOUT 1000000
+# define DEFAULT_CLIENT_MAX_REQUEST_TIMEOUT 45
 # define DEFAULT_MAX_URI_SIZE 2048
 # define DEFAULT_CGI_MAX_REQUEST_TIMEOUT 1000000
 # define DEFAULT_KEEP_ALIVE_TIMEOUT 65
@@ -147,7 +147,7 @@ The following options are available for program cli: \n\
  served fastly from the cache\n\n"
 
 
-#define README "\
+#define README WHITE_BOLD"\
 The following tokens are available for the http block: \n\
  - "GREEN_BOLD"root [string]: "WHITE_BOLD"defines the root directory\n\
  - "GREEN_BOLD"allowed_methods [METHOD1, METHOD2 ...]: "WHITE_BOLD" or * asterisk for all the methods, identifies the \n\
@@ -155,6 +155,8 @@ The following tokens are available for the http block: \n\
  - "GREEN_BOLD"client_max_body_size [number]:"WHITE_BOLD" identifies the max body size per request\n\
  - "GREEN_BOLD"client_max_request_timeout [number]:"WHITE_BOLD" identifies the max request time the webserver waits \n\
  for the request\n\
+  - "GREEN_BOLD"client_max_uri_size [number]:"WHITE_BOLD" identifies the max uri size in term of how many characters \n\
+ the webserver can accept \n\
   - "GREEN_BOLD"cgi_max_request_timeout [number]: "WHITE_BOLD" specifies number of seconds to wait for the cgi process before it gets killed, \n\
 the default value is 30 seconds\n\
   - "GREEN_BOLD"keep_alive_max_timeout [number]: "WHITE_BOLD" specifies the number of seconds to wait in a keep alive connection when the client has written nothing, \n\

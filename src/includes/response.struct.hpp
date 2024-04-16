@@ -75,8 +75,6 @@ typedef struct response
     void    write_string(SOCKET fd, std::string s, bool rn)
     {
         send(fd, s.c_str(), sz(s), 0);
-        // for (int i = 0; i < sz(s); i++)
-        //     send(fd, &s[i], 1, 0);
         if (rn)
             send(fd, "\r\n", 2, 0);
     }
@@ -95,15 +93,9 @@ typedef struct response
             it++;
         }
         if (finish_it)
-        {
-            std::cout << "YES FINISHED" << std::endl;
             ress += "\r\n";
-        }
         if (send(fd, ress.c_str(), sz(ress), 0) == -1)
             return (false) ;
-        std::cout << "RESPONSE => " << std::endl ;
-        std::cout << ress << std::endl;
-        // std::cout << ress << std::endl; // [DEBUGGING_LINE]
         return (true) ;
     }
 

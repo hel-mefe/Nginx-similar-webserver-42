@@ -1,0 +1,22 @@
+http
+{
+	keep_alive_max_timeout 2s
+	client_max_uri_size 200
+	client_max_body_size 4by
+	support_cookies on
+	server
+	{
+		listen 8080
+		server_name server_1
+		cgi_bin .pl /usr/bin/perl
+		root httpdocs/www
+		error_page 404 404.png # NOT FOUND
+		error_page 400 400.png # BAD REQUEST
+		error_page 405 405.png # METHOD NOT ALLOWED
+		error_page 414 414.png # URI MAX
+		error_page 501 501.png # NOT IMPLEMENTED
+		error_page 500 500.png # Internal Server Error
+		directory_listing on
+		cgi_bin .php bin/php-cgi
+	}
+}

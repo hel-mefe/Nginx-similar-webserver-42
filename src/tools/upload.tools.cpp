@@ -1,12 +1,5 @@
 #include "../includes/http_handler.utils.hpp"
 
-// if (client->response->is_cgi)
-// {
-//     fill_cgi_env(client);
-//     serve_cgi(client, convert_cgi_env(client), client->response->cgi_env.size());
-//     return;
-// }
-
 bool create_file(t_client* client)
 {
     std::string file_path = client->cwd + client->response->root;
@@ -24,18 +17,22 @@ bool create_file(t_client* client)
     }
     if (client->request->method == "POST")
     {
-        if (client->response->is_cgi)
-            file_path = "/tmp/cgi_in";
-        else
-            file_path.append("/uploaded_file");
         for (int i = 0; i < INT_MAX; i++)
         {
+            std::string path = file_path;
+            if (client->response->is_cgi)
+                path = "/tmp/cgi_in";
+            else
+                path.append("/uploaded_file");
             if (i)
-                file_path.append(intToString(i));
+                path.append(intToString(i));
             if (!client->response->is_cgi)
-                file_path.append(client->request->extension);
-            if (access(file_path.c_str(), F_OK))
+                path.append(client->request->extension);
+            if (access(path.c_str(), F_OK))
+            {
+                file_path = path;
                 break;
+            }
         }
     }
     else
@@ -59,7 +56,6 @@ bool create_file(t_client* client)
     if (client->request->file < 0)
     {
         client->state = SERVED;
-        std::cerr << RED_BOLD << "[error][io]: failed!" << WHITE << std::endl;
         fill_response(client, 500, "Internal Server Error", true);
         return false;
     }

@@ -1,5 +1,6 @@
 # include "../includes/webserv.class.hpp"
 # include "../includes/globals.hpp"
+# include "../includes/exceptions.hpp"
 # include <dirent.h>
 # include <istream>
 
@@ -426,13 +427,13 @@ void    Webserver::set_cgi_bin_warning(std::string server_name, std::map<std::st
         path = it->second;
         if (access(path.c_str(), R_OK))
         {
-            msg = "inside the server with the following name [" + server_name + "] this cgi path is not exist." ;
+            msg = "inside the server with the following name [" + server_name + "] this cgi path [" + path + "] is not exist." ;
             this->is_warning_set = true ;
             this->msgs_queue.push(std::make_pair(WARNING, msg));
         }
         else if (access(path.c_str(), X_OK))
         {
-            msg = "inside the server with the following name [" + server_name + "] this cgi path has no x permission." ;
+            msg = "inside the server with the following name [" + server_name + "] this cgi path [" + path + "] has no x permission." ;
             this->is_warning_set = true ;
             this->msgs_queue.push(std::make_pair(WARNING, msg));
         }
@@ -502,7 +503,7 @@ void    Webserver::set_redirection_loop_warnings(t_server *s)
 
         if (is_there_a_cycle(dir_configs, location_name))
         {
-            msg = "There is a cycle for the location [ " + location_name + " ] in the following server [ " + s_configs->server_name + " ]." ;
+            msg = "There is a redirection cycle for the location [ " + location_name + " ] in the following server [ " + s_configs->server_name + " ]." ;
             this->msgs_queue.push(std::make_pair(WARNING, msg));
             this->is_warning_set = true ;
         }
@@ -516,13 +517,20 @@ void    Webserver::set_trace_is_allowed(t_server *s)
     std::string                                 msg;
 
     dir_configs = s->dir_configs;
+    if (std::find(s->server_configs->allowed_methods.begin(), s->server_configs->allowed_methods.end(), "TRACE") != s->server_configs->allowed_methods.end())
+    {
+        msg = "TRACE method is allowed in a production webserver for server with name [" + s->server_configs->server_name + "].";
+        this->msgs_queue.push(std::make_pair(WARNING, msg));
+        this->is_warning_set = true ;
+        return ;
+    }
     for (std::map<std::string, t_location_configs*>::iterator it = dir_configs->begin(); it != dir_configs->end(); it++)
     {
         l_configs = it->second;
 
         if (std::find(l_configs->allowed_methods.begin(), l_configs->allowed_methods.end(), "TRACE") != l_configs->allowed_methods.end())
         {
-            msg = "TRACE method is allowed in a production webserver";
+            msg = "TRACE method is allowed in a production webserver for server with name [" + s->server_configs->server_name + "].";
             this->msgs_queue.push(std::make_pair(WARNING, msg));
             this->is_warning_set = true ;
             break ;
@@ -542,6 +550,17 @@ void    Webserver::set_all_warnings()
         s = servers->at(i);
         server_name = s->server_configs->server_name;
 
+        /** set no name warning **/
+        if (!sz(server_name))
+        {
+            msg = "server number " + std::to_string(i + 1) + " has no name.";
+            this->msgs_queue.push(std::make_pair(WARNING, msg));
+            this->is_warning_set = true;
+            s->server_configs->server_name = "localhost" + std::to_string(i + 1);
+            msg = "server number " + std::to_string(i + 1) + " was renamed to [" + s->server_configs->server_name + "] because it has no name.";
+            this->msgs_queue.push(std::make_pair(INFO, msg));
+        }
+
         if (IN_MAP(keep_server_names, server_name))
         {
             msg = "the following server_name [" + server_name + "] is repeated as a name in many servers" ;
@@ -550,6 +569,8 @@ void    Webserver::set_all_warnings()
         }
         else
             keep_server_names.insert(server_name);
+        
+        /** handling cgi warning **/
         set_cgi_bin_warning(s->server_configs->server_name, &s->server_configs->extension_cgi);
         
         /** handling keep_alive_max_timeout that our server can handle **/
@@ -593,6 +614,7 @@ void    Webserver::set_all_warnings()
     
         /** set trace is actiavted, should be in a production server **/
         set_trace_is_allowed(s);
+
     }
     while (sz(msgs_queue))
     {
@@ -920,17 +942,10 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
     if ((!tc_found || !vu_found || !sz_found || !tv_found) && (tc_found || vu_found || sz_found || tv_found))
     {
         std::string s = "Cache time file [cachetm] is corrupted, consider removing it or clearing it to avoid this warning";
-        // std::cout << PURPLE_BOLD << s << std::endl;
         this->msgs_queue.push(std::make_pair(WARNING, s));
         this->is_warning_set = true ;
         return (false);
     }
-    // std::cout << "***** START PRINTING CACHE_TM DATA *******" << std::endl;
-    // std::cout << GREEN_BOLD << "time_created -> " << time_created << std::endl;
-    // std::cout << "time_expired -> " << time_expired << std::endl;
-    // std::cout << "time_valid -> " << time_valid << std::endl;
-    // std::cout << "cache_size -> " << cache_size << std::endl;
-    // std::cout << "***** END PRINTING CACHE_TM DATA *******" << std::endl;
     
     http_configs->cache_time_created = time_created;
     http_configs->cache_time_expired = time_expired;
@@ -949,7 +964,6 @@ bool    Webserver::parse_cachetm(t_http_configs *http_configs)
         else if (IS_CACHE_PASSED_SIZE(cache_size))
         {
             std::string s = "Cache has been exceeded the provided size, please consider resetting it (use --reset-cache flag)";
-            // std::cout << PURPLE_BOLD << s << std::endl;
             msgs_queue.push(std::make_pair(WARNING, s));
             this->is_warning_set = true;
             http_configs->proxy_cache_register = false;
@@ -994,7 +1008,7 @@ void    Webserver::run() // sockets of all servers will run here
     /*** CLI always has the priority over config file ***/
     if (cli->is_logs_activated)
         http_configs->proxy_logs_register = cli->is_logs_activated;
-
+    http_configs->cli = cli;
     /*** setting all the warnings except cache warnings ***/
     set_all_warnings();
 

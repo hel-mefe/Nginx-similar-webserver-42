@@ -19,7 +19,6 @@ char** convert_cgi_env(t_client* client)
     t_response* res = client->response;
     int env_size = res->cgi_env.size();
     char** args = (char**) malloc((env_size + 1) * sizeof(char*));
-    std::cout << CYAN_BOLD << "... [HANDLING CGI] ..." << WHITE << std::endl;
     args[env_size] = NULL;
     std::map<std::string, std::string>::iterator it = res->cgi_env.begin();
     int i = 0;
@@ -27,7 +26,6 @@ char** convert_cgi_env(t_client* client)
     {
         std::string arg = it->first + it->second;
         args[i] = strdup(arg.c_str());
-        std::cout << args[i] << std::endl;
         i++;
     }
     return args;
@@ -42,7 +40,7 @@ void    fill_cgi_env(t_client* client)
     client->response->cgi_env["PATH_INFO="] = client->response->filepath;
     if (client->request->method == "POST")
         client->response->cgi_env["CONTENT_TYPE="] = client->request->request_map.at("content-type");
-    if (!client->request->cookies.empty())
+    if (!client->request->cookies.empty() && client->server->http_configs->cookies)
         client->response->cgi_env["HTTP_COOKIE="] = client->request->cookies;
     if (!client->request->queries.empty())
         client->response->cgi_env["QUERY_STRING="] = client->request->queries;
@@ -50,7 +48,6 @@ void    fill_cgi_env(t_client* client)
 
 void    serve_cgi(t_client* client, char** env, int args_size)
 {
-    std::cout << "[CGI_PATH]: " << client->response->cgi_path << std::endl;
     char** args = (char **) malloc (3 * sizeof(char *));
     args[0] = strdup(client->response->cgi_path.c_str());
     args[1] = strdup(client->response->filepath.c_str());
@@ -69,7 +66,6 @@ void    serve_cgi(t_client* client, char** env, int args_size)
     client->response->cgi_pid = fork();
     if (client->response->cgi_pid < 0)
     {
-        std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
         fill_response(client, 500, "Internal Server Error", true);
         client->state = SERVED;
         return;
@@ -107,7 +103,7 @@ void parse_cgi_output(t_client* client)
         return ;
     }
     char buff[MAX_BUFFER_SIZE];
-    send(client->fd, "HTTP/1.1", 8, 0);
+    std::string res = "HTTP/1.1";
     rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
     if (rbytes)
     {
@@ -116,23 +112,23 @@ void parse_cgi_output(t_client* client)
         std::string line(str, 0, epos + 2);
         size_t spos = line.find("Status:");
         if(spos == std::string::npos)
-            send(client->fd, " 200 OK\r\n", 9, 0);
+            res.append(" 200 OK\r\n");
         else
         {
             line.erase(0, 7);
-            send(client->fd, line.c_str(), line.size(), 0);
+            res.append(line);
             str.erase(0, epos + 2);
         }
-        send(client->fd, str.c_str(), str.size(), 0);
+        res.append(str);
+        while(true)
+        {
+            rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
+            if (rbytes <= 0)
+                break;
+            res.append(buff, rbytes);
+        }
     }
-    // removed later on
-    while(true)
-    {
-        rbytes = read(cgi_out, buff, MAX_BUFFER_SIZE);
-        if (!rbytes)
-            break;
-        send(client->fd, buff, rbytes, 0);
-    }
+    send(client->fd, res.c_str(), res.size(), 0);
     client->state = SERVED;
     close(cgi_out);
 }
@@ -180,7 +176,6 @@ void    handle_cgi(t_client* client)
         if (it->second == 42)
         {
             client->state = SERVED;
-            std::cerr << RED_BOLD << "[error][cgi]: failed!" << WHITE << std::endl;
             fill_response(client, 500, "Internal Server Error", true);
             return;
         }
