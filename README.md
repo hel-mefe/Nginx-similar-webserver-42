@@ -27,7 +27,9 @@ Our web server supports a range of functionalities, including:
 - Logging server activity and client requests for analysis and troubleshooting.
 - Configurable settings for port number, server root directory, etc.
 
-## CLI Guide
+## Configuration file documentation
+
+Our configuration file syntax is following the recursive dfs approach, each location's configurations are prioritized over the server block, and each server block has the priority over the http block, exactly as nginx behaves.
 
 The following tokens are available for the http block:
  - <b>root [string]:</b> defines the root directory
