@@ -31,25 +31,25 @@ Our web server supports a range of functionalities, including:
 
 The following tokens are available for the http block:
  - <b>root [string]:</b> defines the root directory
- - allowed_methods [METHOD1, METHOD2 ...]:  or * asterisk for all the methods, identifies the
+ - <b>allowed_methods [METHOD1, METHOD2 ...]</b>:  or * asterisk for all the methods, identifies the
  http methods allowed in the whole webserver
- - client_max_body_size [number]: identifies the max body size per request
- - client_max_request_timeout [number]: identifies the max request time the webserver waits
+ - <b>client_max_body_size [number]</b>: identifies the max body size per request
+ - <b>client_max_request_timeout [number]</b>: identifies the max request time the webserver waits
  for the request
-  - client_max_uri_size [number]: identifies the max uri size in term of how many characters
+  - <b>client_max_uri_size [number]</b>: identifies the max uri size in term of how many characters
  the webserver can accept
-  - cgi_max_request_timeout [number]:  specifies number of seconds to wait for the cgi process before it gets killed,
+  - <b>cgi_max_request_timeout [number]</b>:  specifies number of seconds to wait for the cgi process before it gets killed,
 the default value is 30 seconds
-  - keep_alive_max_timeout [number]:  specifies the number of seconds to wait in a keep alive connection when the client has written nothing,
+  - <b>keep_alive_max_timeout [number]</b>:  specifies the number of seconds to wait in a keep alive connection when the client has written nothing,
 the default value is 65 seconds
- - multiplexer [takes one of these 'kqueue' or 'epoll' or 'poll' or 'select']: specifies the multiplexer used for simultaneous
+ - <b>multiplexer [takes one of these 'kqueue' or 'epoll' or 'poll' or 'select']</b>: specifies the multiplexer used for simultaneous
  connections, kqueue is the default one for FreeBSD and Apple distributions meanwhile Epoll is the default
  one for Linux distributions
- - support_cookies [on/off]:  specifies if the webserver supports cookies or not
- - proxy_cache [on/off]:  specifies if the server should serve requests from the cache or not, the default is off
- - proxy_cache_register [on/off]:  specifies if the server should register the requests that require some processing for future use  the default is off
- - proxy_cache_max_time [time] ex. (10s, 10m, 10h, 10d):  specifies the period of time a request should get cached, 3 days is the default
- - proxy_cache_max_size [size] ex. (10by, 10kb, 10mb, 10gb):  specifies max size of the caches that the server should never surpass,  12mb is the default
+ - <b>support_cookies [on/off]</b>:  specifies if the webserver supports cookies or not
+ - <b>proxy_cache [on/off]</b>:  specifies if the server should serve requests from the cache or not, the default is off
+ - <b>proxy_cache_register [on/off]</b>:  specifies if the server should register the requests that require some processing for future use  the default is off
+ - <b>proxy_cache_max_time [time] ex. (10s, 10m, 10h, 10d)</b>:  specifies the period of time a request should get cached, 3 days is the default
+ - <b>proxy_cache_max_size [size] ex. (10by, 10kb, 10mb, 10gb)</b>:  specifies max size of the caches that the server should never surpass,  12mb is the default
 
 The following tokens are available for each server block:
  - server_name [string]: specifies the server name
