@@ -34,7 +34,7 @@ Our web server supports a range of functionalities, including:
 
 Our configuration file syntax is following the recursive dfs approach, each location's configurations are prioritized over the server block, and each server block has the priority over the http block, exactly as nginx behaves.
 
-The following tokens are available for the http block:
+### The following tokens are available for the http block:
  - <b>root [string]:</b> defines the root directory
  - <b>allowed_methods [METHOD1, METHOD2 ...]</b>:  or * asterisk for all the methods, identifies the
  http methods allowed in the whole webserver
@@ -56,7 +56,7 @@ the default value is 65 seconds
  - <b>proxy_cache_max_time [time] ex. (10s, 10m, 10h, 10d)</b>:  specifies the period of time a request should get cached, 3 days is the default
  - <b>proxy_cache_max_size [size] ex. (10by, 10kb, 10mb, 10gb)</b>:  specifies max size of the caches that the server should never surpass,  12mb is the default
 
-The following tokens are available for each server block:
+### The following tokens are available for each server block:
  - <b>server_name [string]</b>: specifies the server name
  - <b>listen [number]</b>: specifies the port the virtual server should listen on
  - <b>try_index_files [index1, index2, ... indexN]</b>: takes index files that should be served as indexes
@@ -80,7 +80,7 @@ the default value is 30 seconds
 the default value is 65 seconds
  - <b>location [location]</b>: defines a location block inside the server block more details about it below
 
-The following tokens are available for each location block:
+### The following tokens are available for each location block:
  - <b>try_index_files [index1, index2, ... indexN]</b>: takes index files that should be served as indexes
  in case this directory has been requested
  - <b>try_404_files [file1, file2, ... fileN]</b>: takes 404 files that should be served in case the requested path was not found
