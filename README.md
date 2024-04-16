@@ -1,4 +1,4 @@
-## How this webserver works
+## How our webserver works
 ![](https://github.com/hel-mefe/Nginx-similar-webserver-42/blob/main/assets/howto.gif)
 
 This project explores the fundamentals of web server development, focusing on socket programming, HTTP/1.1 protocol, and the request-response cycle. We've crafted a robust and efficient web server from scratch, empowering developers with the knowledge and skills to understand and implement web communication in its entirety.
@@ -91,4 +91,4 @@ The following tokens are available for each location block:
 
 ## How to build your own webserver as well?
 
-[](!https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXgxczRqZm45NGxnd2x4dXBndWU5N3ZlOWFqMDY1NzdteGd0MXhxdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT1R9IJlFwp1ImrPig/giphy.gif)
+![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXgxczRqZm45NGxnd2x4dXBndWU5N3ZlOWFqMDY1NzdteGd0MXhxdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT1R9IJlFwp1ImrPig/giphy.gif)
