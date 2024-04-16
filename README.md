@@ -1,3 +1,5 @@
+## Webserver
+![](https://github.com/hel-mefe/Nginx-similar-webserver-42/blob/main/assets/howto.gif)
 ## IMPORTANT ##
 - must serve default error pages if doesnt exist in location.
 - infinite loop redirection checker is not correct.
