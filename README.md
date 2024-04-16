@@ -89,6 +89,38 @@ The following tokens are available for each location block:
  - <b>directory_listing [on/off]</b>: the default value depends on the server block, if specifies on then whenever there is no file
  to serve and this location is requested the directory_listing will run
 
+### Example:
+
+``` json
+
+http
+{
+	keep_alive_max_timeout 2s
+	client_max_uri_size 200
+	client_max_body_size 4by
+	support_cookies on
+	server
+	{
+		listen 8080
+		server_name server_1
+		cgi_bin .pl /usr/bin/perl
+		root httpdocs/www
+		error_page 404 404.png # NOT FOUND
+		error_page 400 400.png # BAD REQUEST
+		error_page 405 405.png # METHOD NOT ALLOWED
+		error_page 414 414.png # URI MAX
+		error_page 501 501.png # NOT IMPLEMENTED
+		error_page 500 500.png # Internal Server Error
+		directory_listing on
+		cgi_bin .php bin/php-cgi
+	}
+}
+
+```
+
 ## How to build your own webserver as well?
 
 ![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXgxczRqZm45NGxnd2x4dXBndWU5N3ZlOWFqMDY1NzdteGd0MXhxdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT1R9IJlFwp1ImrPig/giphy.gif)
+
+If you are student of any 42 network, or you're a software engineer curious to know more about how can you build your own server, then this guide is crafted for you.
+
