@@ -8,7 +8,7 @@ This project explores the fundamentals of web server development, focusing on so
 - **Socket Programming**: Master the art of establishing connections, transmitting data, and managing communication channels between clients and servers.
 - **HTTP/1.1 Protocol**: Explore HTTP methods, headers, status codes, and message formats to interpret and construct HTTP messages accurately.
 - **Request-response lifecycle**: Understand the heartbeat of web communication, from client requests to server processing and response delivery.
-- - **Multiplexing with kqueue and epoll**: Utilize efficient event notification mechanisms for handling multiple connections concurrently, enhancing the scalability and performance of the web server.
+- **Multiplexing with kqueue and epoll**: Utilize efficient event notification mechanisms for handling multiple connections concurrently, enhancing the scalability and performance of the web server.
 
 ## Getting Started
 
@@ -142,5 +142,6 @@ http
 **Generate HTTP Responses:** Based on the request received, generate an appropriate HTTP response. This may involve reading files from the server's file system, executing server-side scripts, or generating dynamic content. Construct the HTTP response with the correct status code, headers, and content.
 
 **Send Response to Client:** Once the HTTP response is generated, send it back to the client over the established connection. Use the send() or write() function to send the response data over the socket.
+
 
 
